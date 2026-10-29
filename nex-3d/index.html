@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEX · Loja</title>
+<style>
+  :root { --bg:#0b0b0f; --fg:#f5f5f7; --acc:#ff7a1a; --glass:rgba(18,18,24,.66); }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:"Segoe UI",system-ui,Roboto,sans-serif; overflow:hidden; }
+  canvas { display:block; }
+  .glass { background:var(--glass); backdrop-filter:blur(16px) saturate(1.4); border:1px solid rgba(255,255,255,.14); border-radius:18px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  #cross { position:fixed; left:50%; top:50%; width:10px; height:10px; margin:-5px; border-radius:50%; border:2px solid #fff; opacity:.8; pointer-events:none; box-shadow:0 0 0 1px rgba(0,0,0,.35); }
+  #cross.hot { background:var(--acc); border-color:#fff; transform:scale(1.5); }
+  #tip { position:fixed; left:50%; top:calc(50% + 28px); transform:translateX(-50%); padding:9px 16px; font-size:14px; white-space:nowrap; opacity:0; transition:opacity .12s; pointer-events:none; }
+  #tip b { color:var(--acc); }
+  #cart { position:fixed; right:16px; top:16px; width:270px; padding:14px 16px; font-size:14px; pointer-events:none; }
+  #cart h3 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.65; margin-bottom:8px; }
+  #cart .row { display:flex; justify-content:space-between; gap:8px; padding:3px 0; }
+  #cart .tot { border-top:1px solid rgba(255,255,255,.15); margin-top:8px; padding-top:8px; font-weight:700; display:flex; justify-content:space-between; }
+  #cart .empty { opacity:.55; }
+  #cart .cfin { pointer-events:auto; width:100%; margin-top:10px; padding:11px 12px; border:0; border-radius:12px; background:var(--acc); color:#16120e; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; font-family:inherit; }
+  #cart .cfin kbd { background:rgba(0,0,0,.2); color:#fff; }
+  #cart .cfin:hover { filter:brightness(1.08); }
+  #help { position:fixed; left:16px; bottom:16px; padding:10px 14px; font-size:12.5px; line-height:1.7; opacity:.9; pointer-events:none; }
+  kbd { background:rgba(255,255,255,.16); border-radius:6px; padding:1px 7px; font-size:12px; font-family:inherit; }
+  #voltar { position:fixed; left:16px; top:16px; padding:10px 15px; font-size:13px; color:#fff; text-decoration:none; z-index:6; display:flex; align-items:center; gap:8px; }
+  #voltar:hover { background:rgba(255,122,26,.35); }
+  #toast { position:fixed; left:50%; bottom:90px; transform:translate(-50%,10px); padding:10px 18px; opacity:0; transition:all .25s; pointer-events:none; font-size:14px; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at center,rgba(0,0,0,.25),rgba(0,0,0,.78)); cursor:pointer; z-index:5; }
+  #overlay .box { text-align:center; padding:36px 44px; max-width:460px; }
+  #overlay h1 { font-size:36px; margin-bottom:6px; letter-spacing:-.02em; }
+  #overlay h1 span { color:var(--acc); }
+  #overlay p { opacity:.78; margin:8px 0; font-size:15px; line-height:1.5; }
+  .btn { display:inline-block; margin-top:16px; padding:13px 28px; border-radius:13px; background:var(--acc); color:#16120e; font-weight:700; font-size:16px; border:0; cursor:pointer; }
+  .btn.ghost { background:rgba(255,255,255,.12); color:var(--fg); margin-left:8px; }
+  #modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.62); backdrop-filter:blur(4px); z-index:8; padding:14px; }
+  #modal.on { display:flex; animation:fadeIn .18s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes pop { from{transform:translateY(14px) scale(.97);opacity:0} to{transform:none;opacity:1} }
+  .co { position:relative; width:min(940px,100%); max-height:94vh; overflow:auto; padding:22px 26px 24px; animation:pop .25s cubic-bezier(.2,.9,.3,1.1); }
+  .coclose { position:absolute; right:14px; top:12px; width:34px; height:34px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:15px; z-index:2; }
+  .coclose:hover { background:rgba(255,255,255,.25); }
+  .costeps { display:flex; align-items:center; gap:10px; margin:0 44px 18px 0; font-size:13px; }
+  .costeps i { flex:1; height:2px; background:rgba(255,255,255,.14); border-radius:2px; max-width:70px; }
+  .cos { display:flex; align-items:center; gap:7px; opacity:.5; }
+  .cos b { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.14); display:grid; place-items:center; font-size:12px; }
+  .cos.on { opacity:1; } .cos.on b { background:var(--acc); color:#16120e; }
+  .cos.done { opacity:.85; } .cos.done b { background:#2fb36a; color:#fff; }
+  .cogrid { display:grid; grid-template-columns:1.35fr 1fr; gap:26px; }
+  .cogrid.one { grid-template-columns:1fr; }
+  .comain h2 { font-size:26px; letter-spacing:-.02em; margin-bottom:14px; }
+  .comain h4, .coside h4 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.6; margin:16px 0 8px; }
+  .coside { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:16px 18px; align-self:start; }
+  .coside h4 { margin-top:0; }
+  .ci { display:grid; grid-template-columns:56px 1fr auto auto auto; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+  .ci img, .sl img { width:56px; height:56px; object-fit:contain; background:rgba(255,255,255,.06); border-radius:14px; padding:4px; }
+  .ci .cit b { display:block; font-size:15px; } .ci small, .sl small { opacity:.6; font-size:12.5px; }
+  .cip { min-width:78px; text-align:right; font-size:15px; }
+  .cirm { border:0; background:rgba(255,255,255,.08); border-radius:9px; width:34px; height:34px; cursor:pointer; opacity:.85; font-size:15px; } .cirm:hover { opacity:1; background:rgba(255,93,93,.3); }
+  .sl { display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center; padding:6px 0; font-size:14px; }
+  .sl img { width:44px; height:44px; border-radius:11px; } .sl b { display:block; font-size:13.5px; } .sl > span { font-weight:600; }
+  .sr { display:flex; justify-content:space-between; padding:5px 0; font-size:14px; opacity:.85; }
+  .sr.tot { border-top:1px solid rgba(255,255,255,.14); margin-top:6px; padding-top:10px; font-size:19px; font-weight:800; opacity:1; }
+  .sfree { display:block; margin-top:6px; opacity:.65; font-size:12.5px; } .sfree.ok { color:#6be39a; opacity:1; }
+  .coact { display:flex; gap:10px; margin-top:20px; }
+  .coact .btn { margin:0; padding:14px 22px; font-size:15px; } .coact .btn:not(.ghost) { flex:1; }
+  .coact .btn.ghost { margin-left:0; }
+  .btn:disabled { opacity:.6; cursor:wait; }
+  .fg { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fg label { font-size:12.5px; opacity:.9; display:flex; flex-direction:column; gap:5px; } .fg label.w2 { grid-column:1/-1; }
+  .co input[data-f], .co select { padding:12px 13px; border-radius:11px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:14.5px; font-family:inherit; outline:none; width:100%; }
+  .co input[data-f]:focus, .co select:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(255,122,26,.22); }
+  .co input.bad { border-color:#ff5d5d; background:rgba(255,93,93,.1); }
+  .opts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .opt { text-align:left; padding:12px 13px; border-radius:13px; border:1.5px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:var(--fg); cursor:pointer; font-family:inherit; }
+  .opt b { display:block; font-size:14px; } .opt small { opacity:.6; font-size:12px; }
+  .opt:hover { border-color:rgba(255,255,255,.35); } .opt.on { border-color:var(--acc); background:rgba(255,122,26,.12); }
+  .pix { display:flex; gap:18px; align-items:center; margin-top:14px; }
+  .pix canvas { width:176px; height:176px; border-radius:14px; background:#fff; padding:8px; flex:none; image-rendering:pixelated; }
+  .pix small { opacity:.65; display:block; margin:3px 0 10px; line-height:1.4; }
+  .copy { display:flex; gap:6px; } .copy input { flex:1; min-width:0; padding:10px 11px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:12px; }
+  .copy button { padding:0 14px; border:0; border-radius:10px; background:rgba(255,255,255,.16); color:#fff; cursor:pointer; font-weight:600; }
+  .demo { margin-top:12px; font-size:12px; opacity:.55; }
+  .done { text-align:center; padding:6px 0 4px; }
+  .check { width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,#2fb36a,#1f8a4f); display:grid; place-items:center; font-size:40px; margin:0 auto 12px; box-shadow:0 0 0 10px rgba(47,179,106,.18); animation:pop .5s cubic-bezier(.2,.9,.3,1.4); }
+  .done p { opacity:.8; margin-top:4px; }
+  .tl { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:22px 0 6px; }
+  .tl div { text-align:center; font-size:12.5px; opacity:.45; position:relative; padding-top:26px; }
+  .tl div::before { content:''; position:absolute; left:50%; top:0; width:20px; height:20px; margin-left:-10px; border-radius:50%; background:rgba(255,255,255,.14); }
+  .tl div::after { content:''; position:absolute; left:calc(50% + 14px); right:calc(-50% + 14px); top:9px; height:2px; background:rgba(255,255,255,.14); }
+  .tl div:last-child::after { display:none; }
+  .tl div.done, .tl div.on { opacity:1; } .tl div.done::before { background:#2fb36a; } .tl div.on::before { background:var(--acc); box-shadow:0 0 0 6px rgba(255,122,26,.25); }
+  .tl div.done::after { background:#2fb36a; }
+  .cog2 { display:grid; grid-template-columns:1.2fr 1fr; gap:22px; margin-top:12px; text-align:left; }
+  .info { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:14px 16px; font-size:14px; line-height:1.7; }
+  .info > b { opacity:.6; font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase; display:block; margin-top:6px; }
+  @media (max-width:760px){ .cogrid,.cog2{grid-template-columns:1fr} .fg{grid-template-columns:1fr} .opts{grid-template-columns:1fr} .pix{flex-direction:column;align-items:flex-start} .ci{grid-template-columns:48px 1fr auto} .ci .cip{grid-column:2} .costeps span{display:none} }
+  #pc { position:fixed; left:50%; bottom:22px; transform:translate(-50%,26px); width:min(640px,94vw); display:none; opacity:0; z-index:6; --pc:#ff7a1a;
+    background:linear-gradient(135deg,rgba(26,26,33,.86),rgba(13,13,18,.82)); backdrop-filter:blur(20px) saturate(1.6); border:1px solid rgba(255,255,255,.14); border-radius:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.5), 0 0 70px -14px var(--pc); overflow:hidden; transition:opacity .16s, transform .24s cubic-bezier(.2,.9,.3,1.12); }
+  #pc.on { display:flex; opacity:1; transform:translate(-50%,0); }
+  #pc::before { content:''; position:absolute; left:-70px; top:-70px; width:300px; height:300px; background:radial-gradient(circle,var(--pc),transparent 65%); opacity:.5; filter:blur(8px); pointer-events:none; }
+  #pc::after { content:''; position:absolute; left:0; right:0; top:0; height:3px; background:linear-gradient(90deg,var(--pc),transparent); }
+  .pcimgw { position:relative; flex:0 0 156px; display:flex; align-items:center; justify-content:center; padding:14px 0 14px 8px; transition:flex-basis .24s; }
+  .pcimgw::before { content:''; position:absolute; width:118px; height:118px; border-radius:50%; background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),rgba(255,255,255,.04) 70%); border:1px solid rgba(255,255,255,.12); }
+  .pcimgw img { position:relative; width:136px; height:136px; object-fit:contain; filter:drop-shadow(0 14px 12px rgba(0,0,0,.5)); animation:floaty 3.8s ease-in-out infinite; }
+  #pc.full .pcimgw { flex-basis:206px; } #pc.full .pcimgw::before { width:150px; height:150px; } #pc.full .pcimgw img { width:182px; height:182px; }
+  .pcbody { position:relative; flex:1; padding:16px 20px 16px 6px; display:flex; flex-direction:column; gap:7px; min-width:0; justify-content:center; }
+  .pcbrand { font-size:11px; letter-spacing:.15em; text-transform:uppercase; opacity:.6; }
+  .pcname { font-size:22px; font-weight:800; letter-spacing:-.015em; line-height:1.1; }
+  #pc.full .pcname { font-size:28px; }
+  .pcprice { font-size:24px; font-weight:800; color:#fff; }
+  .pcprice b { color:var(--acc); font-weight:800; }
+  .pcprice small { font-size:13px; font-weight:600; opacity:.65; }
+  .pcdesc { display:none; font-size:14px; line-height:1.55; opacity:.88; }
+  #pc.full .pcdesc { display:block; }
+  .pcchips { display:flex; gap:6px; flex-wrap:wrap; }
+  .pcchips span { background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12); border-radius:99px; padding:4px 11px; font-size:12px; }
+  .pcchips span.hl { background:var(--pc); color:#fff; border-color:transparent; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+  .pchint { font-size:12px; opacity:.6; margin-top:2px; }
+  #pc.full .pchint { display:none; }
+  .pcact { display:none; align-items:center; gap:10px; margin-top:4px; }
+  #pc.full .pcact { display:flex; }
+  .pcact .btn { margin:0; flex:1; padding:12px 14px; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .pcact .btn kbd { background:rgba(0,0,0,.18); color:#fff; }
+  .pckeys { display:none; font-size:11.5px; opacity:.55; }
+  #pc.full .pckeys { display:block; }
+  .pcsizes { display:none; gap:7px; flex-wrap:wrap; align-items:center; }
+  #pc.full .pcsizes.has { display:flex; }
+  .pcsizes::before { content:'Tamanho'; font-size:12px; opacity:.6; margin-right:2px; }
+  .sz { min-width:42px; height:36px; padding:0 10px; border-radius:10px; border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; }
+  .sz:hover { border-color:rgba(255,255,255,.5); } .sz.on { background:var(--acc); color:#16120e; border-color:transparent; }
+  #pcx { display:none; position:absolute; right:12px; top:10px; width:30px; height:30px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:14px; }
+  #pc.full #pcx { display:block; } #pcx:hover { background:rgba(255,255,255,.25); }
+  .qty { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,.1); border-radius:12px; padding:3px; }
+  .qty button { width:34px; height:34px; border:0; border-radius:9px; background:rgba(255,255,255,.14); color:#fff; font-size:19px; cursor:pointer; }
+  .qty button:hover { background:rgba(255,255,255,.28); }
+  .qty span { min-width:48px; text-align:center; font-weight:700; font-size:15px; }
+  @keyframes floaty { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
+  @media (max-width:560px){ .pcimgw{flex-basis:110px} .pcimgw img{width:96px;height:96px} #pc.full .pcimgw{flex-basis:120px} #pc.full .pcimgw img{width:110px;height:110px} .pcname{font-size:18px} }
+  .co textarea { padding:12px 13px; border-radius:11px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:14.5px; font-family:inherit; outline:none; width:100%; resize:vertical; }
+  .co textarea:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(255,122,26,.22); }
+  #pc .qty { display:none; }
+</style>
+</head>
+<body>
+<div id="cross"></div>
+<div id="cart" class="glass"></div>
+<div id="help" class="glass"><kbd>W A S D</kbd> andar &nbsp; <kbd>Shift</kbd> correr &nbsp; <kbd>clique</kbd> fixar ficha &nbsp; <kbd>E</kbd> escolher<br><kbd>Q</kbd> tirar o último &nbsp; <kbd>F</kbd> finalizar pedido &nbsp; <kbd>Esc</kbd> soltar mouse</div>
+<div id="toast" class="glass"></div>
+
+<div id="overlay"><div class="box glass">
+  <h1>NEX <span>Hub</span></h1>
+  <p>Conheça a NEX e converse com a Ravi, a agente que entende o seu negócio antes de indicar qualquer coisa.</p>
+  <p style="font-size:13px;opacity:.55">Demo · NEW</p>
+  <button class="btn">Entrar na loja</button>
+</div></div>
+
+<div id="pc"><div class="pcimgw"><img id="pcimg" alt=""></div><div class="pcbody">
+  <button id="pcx" title="Fechar (X)">✕</button>
+  <div class="pcbrand" id="pcbrand"></div>
+  <div class="pcname" id="pcname"></div>
+  <div class="pcprice" id="pcprice"></div>
+  <div class="pcdesc" id="pcdesc"></div>
+  <div class="pcchips" id="pcchips"></div>
+  <div class="pchint">clique pra fixar e ver os detalhes</div>
+  <div class="pcsizes" id="pcsizes"></div>
+  <div class="pcact"><div class="qty"><button id="qm">−</button><span id="qn">1</span><button id="qp">+</button></div><button class="btn" id="pcadd">Adicionar ao carrinho <kbd>E</kbd></button></div>
+  <div class="pckeys"><kbd>E</kbd> escolher &nbsp; <kbd>X</kbd> fechar &nbsp; (clique fora pra voltar)</div>
+</div></div>
+
+<div id="modal"><div class="co glass">
+  <button class="coclose" id="coclose" title="Fechar (Esc)">✕</button>
+  <div class="costeps" id="costeps"></div>
+  <div class="cogrid"><div class="comain" id="comain"></div><aside class="coside" id="coside"></aside></div>
+</div></div>
+
+<script>
+window.addEventListener('error', e=>{ const b=document.querySelector('#overlay .box'); if(b) b.innerHTML='<h1>Erro 😕</h1><p>'+(e.message||'falha ao carregar')+'</p><p style="font-size:12px">Me manda um print dessa tela.</p>'; });
+setTimeout(()=>{ if(!window.__mercadoOk){ const b=document.querySelector('#overlay .box'); b.innerHTML='<h1>Não carregou 😕</h1><p>O 3D vem da internet (three.js). Confira se você está online e se o navegador não bloqueia cdn.jsdelivr.net. Depois recarregue (Ctrl+F5).</p>'; } }, 6000);
+</script>
+<script src="../shared/music.js"></script>
+<script>if(window.NewMusic) NewMusic.init('nex');</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="../shared/perf.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+window.__mercadoOk = true;
+
+const WHATSAPP = ''; // número com DDI+DDD (ex: 5511999999999). Vazio = o cliente escolhe o contato.
+const brl = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const $ = id => document.getElementById(id);
+
+// veio da Rua Digital (../mundo)? mostra o botão de voltar
+const FROM_RUA = /[?&]rua=1/.test(location.search), RUA_URL = '../mundo/index.html';
+if(FROM_RUA){
+  const a=document.createElement('a'); a.id='voltar'; a.className='glass'; a.href=RUA_URL; a.innerHTML='← Voltar pra rua <kbd>V</kbd>';
+  for(const ev of ['mousedown','mouseup']) a.addEventListener(ev,e=>e.stopPropagation());
+  document.body.appendChild(a);
+}
+
+/* ========== utilidades ========== */
+const rnd = (()=>{ let a=20261028; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; })();
+const R = (a,b)=>a+(b-a)*rnd();
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const lum = hex => { const c=new THREE.Color(hex); return .2126*c.r+.7152*c.g+.0722*c.b; };
+const onCol = hex => lum(hex)>.3 ? '#1b1b1b' : '#ffffff';
+function ctex(w,h,fn,rep){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; fn(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+  if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep[0],rep[1]); }
+  return t;
+}
+const M = o => new THREE.MeshStandardMaterial(Object.assign({roughness:.6,metalness:0,envMapIntensity:.55},o));
+const lathe = (pts,seg=20)=>new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg);
+
+/* ========== renderer / cena ========== */
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0b0b0e');
+scene.fog = new THREE.Fog('#0e0d11', 22, 62);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 120);
+camera.position.set(0,1.65,10.4);
+camera.rotation.order = 'YXZ';
+
+scene.add(new THREE.HemisphereLight('#fff0e0','#3a2c22',1.7));
+const sun = new THREE.DirectionalLight('#fff0dd',1.0);
+sun.position.set(3,16,8); sun.target.position.set(0,0,-3);
+sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-12,right:12,top:20,bottom:-20,near:1,far:40});
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+scene.add(sun, sun.target);
+function spot(x,y,z,tx,ty,tz,i=70,ang=.5,col='#ffe2c0'){ const s=new THREE.SpotLight(col,i,14,ang,.7,2); s.position.set(x,y,z); s.target.position.set(tx,ty,tz); scene.add(s,s.target); }
+
+const ROOM = {x0:-9,x1:9,z0:-16,z1:12,h:4.6};
+const colliders = [];
+const TICKS = [];
+const addBox = (g,w,h,d,mat,x,y,z,shadow=true)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=shadow; m.receiveShadow=true; g.add(m); return m; };
+const OR='#ff7a1a', OR_L='#ffb066';
+function rr(c,x,y,w,h,r){ c.beginPath(); c.roundRect(x,y,w,h,r); }
+
+/* ========== texturas ========== */
+const woodTex = (base='#3a2a20',lines=130)=>ctex(512,256,(g,w,h)=>{
+  g.fillStyle=base; g.fillRect(0,0,w,h);
+  for(let i=0;i<lines;i++){ g.strokeStyle=`rgba(${20+rnd()*30|0},${10+rnd()*16|0},5,${.06+rnd()*.14})`; g.lineWidth=.5+rnd()*1.8; g.beginPath(); const y=rnd()*h; g.moveTo(0,y); g.bezierCurveTo(w*.3,y+R(-3,3),w*.6,y+R(-3,3),w,y+R(-4,4)); g.stroke(); }
+});
+const floorTex = ctex(512,512,(g,w,h)=>{ g.fillStyle='#34333c'; g.fillRect(0,0,w,h); for(let i=0;i<3000;i++){ const v=44+rnd()*24|0; g.fillStyle=`rgba(${v},${v},${v+4},${rnd()*.5})`; g.fillRect(rnd()*w,rnd()*h,2,2); } g.strokeStyle='rgba(0,0,0,.6)'; g.lineWidth=3; g.strokeRect(1,1,w-2,h-2); },[9,14]);
+const aoTex = ctex(128,128,(g,w,h)=>{ g.filter='blur(10px)'; g.fillStyle='#000'; g.fillRect(22,22,w-44,h-44); });
+function aoPlane(w,d,x,z,a=.5){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,opacity:a,depthWrite:false,toneMapped:false})); m.rotation.x=-Math.PI/2; m.position.set(x,.006,z); scene.add(m); }
+
+/* ========== catálogo: a oferta da NEX (fonte: modelo comercial, sem inventar nada) ========== */
+const CL = {
+  analise:{id:'analise',name:'Análise Estratégica NEX',emoji:'🔍',kind:'dossie',free:true,tag:'porta de entrada',brand:'NEX',sub:'sem custo',color:'#ff7a1a'},
+  start:  {id:'start',  name:'START',  emoji:'🚀',kind:'pkg',tier:1,tag:'estrutura inicial',brand:'NEX',sub:'pacote 1 de 3',color:'#ff7a1a'},
+  growth: {id:'growth', name:'GROWTH', emoji:'📈',kind:'pkg',tier:2,tag:'tudo do START +',brand:'NEX',sub:'pacote 2 de 3',color:'#ff7a1a'},
+  scale:  {id:'scale',  name:'SCALE',  emoji:'🛰️',kind:'pkg',tier:3,tag:'tudo do GROWTH +',brand:'NEX',sub:'pacote 3 de 3',color:'#ff7a1a'},
+  erp:    {id:'erp',    name:'Sistema NEW (ERP)',emoji:'🧾',kind:'erp',tag:'por trás de todas as lojas',brand:'NEW',sub:'PDV · nota fiscal',color:'#8b5cf6'},
+};
+const DESC = {
+  analise:{d:'Auditoria gratuita antes de qualquer venda, que já entrega valor: avalia Posicionamento, Marca, Google, Instagram, Site, Comunicação, Conversão, Autoridade, Experiência do cliente e Oportunidades de crescimento.',o:'Sem compromisso',t:['Gratuita','10 áreas avaliadas']},
+  start:{d:'A base da estrutura digital: posicionamento de marca, Instagram inicial, site institucional, Google Business, SEO base, Ciclos de Posicionamento (conteúdo em ciclos de 3 posts sobre o mesmo assunto) e o Painel NEX.',o:'Estrutura inicial',t:['Marca + site','Google + Instagram']},
+  growth:{d:'Tudo do START, mais estratégia de conteúdo, novos ciclos, otimizações contínuas, landing pages, relatórios, IA da empresa e melhorias mensais.',o:'Crescimento contínuo',t:['Cumulativo','IA da empresa']},
+  scale:{d:'Tudo do GROWTH, mais automações, IA personalizada, sistemas internos, dashboards, integrações, consultoria estratégica e desenvolvimento sob demanda.',o:'Operação em escala',t:['Cumulativo','Sistemas e integrações']},
+  erp:{d:'ERP com PDV e emissão de nota fiscal. É o sistema que fica por trás das lojas da Rua NEW: estoque, pedido e financeiro no mesmo lugar.',o:'Produto NEW',t:['PDV','Nota fiscal']},
+};
+
+/* ========== geometrias dos itens ========== */
+function dashTex(title,sub){ return ctex(512,320,(c,w,h)=>{ c.fillStyle='#101014'; c.fillRect(0,0,w,h); const g=c.createLinearGradient(0,0,w,0); g.addColorStop(0,OR); g.addColorStop(1,'#ffb066'); c.fillStyle=g; c.fillRect(0,0,w,10);
+  c.fillStyle='#fff'; c.font='800 46px "Segoe UI",system-ui'; c.textAlign='left'; c.fillText(title,28,84); c.fillStyle='rgba(255,255,255,.6)'; c.font='500 22px "Segoe UI",system-ui'; c.fillText(sub,30,118);
+  for(let i=0;i<6;i++){ const bh=40+rnd()*110; c.fillStyle=i%2?OR:'#ffb066'; c.fillRect(34+i*66,300-bh,44,bh); } c.fillStyle='rgba(255,255,255,.2)'; c.fillRect(28,300,w-56,2); }); }
+function buildItem(p){
+  const parts=[]; const S=o=>M(Object.assign({roughness:.5,envMapIntensity:.6},o));
+  const rim=new THREE.MeshBasicMaterial({color:OR,toneMapped:false});
+  let w=.3,d=.3,h=.4;
+  switch(p.kind){
+    case 'pkg': { const n=p.tier, bw=.26, blocks=[], rims=[];
+      for(let i=0;i<n;i++){ const bh=.16+i*.17, g=new RoundedBoxGeometry(bw-.02,bh,.3,2,.012); g.translate((i-(n-1)/2)*bw,bh/2,0); blocks.push(g);
+        const r=new THREE.BoxGeometry(bw-.02,.012,.3); r.translate((i-(n-1)/2)*bw,bh+.006,0); rims.push(r); }
+      parts.push({geo:mergeGeometries(blocks),mat:S({color:'#1a1a20',roughness:.35,metalness:.5}),pick:1}); parts.push({geo:mergeGeometries(rims),mat:rim});
+      const top=.16+(n-1)*.17, pl=new RoundedBoxGeometry(.42,.2,.02,2,.01); pl.translate(0,top+.2,0);
+      const tx=ctex(256,128,(c,cw,ch)=>{ c.fillStyle='#14141a'; c.fillRect(0,0,cw,ch); c.fillStyle=OR; c.fillRect(0,ch-8,cw,8); c.fillStyle='#fff'; c.font='800 58px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(p.name,cw/2,ch*.46); c.fillStyle='rgba(255,255,255,.6)'; c.font='500 20px "Segoe UI",system-ui'; c.fillText(p.tag.toUpperCase(),cw/2,ch*.8); });
+      const dk=S({color:'#14141a'}); parts.push({geo:pl,mat:[dk,dk,dk,dk,new THREE.MeshBasicMaterial({map:tx,toneMapped:false}),dk]});
+      w=n*bw; d=.3; h=top+.34; break; }
+    case 'dossie': { const g=new RoundedBoxGeometry(.32,.42,.03,3,.02); g.translate(0,.4,0); const tx=dashTex('Análise Estratégica','NEX · 10 áreas avaliadas');
+      const dk=S({color:'#14141a'}); parts.push({geo:g,mat:[dk,dk,dk,dk,new THREE.MeshBasicMaterial({map:tx,toneMapped:false}),dk],pick:1});
+      const st=new RoundedBoxGeometry(.2,.04,.18,2,.015); st.translate(0,.02,0); const nk=new THREE.CylinderGeometry(.02,.02,.2,8); nk.translate(0,.12,-.01); const sm=S({color:'#26262e',metalness:.6}); parts.push({geo:st,mat:sm},{geo:nk,mat:sm});
+      w=.32; d=.2; h=.62; break; }
+    case 'erp': { const g=new RoundedBoxGeometry(.5,.32,.03,3,.02); g.translate(0,.36,0); const dk=S({color:'#14141a'});
+      parts.push({geo:g,mat:[dk,dk,dk,dk,new THREE.MeshBasicMaterial({map:dashTex('Sistema NEW','PDV · Estoque · Nota fiscal'),toneMapped:false}),dk],pick:1});
+      const st=new THREE.CylinderGeometry(.015,.03,.2,10); st.translate(0,.1,-.01); const bs=new RoundedBoxGeometry(.22,.02,.16,2,.008); bs.translate(0,.01,0); const sm2=S({color:'#26262e',metalness:.6}); parts.push({geo:st,mat:sm2},{geo:bs,mat:sm2});
+      w=.5; d=.2; h=.54; break; }
+  }
+  const K=p.kind==='pkg'?1.9:(p.kind==='dossie'||p.kind==='erp')?1.5:1;   // itens de vitrine maiores que produto de prateleira
+  if(K!==1){ parts.forEach(pt=>pt.geo.scale(K,K,K)); w*=K; d*=K; h*=K; }
+  return {parts,w,d,h,r:Math.max(w,d)/2};
+}
+
+/* ========== sistema de instâncias (tudo vira InstancedMesh) ========== */
+const types = new Map(), pickMeshes = [], tagList = [];
+const ONE = new THREE.Vector3(1,1,1);
+function getType(p){
+  let t=types.get(p.id);
+  if(!t){ t={p,def:buildItem(p),mats:[],meshes:[]}; types.set(p.id,t); }
+  return t;
+}
+function place(p,parent,pos,quat){
+  const m=new THREE.Matrix4().compose(pos,quat,ONE); if(parent) m.premultiply(parent); getType(p).mats.push(m);
+}
+function finalize(){
+  const col=new THREE.Color();
+  for(const t of types.values()){
+    const n=t.mats.length; if(!n) continue;
+    for(const part of t.def.parts){
+      const im=new THREE.InstancedMesh(part.geo,part.mat,n); im.castShadow=false; im.receiveShadow=true;
+      t.mats.forEach((m,i)=>im.setMatrixAt(i,m));
+      if(part.palette){ for(let i=0;i<n;i++){ col.set(part.palette[(rnd()*part.palette.length)|0]).multiplyScalar(R(.85,1.08)); im.setColorAt(i,col); } }
+      im.userData.type=t; t.meshes.push(im); scene.add(im); if(part.pick) pickMeshes.push(im);
+    }
+  }
+  const byP=new Map(); tagList.forEach(({p,m})=>{ if(!byP.has(p.id)) byP.set(p.id,{p,ms:[]}); byP.get(p.id).ms.push(m); });
+  for(const {p,ms} of byP.values()){
+    const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.19,.055),new THREE.MeshBasicMaterial({map:tagTex(p)}),ms.length);
+    ms.forEach((m,i)=>im.setMatrixAt(i,m)); scene.add(im);
+  }
+}
+const _s=new THREE.Matrix4();
+function setHover(t,i,on){
+  for(const im of t.meshes){ if(on){ _s.makeScale(1.1,1.1,1.1); im.setMatrixAt(i,t.mats[i].clone().multiply(_s)); } else im.setMatrixAt(i,t.mats[i]); im.instanceMatrix.needsUpdate=true; }
+}
+const qY = a=>new THREE.Quaternion().setFromAxisAngle(V3(0,1,0),a);
+const qE = (x,y,z)=>new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z));
+
+/* ========== o showroom da NEX ========== */
+const darkM=M({color:'#17161c',roughness:.45,metalness:.3}), stoneM=M({color:'#24232b',roughness:.35,metalness:.4}), walnut=M({map:woodTex('#3a2a20'),roughness:.55,envMapIntensity:.4});
+const ledO=new THREE.MeshBasicMaterial({color:OR,toneMapped:false}), ledW=new THREE.MeshBasicMaterial({color:'#fff3e0',toneMapped:false});
+const metalDk=M({color:'#2a2930',metalness:.8,roughness:.3,envMapIntensity:.9});
+function glowS(color,sx,sy,x,y,z,op=.5,parent=scene){ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:ctex(64,64,(c,w,h)=>{ const gr=c.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); c.fillStyle=gr; c.fillRect(0,0,w,h); }),color,transparent:true,opacity:op,depthWrite:false,blending:THREE.AdditiveBlending})); s.scale.set(sx,sy,1); s.position.set(x,y,z); parent.add(s); return s; }
+
+// piso, teto, paredes
+{ const floor=new THREE.Mesh(new THREE.PlaneGeometry(18,28),M({map:floorTex,roughness:.2,metalness:.15,envMapIntensity:1})); floor.rotation.x=-Math.PI/2; floor.position.set(0,0,-2); floor.receiveShadow=true; scene.add(floor);
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(18,28),new THREE.MeshBasicMaterial({color:'#25242c'})); ceil.rotation.x=Math.PI/2; ceil.position.set(0,ROOM.h,-2); scene.add(ceil);
+  const wallM=M({color:'#2c2b34',roughness:.85,envMapIntensity:.25});
+  for(const [x,ry] of [[-9,Math.PI/2],[9,-Math.PI/2]]){ const w=new THREE.Mesh(new THREE.PlaneGeometry(28,ROOM.h),wallM); w.position.set(x,ROOM.h/2,-2); w.rotation.y=ry; w.receiveShadow=true; scene.add(w);
+    const led=new THREE.Mesh(new THREE.BoxGeometry(.05,.05,28),ledO); led.position.set(x*.994,ROOM.h-.15,-2); scene.add(led); const led2=led.clone(); led2.position.y=.16; scene.add(led2); }
+  const lgp=new THREE.InstancedMesh(new THREE.BoxGeometry(1.7,.05,.5),ledW,35); let kk=0; for(const x of [-6,-3,0,3,6]) for(let z=-13;z<=11;z+=4) lgp.setMatrixAt(kk++,new THREE.Matrix4().makeTranslation(x,ROOM.h-.03,z)); lgp.count=kk; scene.add(lgp);
+  for(const z of [7,-1,-9]){ const pl=new THREE.PointLight('#ffe9d2',22,13,2); pl.position.set(0,3.8,z); scene.add(pl); }
+  // fundo: ripado de nogueira + logo NEX em contorno laranja
+  const slats=new THREE.InstancedMesh(new THREE.BoxGeometry(.1,ROOM.h,.08),M({map:woodTex('#4a3626'),roughness:.55,envMapIntensity:.4}),150), cc=new THREE.Color();
+  for(let i=0;i<150;i++){ slats.setMatrixAt(i,new THREE.Matrix4().makeTranslation(-8.94+i*.12,ROOM.h/2,-15.96)); slats.setColorAt(i,cc.setScalar(R(.5,.95))); } slats.receiveShadow=true; scene.add(slats);
+  const logo=ctex(1024,420,(c,w,h)=>{ c.textAlign='center'; c.textBaseline='middle'; c.font='900 330px "Segoe UI",system-ui'; c.lineJoin='round'; c.strokeStyle=OR; c.lineWidth=14; c.shadowColor=OR; c.shadowBlur=36; c.strokeText('NEX',w/2,h/2+10); c.shadowBlur=14; c.strokeText('NEX',w/2,h/2+10); c.shadowBlur=0; c.strokeStyle='#ffd7b0'; c.lineWidth=4; c.strokeText('NEX',w/2,h/2+10); });
+  const lg=new THREE.Mesh(new THREE.PlaneGeometry(6.4,2.6),new THREE.MeshBasicMaterial({map:logo,transparent:true,toneMapped:false})); lg.position.set(0,3.2,-15.86); scene.add(lg); glowS(OR,12,5,0,3.2,-15.7,.28);
+  const sub=ctex(1024,100,(c,w,h)=>{ c.fillStyle='#ffffff'; c.font='500 44px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('ESTRUTURA DIGITAL DE EVOLUÇÃO',w/2,h/2); });
+  const sb=new THREE.Mesh(new THREE.PlaneGeometry(6.4,.62),new THREE.MeshBasicMaterial({map:sub,transparent:true,opacity:.85,toneMapped:false})); sb.position.set(0,1.62,-15.86); scene.add(sb);
+  // vitrine frontal + rua ao fundo
+  const g=new THREE.Group(); scene.add(g);
+  addBox(g,18,.8,.3,metalDk,0,.4,12); addBox(g,18,.7,.3,metalDk,0,4.25,12);
+  for(const x of [-9,-6,-3,3,6,9]) addBox(g,.1,3.2,.15,metalDk,x,2.4,12); for(const x of [-1.2,1.2]) addBox(g,.12,3.4,.2,metalDk,x,1.8,12); addBox(g,2.5,.12,.2,metalDk,0,3.5,12);
+  for(const sx of [-1,1]){ const gl=new THREE.Mesh(new THREE.PlaneGeometry(7.8,3.2),new THREE.MeshPhysicalMaterial({color:'#ffe6cc',transparent:true,opacity:.1,roughness:0,envMapIntensity:1.2,depthWrite:false})); gl.position.set(sx*5.1,2.4,11.95); scene.add(gl); }
+  const dusk=ctex(1024,256,(c,w,h)=>{ const gr=c.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#4d3a96'); gr.addColorStop(.6,'#e08fa0'); gr.addColorStop(1,'#ffd9b0'); c.fillStyle=gr; c.fillRect(0,0,w,h); let x=0; while(x<w){ const bw=40+rnd()*80,bh=40+rnd()*130; c.fillStyle=`rgba(${70+rnd()*16|0},${58+rnd()*14|0},${112+rnd()*16|0},.95)`; c.fillRect(x,h-bh,bw,bh); c.fillStyle='rgba(255,226,180,.7)'; for(let wy=h-bh+8;wy<h-8;wy+=14) for(let wx=x+6;wx<x+bw-8;wx+=12) if(rnd()<.28) c.fillRect(wx,wy,5,7); x+=bw+rnd()*6; } });
+  const bd=new THREE.Mesh(new THREE.PlaneGeometry(90,28),new THREE.MeshBasicMaterial({map:dusk,fog:false})); bd.position.set(0,9,34); bd.rotation.y=Math.PI; scene.add(bd);
+  const st=new THREE.Mesh(new THREE.PlaneGeometry(90,40),M({color:'#3a3640',roughness:.9})); st.rotation.x=-Math.PI/2; st.position.set(0,-.02,32); scene.add(st);
+  const lgTex=ctex(1024,128,(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.strokeStyle=OR; c.lineWidth=6; c.shadowColor=OR; c.shadowBlur=16; c.font='900 92px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.strokeText('NEX',w/2-150,h/2+4); c.shadowBlur=0; c.fillStyle='#fff'; c.font='500 40px "Segoe UI",system-ui'; c.textAlign='left'; c.fillText('AGÊNCIA  ·  SISTEMA NEX',w/2-60,h/2+4); });
+  const lp=new THREE.Mesh(new THREE.PlaneGeometry(7,.62),new THREE.MeshBasicMaterial({map:lgTex,toneMapped:false})); lp.position.set(0,4.25,11.84); lp.rotation.y=Math.PI; scene.add(lp);
+  const mat=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.1),new THREE.MeshBasicMaterial({map:ctex(384,176,(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.strokeStyle=OR; c.lineWidth=5; c.strokeRect(10,10,w-20,h-20); c.fillStyle='#fff'; c.font='700 38px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('BEM-VINDO',w/2,h/2+2); }),toneMapped:false}));
+  mat.rotation.x=-Math.PI/2; mat.position.set(0,.012,10.9); scene.add(mat);
+}
+const plant=(x,z,s=1)=>{ const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); scene.add(g);
+  const pot=new THREE.Mesh(new THREE.CylinderGeometry(.3,.22,.55,18),M({color:'#26252d',roughness:.4})); pot.position.y=.275; pot.castShadow=true; g.add(pot);
+  const leaf=M({color:'#2f6b3a',roughness:.75}); for(let i=0;i<10;i++){ const l=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),leaf); l.scale.set(.6,1.6,.6); l.position.set(R(-.2,.2),1.0+R(0,.45),R(-.2,.2)); l.rotation.set(R(-.5,.5),0,R(-.5,.5)); l.castShadow=true; g.add(l); }
+  colliders.push({x0:x-.35*s,x1:x+.35*s,z0:z-.35*s,z1:z+.35*s}); };
+
+/* ---- telas com conteúdo (pacotes) ---- */
+function listTex(title,sub,items,inherits){ return ctex(1024,576,(c,w,h)=>{
+  const gr=c.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#16151b'); gr.addColorStop(1,'#0c0c10'); c.fillStyle=gr; c.fillRect(0,0,w,h); c.fillStyle=OR; c.fillRect(0,0,w,10);
+  c.fillStyle='#fff'; c.font='900 92px "Segoe UI",system-ui'; c.textAlign='left'; c.fillText(title,46,128); c.fillStyle=OR_L; c.font='600 34px "Segoe UI",system-ui'; c.fillText(sub.toUpperCase(),50,178);
+  let y=244; if(inherits){ c.fillStyle='rgba(255,122,26,.16)'; rr(c,44,y-34,w-88,52,14); c.fill(); c.fillStyle='#fff'; c.font='700 30px "Segoe UI",system-ui'; c.fillText('✔  '+inherits,64,y+2); y+=62; }
+  c.font='500 32px "Segoe UI",system-ui'; const cols=items.length>6?2:1, per=Math.ceil(items.length/cols);
+  items.forEach((it,i)=>{ const col=cols>1?Math.floor(i/per):0, row=cols>1?i%per:i; const x=60+col*470, yy=y+row*56; c.fillStyle=OR; c.beginPath(); c.arc(x,yy-10,8,0,7); c.fill(); c.fillStyle='rgba(255,255,255,.92)'; c.fillText(it,x+26,yy); });
+}); }
+const PKG_SCREEN={
+  start:['START','estrutura inicial',['Posicionamento de marca','Instagram inicial','Site institucional','Google Business','SEO base','Ciclos de Posicionamento','Painel NEX'],null],
+  growth:['GROWTH','crescimento contínuo',['Estratégia de conteúdo','Novos ciclos','Otimizações contínuas','Landing pages','Relatórios','IA da empresa','Melhorias mensais'],'Tudo do START'],
+  scale:['SCALE','operação em escala',['Automações','IA personalizada','Sistemas internos','Dashboards','Integrações','Consultoria estratégica','Dev sob demanda'],'Tudo do GROWTH'],
+};
+function screenStand(x,z,tex){ const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  addBox(g,3.2,1.85,.08,metalDk,0,2.2,0); const sc=new THREE.Mesh(new THREE.PlaneGeometry(3.04,1.71),new THREE.MeshBasicMaterial({map:tex,toneMapped:false})); sc.position.set(0,2.2,.05); g.add(sc);
+  addBox(g,.08,1.3,.08,metalDk,-1.2,.65,0); addBox(g,.08,1.3,.08,metalDk,1.2,.65,0); addBox(g,.9,.04,.5,metalDk,-1.2,.02,0,false); addBox(g,.9,.04,.5,metalDk,1.2,.02,0,false); glowS(OR,6,3.4,0,2.2,.4,.18,g); return g; }
+
+const PODS={};
+/* ---- pódios: START, GROWTH, SCALE (cada degrau a mais é um pacote que se soma) ---- */
+for(const [p,x,key] of [[CL.start,-4.6,'start'],[CL.growth,0,'growth'],[CL.scale,4.6,'scale']]){
+  const g=new THREE.Group(); g.position.set(x,0,2.6); scene.add(g);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,.16,48),M({color:'#1d1c23',roughness:.3,metalness:.5})); base.position.y=.08; base.receiveShadow=true; g.add(base);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.35,.022,6,64),new THREE.MeshBasicMaterial({color:OR,toneMapped:false})); ring.rotation.x=Math.PI/2; ring.position.y=.17; g.add(ring); PODS[key]={ring,x,z:2.6};
+  g.updateMatrixWorld(true); place(p,g.matrixWorld,V3(0,.16,0),qY(0));
+  colliders.push({x0:x-1.45,x1:x+1.45,z0:1.2,z1:4}); aoPlane(3.4,3.4,x,2.6,.5);
+  const [t,s,items,inh]=PKG_SCREEN[key]; screenStand(x,-.35,listTex(t,s,items,inh)); colliders.push({x0:x-1.7,x1:x+1.7,z0:-.6,z1:-.1});
+  spot(x,4.3,3.2,x,.3,2.6,60,.42);
+}
+{ const g=new THREE.Group(); g.position.set(0,0,5.9); scene.add(g); const t=ctex(1024,110,(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.fillStyle=OR; c.font='800 44px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('3 PACOTES · CADA UM SOMA AO ANTERIOR',w/2,h/2+2); });
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(7.6,.82),new THREE.MeshBasicMaterial({map:t,toneMapped:false})); p.position.set(0,3.9,-3.6); scene.add(p); }
+
+/* ---- análise gratuita e ERP (colunas) ---- */
+function pillar(x,z,item,title,sub,col){
+  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  addBox(g,.9,1.0,.9,stoneM,0,.5,0); addBox(g,.94,.03,.94,col==='orange'?ledO:new THREE.MeshBasicMaterial({color:'#b69cff',toneMapped:false}),0,1.0,0,false);
+  g.updateMatrixWorld(true); place(item,g.matrixWorld,V3(0,1.02,0),qY(0)); colliders.push({x0:x-.65,x1:x+.65,z0:z-.65,z1:z+.65}); aoPlane(2,2,x,z,.4);
+  const t=ctex(512,200,(c,w,h)=>{ c.fillStyle='#0f0f13'; rr(c,0,0,w,h,24); c.fill(); c.fillStyle=col==='orange'?OR:'#8b5cf6'; c.fillRect(0,h-8,w,8); c.fillStyle='#fff'; c.font='800 50px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(title,w/2,h*.4); c.fillStyle='rgba(255,255,255,.65)'; c.font='500 26px "Segoe UI",system-ui'; c.fillText(sub,w/2,h*.74); });
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.94),new THREE.MeshBasicMaterial({map:t,toneMapped:false})); sg.position.set(x,2.9,z); scene.add(sg);
+  for(const dx of [-1,1]){ const c=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1.7,5),metalDk); c.position.set(x+dx*.9,3.75,z); scene.add(c); }
+  spot(x,4.3,z+1.2,x,1,z,45,.4);
+}
+pillar(-6.8,5.6,CL.analise,'ANÁLISE GRATUITA','porta de entrada','orange');
+pillar(6.8,5.6,CL.erp,'SISTEMA NEW','ERP · PDV · nota fiscal','purple');
+
+/* ---- recepção + Ravi ---- */
+{ const g=new THREE.Group(); g.position.set(0,0,-8.2); scene.add(g);
+  addBox(g,4.4,1.1,.95,darkM,0,.55,0); addBox(g,4.5,.06,1.05,M({color:'#e9e4dc',roughness:.2,envMapIntensity:1}),0,1.13,0); addBox(g,4.42,.04,.04,ledO,0,.08,.49,false);
+  addBox(g,.5,.3,.03,metalDk,-1.2,1.35,-.1); const s1=new THREE.Mesh(new THREE.PlaneGeometry(.46,.26),new THREE.MeshBasicMaterial({map:dashTex('Painel NEX','pedidos · clientes'),toneMapped:false})); s1.position.set(-1.2,1.35,-.08); g.add(s1);
+  colliders.push({x0:-2.3,x1:2.3,z0:-8.8,z1:-7.6}); aoPlane(5.6,2.2,0,-8.2,.5);
+  const t=ctex(768,150,(c,w,h)=>{ c.fillStyle='#0f0f13'; rr(c,0,0,w,h,20); c.fill(); c.fillStyle=OR; c.fillRect(0,h-8,w,8); c.fillStyle='#fff'; c.font='800 52px "Segoe UI",system-ui'; c.textAlign='left'; c.textBaseline='middle'; c.fillText('Fale com a Ravi',34,h*.42); c.fillStyle='rgba(255,255,255,.65)'; c.font='500 26px "Segoe UI",system-ui'; c.fillText('agente NEX · tecla C pra conversar',36,h*.76); });
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(3.2,.62),new THREE.MeshBasicMaterial({map:t,toneMapped:false})); sg.position.set(0,2.95,-6.9); scene.add(sg);
+  spot(0,4.3,-6,0,1.2,-9,70,.5);
+}
+/* ---- caminhos: a Ravi desvia dos móveis (grade + A*) ---- */
+const NAV={cs:.4,x0:ROOM.x0+.5,z0:ROOM.z0+.5,W:0,H:0,grid:null};
+NAV.W=Math.floor((ROOM.x1-.5-NAV.x0)/NAV.cs)+1; NAV.H=Math.floor((ROOM.z1-.5-NAV.z0)/NAV.cs)+1;
+function navGrid(){ if(NAV.grid) return NAV.grid; const g=new Uint8Array(NAV.W*NAV.H);
+  for(let j=0;j<NAV.H;j++) for(let i=0;i<NAV.W;i++){ const x=NAV.x0+i*NAV.cs, z=NAV.z0+j*NAV.cs; g[j*NAV.W+i]=colliders.some(c=>!c.self&&x>c.x0-.42&&x<c.x1+.42&&z>c.z0-.42&&z<c.z1+.42)?1:0; }
+  return NAV.grid=g; }
+function planPath(sx,sz,gx,gz){
+  const gr=navGrid(), {W,H,cs,x0,z0}=NAV, cell=(x,z)=>[Math.max(0,Math.min(W-1,Math.round((x-x0)/cs))),Math.max(0,Math.min(H-1,Math.round((z-z0)/cs)))], free=(i,j)=>!gr[j*W+i];
+  const nearest=(i,j)=>{ if(free(i,j)) return [i,j]; for(let r=1;r<14;r++) for(let dj=-r;dj<=r;dj++) for(let di=-r;di<=r;di++){ if(Math.max(Math.abs(di),Math.abs(dj))!==r) continue; const a=i+di,b=j+dj; if(a>=0&&b>=0&&a<W&&b<H&&free(a,b)) return [a,b]; } return [i,j]; };
+  const [si,sj]=nearest(...cell(sx,sz)), [gi,gj]=nearest(...cell(gx,gz)), idx=(i,j)=>j*W+i;
+  const open=[[0,si,sj]], gs=new Float32Array(W*H).fill(1e9), from=new Int32Array(W*H).fill(-1), closed=new Uint8Array(W*H); gs[idx(si,sj)]=0;
+  while(open.length){ open.sort((a,b)=>a[0]-b[0]); const [,i,j]=open.shift(), k=idx(i,j); if(closed[k]) continue; closed[k]=1; if(i===gi&&j===gj) break;
+    for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){ const a=i+di,b=j+dj; if(a<0||b<0||a>=W||b>=H||!free(a,b)) continue; if(di&&dj&&(!free(i+di,j)||!free(i,j+dj))) continue; const nk=idx(a,b), ng=gs[k]+Math.hypot(di,dj); if(ng<gs[nk]){ gs[nk]=ng; from[nk]=k; open.push([ng+Math.hypot(a-gi,b-gj),a,b]); } } }
+  let k=idx(gi,gj); if(from[k]<0&&!(si===gi&&sj===gj)) return [[gx,gz]];
+  const pts=[]; while(k>=0){ pts.push([x0+(k%W)*cs,z0+((k/W)|0)*cs]); k=from[k]; } pts.reverse();
+  const clear=(a,b)=>{ const n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.2); for(let s=1;s<n;s++){ const t=s/n, [i,j]=cell(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t); if(!free(i,j)) return false; } return true; };
+  const out=[]; let ip=0; while(ip<pts.length-1){ let far=ip+1; for(let n=pts.length-1;n>ip;n--){ if(clear(pts[ip],pts[n])){ far=n; break; } } out.push(pts[far]); ip=far; }
+  if(out.length&&free(...cell(gx,gz))) out[out.length-1]=[gx,gz];
+  return out;
+}
+
+/* ---- Ravi: astronauta (identidade NEX). Anda, fala, gesticula e olha pra você ---- */
+const RAVI = (()=>{
+  const HOME=[0,-9.25];
+  const g=new THREE.Group(); g.position.set(HOME[0],0,HOME[1]); scene.add(g);
+  const suit=M({color:'#15151a',roughness:.45,metalness:.2}), orange=M({color:OR,roughness:.4}), white=M({color:'#f4f2ee',roughness:.3,metalness:.1,envMapIntensity:1}), visor=M({color:'#0c0e14',roughness:.05,metalness:.9,envMapIntensity:1.8});
+  const legs=[]; for(const s of [-1,1]){ const lg=new THREE.Group(); lg.position.set(s*.13,.82,0); g.add(lg); const cap=new THREE.Mesh(new THREE.CapsuleGeometry(.09,.55,6,12),suit); cap.position.set(0,-.4,0); cap.castShadow=true; lg.add(cap); const bt=new THREE.Mesh(new RoundedBoxGeometry(.17,.1,.27,2,.04),orange); bt.position.set(0,-.76,.04); lg.add(bt); legs.push(lg); }
+  const body=new THREE.Group(); g.add(body);
+  const torso=new THREE.Mesh(new RoundedBoxGeometry(.52,.62,.32,4,.12),suit); torso.position.y=1.05; torso.castShadow=true; body.add(torso);
+  const chest=new THREE.Mesh(new THREE.PlaneGeometry(.34,.18),new THREE.MeshBasicMaterial({map:ctex(256,128,(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.strokeStyle=OR; c.lineWidth=5; c.font='900 88px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.strokeText('NEX',w/2,h/2+4); }),toneMapped:false})); chest.position.set(0,1.12,.165); body.add(chest);
+  const belt=new THREE.Mesh(new THREE.BoxGeometry(.54,.05,.34),orange); belt.position.y=.78; body.add(belt);
+  const pack=new THREE.Mesh(new RoundedBoxGeometry(.42,.52,.18,3,.07),white); pack.position.set(0,1.1,-.25); body.add(pack);
+  const antenna=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,.3,6),M({color:'#26262e',metalness:.6})); antenna.position.set(.14,1.55,-.25); body.add(antenna);
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),new THREE.MeshBasicMaterial({color:OR,toneMapped:false})); dot.position.set(.14,1.71,-.25); body.add(dot);
+  const arms=[]; for(const s of [-1,1]){ const sh=new THREE.Group(); sh.position.set(s*.34,1.27,0); body.add(sh); const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.075,.42,6,10),suit); arm.position.y=-.26; arm.castShadow=true; sh.add(arm); const gl=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),white); gl.position.y=-.52; sh.add(gl); arms.push(sh); }
+  const head=new THREE.Group(); head.position.set(0,1.58,0); body.add(head);
+  const helmet=new THREE.Mesh(new THREE.SphereGeometry(.27,28,20),white); helmet.castShadow=true; head.add(helmet);
+  const vs=new THREE.Mesh(new THREE.SphereGeometry(.22,24,18,Math.PI/2-1.0,2.0,.7,1.5),visor); vs.scale.set(1.02,.88,1.04); vs.position.set(0,.01,.06); head.add(vs);
+  const rimV=new THREE.Mesh(new THREE.TorusGeometry(.2,.012,6,28),new THREE.MeshBasicMaterial({color:OR,toneMapped:false})); rimV.position.set(0,-.01,.225); rimV.scale.set(1,.85,1); head.add(rimV);
+  const self={self:true,x0:-.5,x1:.5,z0:-9.8,z1:-8.9}; colliders.push(self);
+  const api={g,head,body,arms,path:[],speed:1.9,onArrive:null,walking:false,talking:false,waveT:0,faceTo:null,targetYaw:0,phase:0,home:HOME,
+    walkTo(x,z,sp){ return new Promise(res=>{ const p=planPath(g.position.x,g.position.z,x,z); api.path=p; api.speed=sp||1.9; api.onArrive=res; if(!p.length){ api.onArrive=null; res(); } }); },
+    stop(){ api.path=[]; const cb=api.onArrive; api.onArrive=null; if(cb) cb(); },
+    goHome(){ api.faceTo=null; return api.walkTo(HOME[0],HOME[1],1.9).then(()=>{ api.targetYaw=0; }); },
+    wave(s){ api.waveT=s; }, pos(){ return [g.position.x,g.position.z]; }};
+  const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  TICKS.push((dt,t)=>{
+    let moving=false;
+    if(api.path.length){ const p=api.path[0], dx=p[0]-g.position.x, dz=p[1]-g.position.z, d=Math.hypot(dx,dz), step=api.speed*dt; moving=true;
+      if(d<=step){ g.position.x=p[0]; g.position.z=p[1]; api.path.shift(); if(!api.path.length){ moving=false; const cb=api.onArrive; api.onArrive=null; if(cb) cb(); } }
+      else { g.position.x+=dx/d*step; g.position.z+=dz/d*step; api.targetYaw=Math.atan2(dx,dz); } }
+    api.walking=moving;
+    if(!moving&&api.faceTo) api.targetYaw=Math.atan2(api.faceTo[0]-g.position.x,api.faceTo[1]-g.position.z);
+    g.rotation.y+=wrap(api.targetYaw-g.rotation.y)*Math.min(1,dt*6);
+    api.phase+=moving?dt*api.speed*3.6:0;
+    legs[0].rotation.x=moving?Math.sin(api.phase)*.6:legs[0].rotation.x*.85; legs[1].rotation.x=moving?-Math.sin(api.phase)*.6:legs[1].rotation.x*.85;
+    g.position.y=moving?Math.abs(Math.sin(api.phase))*.03:0;
+    body.position.y=Math.sin(t*1.6)*.006;
+    const ang=wrap(Math.atan2(camera.position.x-g.position.x,camera.position.z-g.position.z)-g.rotation.y); head.rotation.y+=(Math.max(-.9,Math.min(.9,ang))-head.rotation.y)*Math.min(1,dt*3); head.rotation.x=Math.sin(t*.9)*.03+(api.talking?Math.sin(t*6)*.025:0);
+    const atDesk=Math.hypot(g.position.x-HOME[0],g.position.z-HOME[1])<1.2, e=Math.min(1,dt*7);
+    const rest=atDesk?-.95:.06;
+    if(api.waveT>0){ api.waveT-=dt; arms[1].rotation.x+=(-.2-arms[1].rotation.x)*e; arms[1].rotation.z+=((-2.3+Math.sin(t*9)*.35)-arms[1].rotation.z)*e; arms[0].rotation.x+=(rest-arms[0].rotation.x)*e; }
+    else if(moving){ arms[0].rotation.x+=(Math.sin(api.phase)*.5-arms[0].rotation.x)*e; arms[1].rotation.x+=(-Math.sin(api.phase)*.5-arms[1].rotation.x)*e; arms[0].rotation.z+=(-.12-arms[0].rotation.z)*e; arms[1].rotation.z+=(.12-arms[1].rotation.z)*e; }
+    else if(api.talking){ arms[1].rotation.x+=((-.75+Math.sin(t*4.5)*.3)-arms[1].rotation.x)*e; arms[1].rotation.z+=((.45+Math.sin(t*3.1)*.2)-arms[1].rotation.z)*e; arms[0].rotation.x+=((rest-.1+Math.sin(t*3)*.12)-arms[0].rotation.x)*e; arms[0].rotation.z+=(-.14-arms[0].rotation.z)*e; }
+    else { for(const [i,s] of [[0,-1],[1,1]]){ arms[i].rotation.x+=(rest-arms[i].rotation.x)*e; arms[i].rotation.z+=(s*.12-arms[i].rotation.z)*e; } }
+    self.x0=g.position.x-.4; self.x1=g.position.x+.4; self.z0=g.position.z-.4; self.z1=g.position.z+.4;
+  });
+  return api;
+})();
+
+/* ---- parede esquerda: o que a NEX entrega, em telas ---- */
+function wallScreen(z,title,drawFn){
+  const g=new THREE.Group(); g.position.set(-8.9,0,z); g.rotation.y=Math.PI/2; scene.add(g);
+  addBox(g,2.4,1.5,.07,metalDk,0,2.1,0); const sc=new THREE.Mesh(new THREE.PlaneGeometry(2.28,1.38),new THREE.MeshBasicMaterial({map:ctex(912,552,drawFn),toneMapped:false})); sc.position.set(0,2.1,.045); g.add(sc);
+  const cap=new THREE.Mesh(new THREE.PlaneGeometry(2.0,.36),new THREE.MeshBasicMaterial({map:ctex(512,90,(c,w,h)=>{ c.fillStyle='#0f0f13'; rr(c,0,0,w,h,16); c.fill(); c.fillStyle=OR; c.fillRect(0,h-6,w,6); c.fillStyle='#fff'; c.font='700 34px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(title,w/2,h/2-2); }),toneMapped:false})); cap.position.set(0,1.1,.04); g.add(cap); }
+wallScreen(-2.5,'Site institucional',(c,w,h)=>{ c.fillStyle='#f4f1ec'; c.fillRect(0,0,w,h); c.fillStyle='#16151b'; c.fillRect(0,0,w,56); c.fillStyle=OR; c.font='800 28px "Segoe UI",system-ui'; c.fillText('SUA EMPRESA',24,38); c.fillStyle='#16151b'; c.font='800 64px "Segoe UI",system-ui'; c.fillText('Seu negócio,',40,170); c.fillStyle=OR; c.fillText('visível.',40,236); c.fillStyle='#555'; c.font='500 26px "Segoe UI",system-ui'; c.fillText('Site institucional com a sua marca.',42,286); c.fillStyle=OR; rr(c,40,320,220,60,30); c.fill(); c.fillStyle='#fff'; c.font='700 26px "Segoe UI",system-ui'; c.fillText('Fale conosco',66,359); for(let i=0;i<3;i++){ c.fillStyle='#e4dfd7'; rr(c,40+i*270,430,250,90,14); c.fill(); } });
+wallScreen(-5.5,'Instagram com Ciclos',(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.fillStyle=OR; c.beginPath(); c.arc(80,80,44,0,7); c.fill(); c.fillStyle='#fff'; c.font='800 34px "Segoe UI",system-ui'; c.fillText('suaempresa',150,72); c.fillStyle='rgba(255,255,255,.6)'; c.font='500 24px "Segoe UI",system-ui'; c.fillText('3 posts por ciclo · mesmo assunto',150,108);
+  for(let r=0;r<3;r++) for(let i=0;i<3;i++){ c.fillStyle=(i+r*3)%3===0?OR:(i+r)%2?'#2a2931':'#3a3842'; c.fillRect(30+i*290,160+r*128,276,116); } });
+wallScreen(-8.5,'Google Business',(c,w,h)=>{ c.fillStyle='#f4f1ec'; c.fillRect(0,0,w,h); c.fillStyle='#16151b'; c.font='800 46px "Segoe UI",system-ui'; c.fillText('Sua empresa',40,86); c.fillStyle='#777'; c.font='500 26px "Segoe UI",system-ui'; c.fillText('Perfil completo e otimizado',42,124);
+  c.fillStyle='#dcd7cd'; rr(c,40,160,w-80,250,18); c.fill(); c.fillStyle=OR; c.beginPath(); c.arc(w/2,270,34,0,7); c.fill(); c.fillStyle='#fff'; c.beginPath(); c.arc(w/2,270,12,0,7); c.fill(); for(const [t,x] of [['Ligar',70],['Rotas',330],['Site',590]]){ c.fillStyle='#16151b'; rr(c,x,440,220,66,33); c.fill(); c.fillStyle='#fff'; c.font='700 26px "Segoe UI",system-ui'; c.fillText(t,x+70,482); } });
+wallScreen(-11.5,'Painel NEX',(c,w,h)=>{ c.fillStyle='#0f0f13'; c.fillRect(0,0,w,h); c.fillStyle=OR; c.fillRect(0,0,w,8); c.fillStyle='#fff'; c.font='800 40px "Segoe UI",system-ui'; c.fillText('Painel NEX',36,70); for(let i=0;i<3;i++){ c.fillStyle='#1d1c23'; rr(c,36+i*290,100,270,110,16); c.fill(); c.fillStyle=OR; c.font='800 46px "Segoe UI",system-ui'; c.fillText(['▲','●','■'][i],56+i*290,170); }
+  for(let i=0;i<9;i++){ const bh=40+rnd()*170; c.fillStyle=i%3?'#ff7a1a':'#ffb066'; c.fillRect(46+i*94,520-bh,60,bh); } });
+colliders.push({x0:-9,x1:-8.4,z0:-12.9,z1:-1.2});
+
+/* ---- parede direita: o Processo NEX ---- */
+{ const g=new THREE.Group(); g.position.set(8.95,0,-5.5); g.rotation.y=-Math.PI/2; scene.add(g);
+  const t=ctex(1536,420,(c,w,h)=>{ c.fillStyle='#0f0f13'; rr(c,0,0,w,h,28); c.fill(); c.fillStyle=OR; c.fillRect(0,h-10,w,10); c.fillStyle='#fff'; c.font='800 58px "Segoe UI",system-ui'; c.textAlign='left'; c.fillText('Processo NEX',60,92); c.fillStyle='rgba(255,255,255,.6)'; c.font='500 28px "Segoe UI",system-ui'; c.fillText('do diagnóstico à evolução contínua',62,134);
+    const steps=['Analisar','Planejar','Implantar','Acompanhar','Evoluir']; c.strokeStyle='rgba(255,122,26,.45)'; c.lineWidth=5; c.beginPath(); c.moveTo(140,270); c.lineTo(w-140,270); c.stroke();
+    steps.forEach((s,i)=>{ const x=140+i*(w-280)/4; c.fillStyle=OR; c.beginPath(); c.arc(x,270,40,0,7); c.fill(); c.fillStyle='#0f0f13'; c.font='900 40px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(String(i+1),x,272); c.fillStyle='#fff'; c.font='700 34px "Segoe UI",system-ui'; c.fillText(s,x,350); }); });
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(8.2,2.25),new THREE.MeshBasicMaterial({map:t,toneMapped:false})); p.position.set(0,2.6,0); g.add(p); glowS(OR,12,4,0,2.6,.3,.16,g);
+  colliders.push({x0:8.5,x1:9,z0:-10,z1:-1}); }
+
+/* ---- sala de conversa e detalhes ---- */
+{ const g=new THREE.Group(); g.position.set(-6.3,0,9); scene.add(g);
+  addBox(g,2.4,.45,.95,M({color:'#2c2b33',roughness:.8}),0,.23,0); addBox(g,2.4,.55,.22,M({color:'#2c2b33',roughness:.8}),0,.7,-.4); addBox(g,.5,.2,.4,M({color:OR,roughness:.7}),.7,.58,0);
+  const tb=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.4,24),metalDk); tb.position.set(0,.2,1.4); g.add(tb); colliders.push({x0:-7.6,x1:-5,z0:8.4,z1:10.6}); }
+plant(7.9,10.7,1.1); plant(-8,10.9,1.1); plant(8,-12.8,1.1); plant(-8,-13.5,1);
+{ const glowM=new THREE.MeshBasicMaterial({color:'#fff1d0'});
+  for(const z of [8,2,-4,-10]){ addBox(scene,14,.04,.06,metalDk,0,ROOM.h-.05,z,false); for(const x of [-6,-2,2,6]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(.05,.075,.2,10),metalDk); h.position.set(x,ROOM.h-.17,z); h.rotation.x=.25; scene.add(h); const l=new THREE.Mesh(new THREE.CircleGeometry(.06,12),glowM); l.rotation.x=Math.PI/2+.25; l.position.set(x,ROOM.h-.275,z+.025); scene.add(l); } } }
+
+/* ========== carrinho de compras (HUD) ========== */
+const cart=new Map(), order=[];
+const total=()=>[...cart.values()].reduce((s,i)=>s+i.p.price*i.q,0);
+const qtyTxt=i=>i.p.unit==='kg'?`${i.q} kg`:`×${i.q}`;
+function renderCart(){
+  const rows=[...cart.values()].map(i=>`<div class="row"><span>${i.p.emoji} ${i.p.name}</span><span>${i.p.free?'grátis':''}</span></div>`).join('');
+  $('cart').innerHTML=`<h3>Sua proposta</h3>${rows||'<div class="empty">Escolha um pacote pra montar a sua proposta.</div>'}${cart.size?`<button class="cfin" id="cfin">Enviar proposta <kbd>F</kbd></button>`:''}`;
+}
+let toastT; function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('on'),1500); }
+function add(p){ if(cart.has(p.id)){ toast('Já está na sua proposta'); return; } cart.set(p.id,{p,q:1,k:p.id}); order.push(p.id); renderCart(); toast(`${p.emoji} ${p.name} na sua proposta`); }
+function removeLast(){ const id=order.pop(); if(!id) return; const i=cart.get(id); if(--i.q<=0) cart.delete(id); renderCart(); toast('Item removido'); }
+renderCart();
+$('cart').addEventListener('click',e=>{ if(e.target.closest('#cfin')) openCheckout(); });
+for(const ev of ['mousedown','mouseup']) $('cart').addEventListener(ev,e=>e.stopPropagation());
+
+/* ========== monta tudo ========== */
+finalize();
+
+/* ========== controles ========== */
+let locked=false, free=false, drag=0, yaw=0, pitch=-.04, mx=0, my=0;
+const keys={}, overlay=$('overlay'), modal=$('modal'), pc=$('pc');
+let focusing=false, saved=null, camAnim=null;
+const ui=()=>modal.classList.contains('on')||focusing||!!camAnim||!!window.__chat;
+
+/* ---- miniatura 3D de cada produto (renderizada com o próprio three.js) ---- */
+const TS=384, thumbRT=new THREE.WebGLRenderTarget(TS,TS,{samples:4});
+thumbRT.texture.colorSpace=THREE.SRGBColorSpace;
+const thumbScene=new THREE.Scene(); thumbScene.environment=scene.environment;
+thumbScene.add(new THREE.HemisphereLight('#ffffff','#9a948a',1.3));
+const tKey=new THREE.DirectionalLight('#fff4e6',2.4); tKey.position.set(2,3,4); thumbScene.add(tKey);
+const tRim=new THREE.DirectionalLight('#9fc4ff',1.1); tRim.position.set(-3,2,-3); thumbScene.add(tRim);
+const thumbCam=new THREE.PerspectiveCamera(28,1,.01,10);
+function thumbOf(t){
+  if(t.thumb) return t.thumb;
+  const grp=new THREE.Group();
+  t.def.parts.forEach(pt=>{ let mat=pt.mat; if(pt.palette){ mat=pt.mat.clone(); mat.color.set(pt.palette[0]); } grp.add(new THREE.Mesh(pt.geo,mat)); });
+  grp.rotation.y=-.55; thumbScene.add(grp); grp.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(grp), c=box.getCenter(new THREE.Vector3()), rad=box.getSize(new THREE.Vector3()).length()/2;
+  grp.position.sub(c);
+  thumbCam.position.set(0,rad*.3,rad/Math.sin(THREE.MathUtils.degToRad(14))*.84); thumbCam.lookAt(0,0,0);
+  const prevT=renderer.getRenderTarget(), prevA=renderer.getClearAlpha(), prevC=renderer.getClearColor(new THREE.Color());
+  renderer.setRenderTarget(thumbRT); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(thumbScene,thumbCam);
+  const buf=new Uint8Array(TS*TS*4); renderer.readRenderTargetPixels(thumbRT,0,0,TS,TS,buf);
+  renderer.setRenderTarget(prevT); renderer.setClearColor(prevC,prevA);
+  const cv=document.createElement('canvas'); cv.width=cv.height=TS; const g=cv.getContext('2d'), img=g.createImageData(TS,TS);
+  for(let y=0;y<TS;y++) img.data.set(buf.subarray((TS-1-y)*TS*4,(TS-y)*TS*4),y*TS*4);
+  g.putImageData(img,0,0); thumbScene.remove(grp);
+  return t.thumb=cv.toDataURL();
+}
+
+/* ---- ficha do produto: aparece ao passar o mouse, fixa ao clicar ---- */
+let pinned=null, pinQ=1, pinSize=null, shownId=null;
+function fillCard(p){
+  const t=types.get(p.id), d=DESC[p.id]||{d:'',t:[]}, col=(()=>{ const c=new THREE.Color(p.color), l=.2126*c.r+.7152*c.g+.0722*c.b; return (l>.45||l<.03)?'#8b5cf6':p.color; })();
+  pc.style.setProperty('--pc',col);
+  $('pcimg').src=thumbOf(t);
+  $('pcbrand').textContent=p.brand||'NEW Wear';
+  $('pcname').textContent=p.name;
+  $('pcprice').innerHTML=`<b>${p.free?'Gratuita':'Sob análise'}</b> <small>${p.tag||''}</small>`;
+  $('pcdesc').textContent=d.d;
+  $('pcchips').innerHTML=(d.t||[]).map(x=>`<span class="hl">${x}</span>`).join('')+[d.o?`🧭 ${d.o}`:null,p.sub?`✦ ${p.sub}`:null].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+  const sz=$('pcsizes');
+  if(p.sizes){ sz.className='pcsizes has'; sz.innerHTML=p.sizes.map(s=>`<button class="sz ${pinned===p&&pinSize===s?'on':''}" data-s="${s}">${s}</button>`).join(''); }
+  else { sz.className='pcsizes'; sz.innerHTML=''; }
+  shownId=p.id;
+}
+function renderQty(){
+  const p=pinned; if(!p) return;
+  $('qn').textContent=p.unit==='kg'?`${pinQ} kg`:pinQ;
+  $('pcadd').innerHTML=`Quero este <kbd>E</kbd>`;
+}
+function showHover(p){ if(pinned) return; if(shownId!==p.id) fillCard(p); pc.classList.add('on'); }
+function hideHover(){ if(pinned) return; pc.classList.remove('on'); }
+const TAU=Math.PI*2, clampv=(v,a,b)=>Math.max(a,Math.min(b,v));
+function relock(){ try{ const pr=renderer.domElement.requestPointerLock(); if(pr&&pr.catch) pr.catch(()=>{ overlay.style.display='flex'; }); }catch(e){ overlay.style.display='flex'; } }
+// clicou no produto: solta o mouse e leva a câmera até ele
+function pin(p,t,i){
+  pinned=p; pinQ=1; pinSize=null; fillCard(p); renderQty(); pc.classList.add('on','full');
+  if(!focusing) saved={x:camera.position.x,z:camera.position.z,yaw,pitch};
+  focusing=true; locked=false; overlay.style.display='none';
+  if(!free) document.exitPointerLock();
+  if(!t) return;
+  const P=new THREE.Vector3().setFromMatrixPosition(t.mats[i]); P.y+=(t.def.cy!==undefined?t.def.cy:(t.def.h||.1)/2);
+  const C=camera.position, dx=P.x-C.x, dz=P.z-C.z, d=Math.hypot(dx,dz)||1, D=p.fruit?.95:1.0;
+  const tx=clampv(P.x-dx/d*D,ROOM.x0+.4,ROOM.x1-.4), tz=clampv(P.z-dz/d*D,ROOM.z0+.4,ROOM.z1-.4);
+  let ty=Math.atan2(-(P.x-tx),-(P.z-tz)); ty+=TAU*Math.round((yaw-ty)/TAU);
+  const tp=clampv(Math.atan2(P.y-1.65,Math.hypot(P.x-tx,P.z-tz))-.12,-1.2,1.2);
+  camAnim={fx:C.x,fz:C.z,fy:yaw,fp:pitch,tx,tz,ty,tp,t:0,dur:.55,done:null};
+}
+// fechou ou adicionou: volta pro lugar onde estava e devolve o controle do mouse
+function unpin(){
+  pinned=null; pc.classList.remove('full'); if(!hov) pc.classList.remove('on');
+  if(!focusing||!saved){ focusing=false; return; }
+  const ty=saved.yaw+TAU*Math.round((yaw-saved.yaw)/TAU);
+  if(!free) relock();
+  camAnim={fx:camera.position.x,fz:camera.position.z,fy:yaw,fp:pitch,tx:saved.x,tz:saved.z,ty,tp:saved.pitch,t:0,dur:.45,done:()=>{ focusing=false; if(free) locked=true; }};
+}
+function addPinned(){ if(!pinned) return; if(pinned.sizes&&!pinSize){ toast('Escolha o tamanho'); return; } add(pinned,pinQ,pinSize); unpin(); }
+$('pcsizes').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!pinned) return; pinSize=b.dataset.s; fillCard(pinned); renderQty(); });
+$('qm').onclick=()=>{ pinQ=Math.max(1,pinQ-1); renderQty(); };
+$('qp').onclick=()=>{ pinQ=Math.min(20,pinQ+1); renderQty(); };
+$('pcadd').onclick=addPinned; $('pcx').onclick=unpin;
+for(const ev of ['mousedown','mouseup','click']) pc.addEventListener(ev,e=>e.stopPropagation());
+addEventListener('wheel',e=>{ if(!pinned) return; pinQ=Math.max(1,Math.min(20,pinQ+(e.deltaY<0?1:-1))); renderQty(); },{passive:true});
+function enterFree(){ free=true; locked=true; overlay.style.display='none'; toast('Mova o mouse pra olhar (centro = parado) · clique num item pra ver'); }
+function enter(){
+  if(ui()) return;
+  free=false;
+  try{ const p=renderer.domElement.requestPointerLock(); if(p&&p.catch) p.catch(()=>{ if(!locked) enterFree(); }); }catch(e){ enterFree(); return; }
+  setTimeout(()=>{ if(!locked) enterFree(); },500);
+}
+overlay.addEventListener('click',enter);
+document.addEventListener('pointerlockchange',()=>{
+  if(free) return;
+  locked=document.pointerLockElement===renderer.domElement;
+  overlay.style.display=(locked||ui())?'none':'flex';
+});
+document.addEventListener('mousemove',e=>{
+  const onCard=e.target.closest&&e.target.closest('#pc,#cart'); mx=onCard?0:e.clientX/innerWidth*2-1; my=onCard?0:e.clientY/innerHeight*2-1;
+  if(!locked) return;
+  if(free){ if(!(e.buttons&1)) return; drag+=Math.abs(e.movementX)+Math.abs(e.movementY); }
+  yaw-=e.movementX*.0022; pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
+});
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(window.__chat){ if(e.code==='Escape'&&window.__closeChat) window.__closeChat(); return; }
+  if(FROM_RUA&&e.code==='KeyV'&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName||'')){ location.href=RUA_URL; return; }
+  if(modal.classList.contains('on')){ if(e.code==='Escape') closeCO(); return; }
+  if(focusing){
+    if(e.code==='Escape'||e.code==='KeyX') unpin();
+    else if(pinned&&(e.code==='KeyE'||e.code==='Enter')) addPinned();
+    else if(pinned&&(e.code==='Equal'||e.code==='NumpadAdd'||e.code==='ArrowUp')){ pinQ=Math.min(20,pinQ+1); renderQty(); }
+    else if(pinned&&(e.code==='Minus'||e.code==='NumpadSubtract'||e.code==='ArrowDown')){ pinQ=Math.max(1,pinQ-1); renderQty(); }
+    return;
+  }
+  if(free&&e.code==='Escape'){ free=false; locked=false; overlay.style.display='flex'; return; }
+  if(!locked) return;
+  if(e.code==='KeyC'&&!ui()&&window.__openChat) window.__openChat();
+  if(e.code==='KeyQ') removeLast();
+  if(e.code==='KeyE'){ if(pinned) addPinned(); else if(hov){ if(hov.t.p.sizes) pick(); else add(hov.t.p,1); } }
+  if(e.code==='KeyX') unpin();
+  if(pinned&&(e.code==='Equal'||e.code==='NumpadAdd')){ pinQ=Math.min(20,pinQ+1); renderQty(); }
+  if(pinned&&(e.code==='Minus'||e.code==='NumpadSubtract')){ pinQ=Math.max(1,pinQ-1); renderQty(); }
+  if(e.code==='KeyF') openCheckout();
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+const ray=new THREE.Raycaster(); ray.far=3.6;
+let hov=null; // {t,i}
+function pick(){ if(hov) pin(hov.t.p,hov.t,hov.i); }
+addEventListener('mousedown',()=>{ if(focusing){ if(!camAnim) unpin(); return; } if(free){ drag=0; return; } if(locked) pick(); });
+addEventListener('mouseup',()=>{ if(free&&locked&&drag<6) pick(); });
+
+function hit(x,z){ const r=.32; return x<ROOM.x0+r||x>ROOM.x1-r||z<ROOM.z0+r||z>ROOM.z1-r||colliders.some(c=>x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r); }
+
+/* ========== proposta (no lugar do checkout de loja: a NEX não vende com preço de prateleira) ==========
+   Ao enviar, chama window.onNexLead(lead) e dispara o evento 'nex:lead' — é o ponto de ligação com o CRM/ERP. */
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const imgOf=p=>thumbOf(types.get(p.id));
+let co=null;
+function openCheckout(){
+  if(!cart.size){ toast('Escolha um pacote primeiro'); return; }
+  document.exitPointerLock(); if(free) locked=false; if(window.__closeChat) window.__closeChat(true);
+  co={step:1,nome:'',empresa:'',fone:'',site:'',obs:'',err:false,lead:null};
+  modal.classList.add('on'); overlay.style.display='none'; renderCO();
+}
+function closeCO(){ modal.classList.remove('on'); if(free) locked=true; else enter(); }
+function renderCO(){
+  const steps=['Sua proposta','Seus dados','Pronto'], lines=[...cart.values()];
+  $('costeps').innerHTML=steps.map((t,i)=>`<div class="cos ${i+1<co.step?'done':''} ${i+1===co.step?'on':''}"><b>${i+1<co.step?'✓':i+1}</b><span>${t}</span></div>`).join('<i></i>');
+  const grid=document.querySelector('.cogrid'); grid.classList.toggle('one',co.step===3); $('coside').style.display=co.step===3?'none':'';
+  $('coside').innerHTML=`<h4>Pacotes escolhidos</h4>`+lines.map(i=>`<div class="sl"><img src="${imgOf(i.p)}" alt=""><div><b>${esc(i.p.name)}</b><small>${i.p.free?'Gratuita':'Sob análise'}</small></div><span></span></div>`).join('')
+    +`<small class="sfree">O pacote certo sai da <b>Análise Estratégica</b>: a Ravi ajusta tudo na conversa, sem compromisso.</small>`;
+  let m='';
+  if(co.step===1){
+    m=`<h2>Sua proposta</h2>`+lines.map(i=>`<div class="ci" data-id="${i.k}" style="grid-template-columns:56px 1fr auto"><img src="${imgOf(i.p)}" alt=""><div class="cit"><b>${esc(i.p.name)}</b><small>${esc(i.p.tag||'')}</small></div><button class="cirm" data-a="rm" title="Remover">🗑</button></div>`).join('')
+      +`<p style="margin-top:14px;font-size:14px;opacity:.72;line-height:1.5">A NEX monta estrutura digital de evolução. Você manda seus dados, a Ravi chama no WhatsApp e a conversa começa pela Análise Estratégica.</p>`
+      +`<div class="coact"><button class="btn ghost" data-a="back">Continuar olhando</button><button class="btn" data-a="next">Continuar</button></div>`;
+  } else if(co.step===2){
+    const bad=k=>co.err&&!co[k].trim()?'bad':'';
+    m=`<h2>Seus dados</h2><div class="fg"><label>Seu nome<input data-f="nome" class="${bad('nome')}" placeholder="Como te chamamos?" value="${esc(co.nome)}"></label><label>WhatsApp<input data-f="fone" inputmode="tel" class="${bad('fone')}" placeholder="(11) 99999-9999" value="${esc(co.fone)}"></label>`
+      +`<label>Empresa<input data-f="empresa" placeholder="Nome do seu negócio" value="${esc(co.empresa)}"></label><label>Site ou Instagram<input data-f="site" placeholder="@suaempresa ou www..." value="${esc(co.site)}"></label>`
+      +`<label class="w2">Quer contar algo? (opcional)<textarea data-f="obs" rows="3" placeholder="O que mais te incomoda hoje?">${esc(co.obs)}</textarea></label></div>`
+      +`<div class="coact"><button class="btn ghost" data-a="prev">Voltar</button><button class="btn" data-a="send">Enviar proposta</button></div><div class="demo">🔒 Seus dados só vão para a NEX e são usados para te responder.</div>`;
+  } else {
+    const l=co.lead;
+    m=`<div class="done"><div class="check">✓</div><h2>Proposta recebida!</h2><p>Valeu, <b>${esc(l.contato.nome)}</b>. A Ravi vai te chamar no WhatsApp pra começar pela Análise Estratégica.</p></div>`
+      +`<div class="cog2"><div class="info">${l.pacotes.map(p=>`<div class="sr"><span>${esc(p.nome)}</span><span>${p.id==='analise'?'Gratuita':'Sob análise'}</span></div>`).join('')}</div><div class="info"><b>Contato</b>${esc(l.contato.whatsapp)}<b>Empresa</b>${esc(l.contato.empresa||'—')}<b>Site / Instagram</b>${esc(l.contato.site||'—')}</div></div>`
+      +`<div class="coact"><button class="btn ghost" data-a="wa">Já abrir o WhatsApp</button><button class="btn" data-a="back">Voltar pra loja</button></div>`;
+  }
+  $('comain').innerHTML=m;
+}
+function waText(l){ return `*Vim pela Rua NEW e quero conversar com a NEX*\nPacotes: ${l.pacotes.map(p=>p.nome).join(', ')}${l.perfil?`\nSegmento: ${l.perfil.segmento} · Momento: ${l.perfil.momento}`:''}\nNome: ${l.contato.nome}\nEmpresa: ${l.contato.empresa||'—'}\nSite/Instagram: ${l.contato.site||'—'}${l.mensagem?'\nObs: '+l.mensagem:''}`; }
+$('comain').addEventListener('input',e=>{ const k=e.target.dataset&&e.target.dataset.f; if(k) co[k]=e.target.value; });
+$('comain').addEventListener('click',e=>{
+  const bt=e.target.closest('button'); if(!bt) return; const a=bt.dataset.a, row=bt.closest('.ci'), id=row&&row.dataset.id;
+  switch(a){
+    case 'rm': cart.delete(id); for(let i=order.length-1;i>=0;i--) if(order[i]===id) order.splice(i,1); renderCart(); if(!cart.size){ toast('Proposta vazia'); return closeCO(); } break;
+    case 'back': return closeCO();
+    case 'prev': co.step--; co.err=false; break;
+    case 'next': co.step++; co.err=false; break;
+    case 'send':
+      if(!co.nome.trim()||!co.fone.trim()){ co.err=true; renderCO(); return toast('Preencha nome e WhatsApp'); }
+      co.lead={id:'NX'+Math.floor(1000+Math.random()*9000),pacotes:[...cart.values()].map(i=>({id:i.p.id,nome:i.p.name})),contato:{nome:co.nome.trim(),empresa:co.empresa.trim(),whatsapp:co.fone.trim(),site:co.site.trim()},mensagem:co.obs.trim(),perfil:window.NEX_PROFILE||null,origem:'Rua NEW · loja NEX',criadoEm:new Date().toISOString()};
+      try{ if(typeof window.onNexLead==='function') window.onNexLead(co.lead); window.dispatchEvent(new CustomEvent('nex:lead',{detail:co.lead})); }catch(err){ console.error(err); }
+      cart.clear(); order.length=0; renderCart(); co.step=3; break;
+    case 'wa': open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waText(co.lead))}`,'_blank'); return;
+  }
+  renderCO();
+});
+$('coclose').onclick=closeCO;
+
+/* ========== loop ========== */
+const clock=new THREE.Clock(), fwd=new THREE.Vector3(), rgt=new THREE.Vector3();
+let bob=0, rc=0;
+function frame(){
+  requestAnimationFrame(frame); // agenda primeiro: um erro num quadro nunca congela a loja
+  const dt=Math.min(clock.getDelta(),.05);
+  if(camAnim){
+    const a=camAnim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<.5?2*a.t*a.t:1-Math.pow(-2*a.t+2,2)/2;
+    camera.position.x=a.fx+(a.tx-a.fx)*e; camera.position.z=a.fz+(a.tz-a.fz)*e; yaw=a.fy+(a.ty-a.fy)*e; pitch=a.fp+(a.tp-a.fp)*e;
+    if(a.t>=1){ const done=a.done; camAnim=null; if(done) done(); }
+  }
+  if(free&&locked&&!ui()){
+    const dz=v=>Math.abs(v)<.12?0:(v-Math.sign(v)*.12)/.88;
+    yaw-=dz(mx)*dt*2.4; pitch=Math.max(-1.35,Math.min(1.35,pitch-dz(my)*dt*1.6));
+  }
+  let moving=false;
+  if(locked&&!ui()){
+    const sp=(keys.ShiftLeft||keys.ShiftRight?5.5:3.2)*dt;
+    const f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0);
+    const r=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);
+    fwd.set(-Math.sin(yaw),0,-Math.cos(yaw)); rgt.set(Math.cos(yaw),0,-Math.sin(yaw));
+    const dx=(fwd.x*f+rgt.x*r)*sp, dzz=(fwd.z*f+rgt.z*r)*sp;
+    if(dx||dzz){ moving=true; bob+=dt*(keys.ShiftLeft?11:8); }
+    if(!hit(camera.position.x+dx,camera.position.z)) camera.position.x+=dx;
+    if(!hit(camera.position.x,camera.position.z+dzz)) camera.position.z+=dzz;
+  }
+  camera.position.y=1.65+(moving?Math.sin(bob)*.016:0);
+  camera.rotation.set(pitch,yaw,0);
+
+  if(locked&&!ui()){
+    if((rc++&1)===0){
+      ray.setFromCamera({x:0,y:0},camera);
+      const h=ray.intersectObjects(pickMeshes,false)[0];
+      const nh=(h&&h.instanceId!=null)?{t:h.object.userData.type,i:h.instanceId}:null;
+      if(hov&&(!nh||nh.t!==hov.t||nh.i!==hov.i)) setHover(hov.t,hov.i,false);
+      if(nh&&(!hov||nh.t!==hov.t||nh.i!==hov.i)) setHover(nh.t,nh.i,true);
+      hov=nh;
+      if(hov){ showHover(hov.t.p); $('cross').classList.add('hot'); } else { hideHover(); $('cross').classList.remove('hot'); }
+    }
+  } else { if(hov){ setHover(hov.t,hov.i,false); hov=null; } $('cross').classList.remove('hot'); hideHover(); }
+  for(const f of TICKS) f(dt,clock.elapsedTime);
+  renderer.render(scene,camera);
+}
+frame();
+window.__dbg = { info:()=>({calls:renderer.info.render.calls,tris:renderer.info.render.triangles,meshes:pickMeshes.length,inst:[...types.values()].reduce((a,t)=>a+t.mats.length,0),pr:renderer.getPixelRatio()}), go:(x,z,y,p)=>{ camera.position.x=x; camera.position.z=z; yaw=y; pitch=p; }, pin:(id,i=0)=>{ const t=types.get(id); pin(t.p,t,i); }, pose:()=>({x:camera.position.x,z:camera.position.z,yaw,pitch,focusing,locked,pinned:!!pinned}), addp:()=>addPinned(), hover:id=>showHover(types.get(id).p) };
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+
+
+/* ========== Ravi — agente da NEX (conversa) ==========
+   Cérebro por regras (funciona offline), no jeito do Ravi do site: entende o negócio ANTES de indicar pacote,
+   não inventa preço (valor sai da Análise Estratégica) e só fala do que a NEX realmente entrega.
+   Pra plugar um modelo de verdade: defina window.NEX_AGENT_ENDPOINT = 'https://.../api/agent/respond'
+   (recebe {messages:[{role,content}]}, devolve texto). */
+(function(){
+const css=document.createElement('style'); css.textContent=`
+#rvfab{position:fixed;right:16px;bottom:76px;z-index:7;display:flex;align-items:center;gap:10px;padding:8px 18px 8px 8px;border:1px solid rgba(255,255,255,.16);border-radius:99px;background:linear-gradient(135deg,rgba(40,24,14,.9),rgba(16,14,20,.92));backdrop-filter:blur(16px);color:#fff;font:600 14px "Segoe UI",system-ui,sans-serif;cursor:pointer;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+#rvfab:hover{box-shadow:0 14px 44px rgba(0,0,0,.5),0 0 30px -6px #ff7a1a} #rvfab i{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#ffb066,#ff7a1a);font-style:normal;font-size:20px;position:relative} #rvfab i::after{content:'';position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#37d67a;border:2px solid #15131a} #rvfab small{display:block;font-weight:500;opacity:.6;font-size:11px}
+#rv{position:fixed;left:16px;bottom:16px;width:min(400px,calc(100vw - 32px));height:min(560px,calc(100vh - 100px));display:none;flex-direction:column;z-index:8;color:#f5f3fa;font:14.5px/1.45 "Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,rgba(34,24,16,.94),rgba(14,12,18,.96) 40%);backdrop-filter:blur(26px) saturate(1.4);border:1px solid rgba(255,255,255,.12);border-radius:26px;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 80px -34px #ff7a1a;overflow:hidden}
+#rv.on{display:flex;animation:rvin .26s cubic-bezier(.2,.9,.3,1.1)} @keyframes rvin{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+#rv .h{display:flex;align-items:center;gap:12px;padding:14px 14px 12px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:radial-gradient(120% 140% at 0% 0%,rgba(255,122,26,.3),transparent 62%)}
+#rv .av{position:relative;flex:none;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:27px;background:linear-gradient(145deg,#ffb066,#ff7a1a);border:2px solid #17121a} #rv .av::after{content:'';position:absolute;right:0;bottom:0;width:12px;height:12px;border-radius:50%;background:#37d67a;border:2.5px solid #17121a}
+#rv .who b{display:block;font-size:16.5px;font-weight:700} #rv .who small{opacity:.68;font-size:12px} #rv .sp{flex:1}
+#rv .h button{border:0;background:rgba(255,255,255,.09);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px} #rv .h button:hover{background:rgba(255,255,255,.2)} #rv .h button.off{opacity:.45}
+#rv .m{flex:1;overflow:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth} #rv .m::-webkit-scrollbar{width:6px} #rv .m::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:6px}
+#rv .b{max-width:88%;padding:10px 14px;border-radius:18px;white-space:pre-wrap;word-wrap:break-word;animation:rvb .22s ease} @keyframes rvb{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#rv .b.bot{align-self:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.07);border-top-left-radius:6px} #rv .b.me{align-self:flex-end;background:linear-gradient(135deg,#ff7a1a,#d9540a);color:#fff;border-top-right-radius:6px} #rv .b b{font-weight:700;color:#fff}
+#rv .dots{display:flex;gap:5px;padding:13px 15px;align-self:flex-start;background:rgba(255,255,255,.08);border-radius:18px;border-top-left-radius:6px} #rv .dots i{width:7px;height:7px;border-radius:50%;background:#fff;opacity:.5;animation:rvd 1s infinite} #rv .dots i:nth-child(2){animation-delay:.15s} #rv .dots i:nth-child(3){animation-delay:.3s} @keyframes rvd{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+#rv .chips{display:flex;flex-wrap:wrap;gap:7px;padding:2px 14px 10px} #rv .chips button{border:1px solid rgba(255,122,26,.6);background:rgba(255,122,26,.1);color:#ffd7b8;border-radius:99px;padding:7px 13px;font:600 13px "Segoe UI",system-ui;cursor:pointer} #rv .chips button:hover{background:rgba(255,122,26,.28)}
+#rv form{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid rgba(255,255,255,.08)} #rv input{flex:1;min-width:0;padding:11px 14px;border-radius:99px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#fff;font:14.5px "Segoe UI",system-ui;outline:none} #rv input:focus{border-color:#ff7a1a} #rv form button{border:0;border-radius:99px;padding:0 18px;background:#ff7a1a;color:#16120e;font-weight:800;cursor:pointer}
+`; document.head.appendChild(css);
+const root=document.createElement('div'); root.id='rv';
+root.innerHTML=`<div class="h"><div class="av">🧑‍🚀</div><div class="who"><b>Ravi</b><small>agente NEX · online</small></div><div class="sp"></div><button id="rvtts" class="off" title="Ler as respostas em voz alta">🔊</button><button id="rvx" title="Fechar (Esc)">✕</button></div><div class="m" id="rvm"></div><div class="chips" id="rvc"></div><form id="rvf"><input id="rvi" autocomplete="off" placeholder="Escreva pra Ravi..."><button>Enviar</button></form>`;
+document.body.appendChild(root);
+const fab=document.createElement('button'); fab.id='rvfab'; fab.innerHTML='<i>🧑‍🚀</i><span>Falar com a Ravi<small>agente NEX · tecla C</small></span>'; document.body.appendChild(fab);
+for(const el of [root,fab]) for(const ev of ['mousedown','mouseup','click']) el.addEventListener(ev,e=>e.stopPropagation());
+
+const $r=id=>document.getElementById(id), M_=$r('rvm'), C_=$r('rvc'), IN=$r('rvi');
+const fmt=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+let tts=false, history=[], busy=false, opened=false;
+function speak(t){ if(!tts||!window.speechSynthesis) return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t.replace(/\*\*/g,'')); const v=speechSynthesis.getVoices().find(v=>/pt[-_]BR/i.test(v.lang)); if(v) u.voice=v; u.lang='pt-BR'; u.rate=1.03; speechSynthesis.speak(u); }catch(e){} }
+$r('rvtts').onclick=function(){ tts=!tts; this.classList.toggle('off',!tts); if(!tts&&window.speechSynthesis) speechSynthesis.cancel(); toast(tts?'Ravi vai falar as respostas':'Voz desligada'); };
+function addMsg(who,t){ const d=document.createElement('div'); d.className='b '+who; d.innerHTML=fmt(t); M_.appendChild(d); M_.scrollTop=M_.scrollHeight; return d; }
+function setChips(list){ C_.innerHTML=''; (list||[]).forEach(l=>{ const b=document.createElement('button'); b.type='button'; b.textContent=l; b.onclick=()=>send(l); C_.appendChild(b); }); }
+
+/* ---- conhecimento (só o que a NEX realmente entrega) ---- */
+const PK={
+  start:'O **START** é a base: posicionamento de marca, Instagram inicial, site institucional, Google Business, SEO base, Ciclos de Posicionamento (3 posts sobre o mesmo assunto, nunca post avulso) e o Painel NEX.',
+  growth:'O **GROWTH** inclui tudo do START e soma estratégia de conteúdo, novos ciclos, otimizações contínuas, landing pages, relatórios, IA da empresa e melhorias mensais.',
+  scale:'O **SCALE** inclui tudo do GROWTH e soma automações, IA personalizada, sistemas internos, dashboards, integrações, consultoria estratégica e desenvolvimento sob demanda.',
+};
+const ASK=['Ser encontrado','Converter mais clientes','Organizar a operação'];
+function openCard(id){ const t=types.get(id); if(t){ setTimeout(()=>{ closeChat(true); pin(t.p,t,0); },700); } }
+function startAnalysis(){ if(!cart.has('analise')) add(CL.analise); setTimeout(()=>{ closeChat(true); openCheckout(); },1100); }
+
+const RULES=[
+  [/guia|tour|passeio|me mostra|refaz|comeca de novo/, ()=>{ closeChat(true); setTimeout(()=>{ if(window.__guide) window.__guide.start(); },500); return ['Bora! Já vou até você e a gente faz o passeio.']; }],
+  [/^(oi|ola|opa|eai|e ai|bom dia|boa tarde|boa noite|hey|hello)\b/, ()=>['Oi! Eu sou a **Ravi**, agente da NEX. Antes de te mostrar qualquer pacote, eu prefiro entender o seu negócio. O que a sua empresa faz e o que mais te incomoda hoje?',ASK]],
+  [/(quero|bora|vamos|comecar|fazer|pedir).*(analise)|analise.*(quero|gratuit|gratis)/, ()=>{ startAnalysis(); return ['Boa! Já coloquei a **Análise Estratégica** na sua proposta. Vou abrir seus dados pra eu te chamar no WhatsApp e começar por lá.']; }],
+  [/analise|diagnostic|auditoria|gratuit|gratis/, ()=>['A **Análise Estratégica NEX** é a nossa porta de entrada: uma auditoria gratuita, antes de qualquer venda, que já entrega valor. Ela avalia Posicionamento, Marca, Google, Instagram, Site, Comunicação, Conversão, Autoridade, Experiência do cliente e Oportunidades de crescimento.\n\nQuer começar por ela?',['Quero a análise gratuita','Ver os pacotes']]],
+  [/(quanto|preco|valor|custa|invest|mensalidade|orcamento)/, ()=>['Os valores dependem do que a sua empresa precisa, e eu não vou chutar número. Por isso a gente começa pela **Análise Estratégica gratuita**: ela mostra onde estão as oportunidades e, aí sim, eu te digo o pacote certo e o investimento.',['Quero a análise gratuita','Ver os pacotes']]],
+  [/start/, ()=>{ openCard('start'); return [PK.start+'\n\nVou te mostrar na vitrine.',['Ver o GROWTH','Quero a análise gratuita']]; }],
+  [/growth/, ()=>{ openCard('growth'); return [PK.growth+'\n\nVou te mostrar na vitrine.',['Ver o SCALE','Quero a análise gratuita']]; }],
+  [/scale|escala/, ()=>{ openCard('scale'); return [PK.scale+'\n\nVou te mostrar na vitrine.',['Quero a análise gratuita']]; }],
+  [/pacote|plano|servico|oferta|o que (voces|a nex)|como funciona|processo/, ()=>['A NEX vende **estrutura digital de evolução**, não ferramenta solta. São 3 pacotes que se somam: **START** (base), **GROWTH** (crescimento) e **SCALE** (operação em escala). O processo é: Analisar → Planejar → Implantar → Acompanhar → Evoluir.\n\nQual deles combina com o seu momento? Se não souber, a análise gratuita responde isso.',['Ver o START','Ver o GROWTH','Ver o SCALE','Quero a análise gratuita']]],
+  [/encontrad|google|aparec|visib|busca|seo|maps/, ()=>['Pra ser encontrado, o caminho costuma passar por **Google Business, SEO base e site institucional**, que fazem parte do **START**. Mas eu prefiro ver onde você está hoje antes de indicar: topa a análise gratuita?',['Quero a análise gratuita','Ver o START']]],
+  [/convert|vend|lead|landing|mais cliente|clientes/, ()=>['Converter visitas em clientes envolve **conteúdo com estratégia, landing pages e otimização contínua**, que ficam no **GROWTH** (já inclui o START). Antes de indicar, a análise gratuita mostra o gargalo certo.',['Quero a análise gratuita','Ver o GROWTH']]],
+  [/instagram|conteudo|post|rede social/, ()=>['No Instagram a gente trabalha com **Ciclos de Posicionamento**: 3 posts sobre o mesmo assunto, nunca post avulso. Começa no **START** e evolui no **GROWTH** com estratégia de conteúdo e novos ciclos.',['Ver o START','Quero a análise gratuita']]],
+  [/site|pagina|institucional/, ()=>['O **site institucional** entra já no **START**; no **GROWTH** somam-se landing pages. Dá pra ver um exemplo nas telas da parede esquerda da loja.',['Ver o START','Quero a análise gratuita']]],
+  [/\bia\b|inteligencia|agente|chatbot|robo/, ()=>['A **IA da empresa** entra no **GROWTH**, e a **IA personalizada** no **SCALE**. Funciona como eu aqui: conhece o seu negócio e atende o cliente. Antes, preciso entender o que você quer que ela faça.',['Ver o GROWTH','Ver o SCALE']]],
+  [/organiz|operac|automa|sistema interno|integr|dashboard|processo interno/, ()=>['Organizar a operação é com **automações, sistemas internos, dashboards e integrações**, no **SCALE**. E se a dor é estoque, PDV e nota fiscal, existe o **Sistema NEW (ERP)**, que fica por trás das lojas desta rua.',['Ver o SCALE','Ver o Sistema NEW']]],
+  [/erp|nota fiscal|pdv|sistema new|estoque/, ()=>{ openCard('erp'); return ['O **Sistema NEW** é um ERP com PDV e emissão de nota fiscal. É ele que fica por trás das lojas da Rua NEW: estoque, pedido e financeiro no mesmo lugar. Vou te mostrar.',['Quero a análise gratuita','Falar no WhatsApp']]; }],
+  [/whats|zap|contato|falar com|humano|reuniao|agendar|marcar|ligar/, ()=>{ startAnalysis(); return ['Claro! Vou montar sua proposta rapidinho com **nome e WhatsApp**, e a NEX responde por lá. Começamos pela análise gratuita.']; }],
+  [/obrigad|valeu|show|top|legal/, ()=>['Fico feliz em ajudar! Quando quiser, é só me chamar. 🚀',['Quero a análise gratuita','Ver os pacotes']]],
+  [/quem (e|eh|sao)|nex\b|voce/, ()=>['Sou a **Ravi**, agente da NEX. A NEX ajuda empresas a evoluir com uma estrutura digital completa: marca, Google, Instagram, site, IA e sistemas. Eu entendo o seu negócio e te levo ao pacote certo.',ASK]],
+];
+async function answer(text){
+  if(window.NEX_AGENT_ENDPOINT){ try{ const r=await fetch(window.NEX_AGENT_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:history.map(m=>({role:m.role==='me'?'user':'assistant',content:m.t}))})}); if(r.ok){ const t=(await r.text()).trim(); if(t) return [t,[]]; } }catch(e){} }
+  const n=norm(text);
+  for(const [re,fn] of RULES){ if(re.test(n)) return fn(); }
+  return ['Pra eu te orientar direito, me conta: **qual é o seu negócio** e o que mais te incomoda hoje: ser encontrado, converter visitas em clientes ou organizar a operação?',ASK];
+}
+async function send(text){
+  text=(text||'').trim(); if(!text||busy) return; busy=true; setChips([]); addMsg('me',text); history.push({role:'me',t:text}); IN.value='';
+  const dots=document.createElement('div'); dots.className='dots'; dots.innerHTML='<i></i><i></i><i></i>'; M_.appendChild(dots); M_.scrollTop=M_.scrollHeight;
+  const [reply,chips]=await answer(text); await new Promise(r=>setTimeout(r,500+Math.min(900,reply.length*5)));
+  dots.remove(); addMsg('bot',reply); history.push({role:'bot',t:reply}); setChips(chips); speak(reply); busy=false;
+}
+$r('rvf').addEventListener('submit',e=>{ e.preventDefault(); send(IN.value); });
+
+function openChat(){
+  if(window.__chat) return; window.__chat=true; document.exitPointerLock(); if(free) locked=false; root.classList.add('on'); fab.style.display='none'; RAVI.wave(2.4);
+  if(!opened){ opened=true; setTimeout(()=>{ const t='Oi! Eu sou a **Ravi**, agente da NEX. Antes de te mostrar qualquer pacote, eu prefiro entender o seu negócio. O que a sua empresa faz e o que mais te incomoda hoje?'; addMsg('bot',t); history.push({role:'bot',t}); setChips([...ASK,'Me guiar pela loja']); speak(t); },350); }
+  setTimeout(()=>IN.focus(),60);
+}
+function closeChat(skipResume){ if(!window.__chat) return; window.__chat=false; root.classList.remove('on'); fab.style.display=''; if(window.speechSynthesis) speechSynthesis.cancel(); if(!skipResume){ if(free) locked=true; else enter(); } }
+window.__openChat=openChat; window.__closeChat=()=>{ if(window.__guide&&window.__guide.active) window.__guide.skip(); else closeChat(); };
+fab.addEventListener('click',openChat); $r('rvx').onclick=()=>closeChat();
+window.__ravi={send,open:openChat};
+})();
+
+
+/* ========== Ravi guia a visita: vem até você, pergunta o tipo de loja, monta a proposta e explica os pacotes ========== */
+(function(){
+const css=document.createElement('style'); css.textContent=`
+#rvd{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);width:min(700px,calc(100vw - 24px));z-index:9;display:none;flex-direction:column;gap:10px;padding:14px 16px 16px;color:#f5f3fa;font:15px/1.5 "Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,rgba(38,26,17,.93),rgba(14,12,18,.95));backdrop-filter:blur(26px) saturate(1.4);border:1px solid rgba(255,255,255,.13);border-radius:26px;box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 90px -34px #ff7a1a}
+body:has(#rvd.on) #help{display:none}
+#rvd.on{display:flex;animation:rvdin .3s cubic-bezier(.2,.9,.3,1.1)} @keyframes rvdin{from{opacity:0;transform:translate(-50%,16px)}to{opacity:1;transform:translate(-50%,0)}}
+#rvd .top{display:flex;align-items:center;gap:11px} #rvd .av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:23px;background:linear-gradient(145deg,#ffb066,#ff7a1a);border:2px solid #17121a;flex:none}
+#rvd .nm b{display:block;font-size:15.5px} #rvd .nm small{opacity:.65;font-size:12px} #rvd .sp{flex:1}
+#rvd .top button{border:0;background:rgba(255,255,255,.09);color:#fff;border-radius:99px;height:32px;padding:0 13px;cursor:pointer;font:600 12.5px "Segoe UI",system-ui} #rvd .top button:hover{background:rgba(255,255,255,.2)} #rvd .top button.off{opacity:.45}
+#rvd .tx{min-height:46px;font-size:16px;line-height:1.55;cursor:default} #rvd .tx b{color:#ffb066;font-weight:700}
+#rvd .plan{display:none;flex-direction:column;gap:6px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)} #rvd .plan.on{display:flex}
+#rvd .plan div{display:flex;align-items:center;gap:9px;font-size:14px;animation:rvb .3s ease} @keyframes rvb{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}} #rvd .plan i{font-style:normal;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#ff7a1a;color:#16120e;font-weight:900;font-size:12px;flex:none} #rvd .plan b{color:#ffb066}
+#rvd .op{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))} #rvd .op.wide{grid-template-columns:1fr}
+#rvd .op button{display:flex;align-items:center;gap:10px;text-align:left;padding:11px 14px;border-radius:15px;border:1px solid rgba(255,122,26,.5);background:rgba(255,122,26,.09);color:#ffe3cc;font:600 14px/1.3 "Segoe UI",system-ui;cursor:pointer;transition:.15s;animation:rvb .3s ease both} #rvd .op button:hover{background:rgba(255,122,26,.28);transform:translateY(-2px)} #rvd .op button .ic{font-size:22px;flex:none} #rvd .op button small{display:block;font-weight:500;opacity:.7;font-size:12px}
+#rvd .op button.pri{background:linear-gradient(135deg,#ff7a1a,#d9540a);color:#fff;border-color:transparent;box-shadow:0 8px 26px -8px #ff7a1a}
+#rvd form{display:flex;gap:8px} #rvd form input{flex:1;min-width:0;padding:11px 15px;border-radius:99px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;font:15px "Segoe UI",system-ui;outline:none} #rvd form input:focus{border-color:#ff7a1a} #rvd form button{border:0;border-radius:99px;padding:0 20px;background:#ff7a1a;color:#16120e;font-weight:800;cursor:pointer}
+`; document.head.appendChild(css);
+const root=document.createElement('div'); root.id='rvd';
+root.innerHTML=`<div class="top"><div class="av">🧑‍🚀</div><div class="nm"><b>Ravi</b><small>agente NEX</small></div><div class="sp"></div><button id="rvdv" title="Voz da Ravi">🔊 Voz</button><button id="rvds" title="Esc">Pular ✕</button></div><div class="tx" id="rvdt"></div><div class="plan" id="rvdp"></div><div class="op" id="rvdo"></div><form id="rvdf" style="display:none"><input id="rvdi" autocomplete="off" placeholder="Digite aqui..."><button>OK</button></form>`;
+document.body.appendChild(root);
+for(const ev of ['mousedown','mouseup','click']) root.addEventListener(ev,e=>e.stopPropagation());
+const $g=id=>document.getElementById(id), TX=$g('rvdt'), PL=$g('rvdp'), OP=$g('rvdo'), FM=$g('rvdf'), FI=$g('rvdi');
+const fmt=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ---- conteúdo: só o que a NEX realmente entrega, adaptado ao segmento ---- */
+const SEG={
+  mercado:{icon:'🛒',label:'Mercado / Alimentação',de:'o seu mercado',
+    start:'Google Business e SEO base pra quem mora perto te achar no mapa, Instagram com Ciclos de Posicionamento (as ofertas contadas em 3 posts, nunca post solto) e um site com endereço e horário.',
+    growth:'landing pages pras campanhas da semana, relatórios do que está funcionando e a IA da empresa respondendo as dúvidas dos clientes.',
+    scale:'automações, dashboard com os números do negócio e integrações. E o Sistema NEW cuida de estoque, PDV e nota fiscal.',erp:1},
+  moda:{icon:'👗',label:'Moda e acessórios',de:'a sua loja de moda',
+    start:'Instagram como vitrine, em Ciclos de Posicionamento (cada lançamento contado em 3 posts), Google Business e um site institucional com a sua marca bem posicionada.',
+    growth:'estratégia de conteúdo, landing pages por coleção, relatórios e a IA da empresa atendendo as dúvidas de quem chega.',
+    scale:'automações, dashboards e integrações. E o Sistema NEW junta estoque, PDV e nota fiscal.',erp:1},
+  pet:{icon:'🐾',label:'Pet shop',de:'o seu pet shop',
+    start:'Google Business pra quem procura pet shop perto de casa, Instagram com Ciclos de Posicionamento (dicas e cuidados em 3 posts) e um site com os seus serviços.',
+    growth:'landing pages pras campanhas, relatórios e a IA da empresa respondendo dúvidas dos tutores.',
+    scale:'automações, dashboards e integrações. E o Sistema NEW cuida de estoque, PDV e nota fiscal.',erp:1},
+  saude:{icon:'🩺',label:'Clínica / Saúde',de:'a sua clínica',
+    start:'posicionamento e autoridade: site institucional, Google Business e Instagram em Ciclos de Posicionamento, sempre dentro das regras de publicidade da sua profissão.',
+    growth:'estratégia de conteúdo, landing pages por serviço, relatórios e a IA da empresa atendendo quem chega.',
+    scale:'automações, dashboards, sistemas internos e integrações.'},
+  servicos:{icon:'⚖️',label:'Escritório / Serviços',de:'o seu escritório',
+    start:'autoridade na prática: posicionamento de marca, site institucional, Google Business e Instagram com Ciclos de Posicionamento (um assunto de cada vez).',
+    growth:'estratégia de conteúdo, landing pages por serviço, relatórios e a IA da empresa qualificando quem chega.',
+    scale:'automações, IA personalizada, sistemas internos, dashboards e integrações.'},
+  atacado:{icon:'🥬',label:'Atacado / Hortifrúti',de:'o seu negócio B2B',
+    start:'presença que o comprador encontra: Google Business, site institucional e Instagram com Ciclos de Posicionamento.',
+    growth:'landing pages por linha de produto, relatórios e a IA da empresa atendendo as dúvidas dos compradores.',
+    scale:'automações, dashboards e integrações. E o Sistema NEW junta estoque, pedido e financeiro no mesmo lugar.',erp:1},
+  outro:{icon:'✏️',label:'Outro ramo',de:'o seu negócio',
+    start:'a base: posicionamento de marca, Instagram inicial, site institucional, Google Business e SEO base.',
+    growth:'estratégia de conteúdo, landing pages, relatórios e a IA da empresa.',
+    scale:'automações, IA personalizada, sistemas internos, dashboards e integrações.'},
+};
+const MOM=[
+  {label:'Ainda não tenho presença digital',sub:'estou começando do zero',pk:'start',txt:'começando a construir a presença digital'},
+  {label:'Tenho Instagram ou site, mas não vendo por ali',sub:'existe, mas não traz cliente',pk:'growth',txt:'já tem presença, mas ela não vira cliente'},
+  {label:'Já vendo e quero escalar',sub:'quero automação, IA e sistemas',pk:'scale',txt:'já vende e quer escalar a operação'},
+];
+const PKN={start:'START',growth:'GROWTH',scale:'SCALE'};
+
+/* ---- voz: frases curtas (o Chrome corta falas longas) e voz feminina em pt-BR ---- */
+let tts=true; try{ if(localStorage.getItem('rvVoz')==='0') tts=false; }catch(e){}
+let voice=null; const SS=window.speechSynthesis;
+function pickVoice(){ if(!SS) return; const vs=SS.getVoices(); voice=vs.find(v=>/pt[-_]BR/i.test(v.lang)&&/francisca|maria|luciana|google|feminina/i.test(v.name))||vs.find(v=>/pt[-_]BR/i.test(v.lang))||vs.find(v=>/^pt/i.test(v.lang))||null; }
+if(SS){ pickVoice(); SS.onvoiceschanged=pickVoice; }
+function utter(text){ return new Promise(res=>{
+  if(!tts||!SS){ res(); return; }
+  const parts=text.replace(/\*\*/g,'').replace(/\n+/g,' ').match(/[^.!?:]+[.!?:]?/g)||[text]; let left=parts.length, done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+  try{ SS.cancel(); for(const s of parts){ const u=new SpeechSynthesisUtterance(s.trim()); if(voice) u.voice=voice; u.lang='pt-BR'; u.rate=1.06; u.pitch=1.05; u.onend=u.onerror=()=>{ if(--left<=0) fin(); }; SS.speak(u); } }catch(e){ fin(); }
+  setTimeout(fin,Math.max(2500,text.length*85)); // rede de segurança se o navegador não avisar o fim
+}); }
+function setVoz(on){ tts=on; $g('rvdv').classList.toggle('off',!on); try{ localStorage.setItem('rvVoz',on?'1':'0'); }catch(e){} if(!on&&SS) SS.cancel(); }
+$g('rvdv').onclick=()=>{ setVoz(!tts); toast(tts?'Ravi vai falar':'Voz desligada'); };
+setVoz(tts);
+
+/* ---- estado e travamento do jogador ---- */
+let active=false, tok=0, rejectAsk=null, hot=null, skipType=false;
+const ABORT={abort:1};
+const chk=t=>{ if(t!==tok) throw ABORT; };
+function lockPlayer(){ window.__chat=true; document.exitPointerLock(); if(free) locked=false; const fb=document.getElementById('rvfab'); if(fb) fb.style.display='none'; root.classList.add('on'); }
+function unlockPlayer(){ window.__chat=false; root.classList.remove('on'); const fb=document.getElementById('rvfab'); if(fb) fb.style.display=''; if(free) locked=true; else enter(); }
+
+/* ---- falar: texto aparece palavra por palavra junto com a voz ---- */
+async function say(text,t){
+  chk(t); RAVI.talking=true; OP.innerHTML=''; FM.style.display='none'; skipType=false;
+  const sp=utter(text), words=fmt(text).split(' ');
+  for(let i=1;i<=words.length;i++){ chk(t); TX.innerHTML=words.slice(0,i).join(' '); if(!skipType) await sleep(tts?300:120); }
+  TX.innerHTML=words.join(' ');
+  if(tts) await Promise.race([sp,sleep(400+text.length*60)]);
+  RAVI.talking=false; chk(t);
+}
+function ask(opts,cls){ // devolve o índice escolhido
+  return new Promise((res,rej)=>{ rejectAsk=rej; OP.className='op '+(cls||''); OP.innerHTML='';
+    opts.forEach((o,i)=>{ const b=document.createElement('button'); b.type='button'; if(o.pri) b.className='pri'; b.style.animationDelay=(i*70)+'ms';
+      b.innerHTML=(o.icon?`<span class="ic">${o.icon}</span>`:'')+`<span>${esc(o.label)}${o.sub?`<small>${esc(o.sub)}</small>`:''}</span>`; b.onclick=()=>{ rejectAsk=null; OP.innerHTML=''; res(i); }; OP.appendChild(b); }); });
+}
+function askText(placeholder){
+  return new Promise((res,rej)=>{ rejectAsk=rej; OP.innerHTML=''; FM.style.display='flex'; FI.value=''; FI.placeholder=placeholder; setTimeout(()=>FI.focus(),50);
+    FM.onsubmit=e=>{ e.preventDefault(); const v=FI.value.trim(); if(!v) return; rejectAsk=null; FM.style.display='none'; res(v); }; });
+}
+TX.addEventListener('click',()=>{ skipType=true; });
+
+/* ---- câmera e movimento ---- */
+const clampv2=(v,a,b)=>Math.max(a,Math.min(b,v));
+function camTo(tx,tz,lx,ly,lz,dur){ return new Promise(res=>{ const C=camera.position; let ty=Math.atan2(-(lx-tx),-(lz-tz)); ty+=TAU*Math.round((yaw-ty)/TAU); const tp=clampv2(Math.atan2(ly-1.65,Math.hypot(lx-tx,lz-tz))-.12,-1.2,1.2);
+  camAnim={fx:C.x,fz:C.z,fy:yaw,fp:pitch,tx,tz,ty,tp,t:0,dur:dur||.9,done:res}; }); }
+const lookAtRavi=()=>{ const [rx,rz]=RAVI.pos(); return camTo(camera.position.x,camera.position.z,rx,1.5,rz,.7); };
+async function approach(t){ // Ravi vem andando até o jogador
+  const t0=performance.now();
+  return new Promise(res=>{ const iv=setInterval(()=>{
+    if(t!==tok){ clearInterval(iv); res(); return; }
+    const [rx,rz]=RAVI.pos(), cx=camera.position.x, cz=camera.position.z, d=Math.hypot(cx-rx,cz-rz);
+    if(d<3||performance.now()-t0>16000){ clearInterval(iv); RAVI.stop(); res(); return; }
+    const k=2.6/d, gx=cx+(rx-cx)*k, gz=cz+(rz-cz)*k; RAVI.walkTo(gx,gz,2.5);
+  },600); });
+}
+function podSpot(key){ const P=PODS[key], side=P.x>0?1:-1; return {px:P.x,pz:P.z,rx:P.x+(P.x===0?2.3:side*2.3),rz:3.7}; }
+async function viewPod(key,t){
+  const s=podSpot(key); hot=key;
+  await Promise.all([ RAVI.walkTo(s.rx,s.rz,2.2), camTo(clampv2(s.px*.72,-4.5,4.5),7.4,s.px,1.2,s.pz,1.3) ]);
+  chk(t);
+}
+
+/* ---- o roteiro ---- */
+async function run(){
+  const t=++tok; active=true;
+  try{
+    RAVI.wave(2.6); toast('A Ravi está vindo falar com você'); await sleep(900);
+    if(tts) utter('Oi! Já vou até você.');
+    await approach(t); chk(t);
+    lockPlayer(); await lookAtRavi(); chk(t);
+    RAVI.faceTo=[camera.position.x,camera.position.z]; RAVI.wave(2.2);
+    await say('Oi! Eu sou a **Ravi**, agente da NEX. Antes de te mostrar qualquer pacote, eu quero entender o seu negócio.',t);
+    await sleep(250);
+    await say('**Que tipo de loja é a sua?**',t);
+    const keys=['mercado','moda','pet','saude','servicos','atacado','outro'];
+    let k=keys[await ask(keys.map(k=>({icon:SEG[k].icon,label:SEG[k].label})))];
+    let segLabel=SEG[k].label, S=SEG[k];
+    if(k==='outro'){ await say('Me conta: **qual é o seu ramo?**',t); segLabel=await askText('Ex.: academia, restaurante, escola...'); chk(t); }
+    await say(`Perfeito, ${k==='outro'?'vou pensar em '+S.de:S.de}! Agora me diz: **em que momento você está?**`,t);
+    const mi=await ask(MOM.map(m=>({label:m.label,sub:m.sub})),'wide'); const M=MOM[mi]; chk(t);
+    const rec=M.pk;
+    window.NEX_PROFILE={segmento:segLabel,momento:M.txt,indicado:PKN[rec]};
+
+    /* montando a proposta */
+    await say('Então deixa eu **montar a sua proposta**...',t);
+    PL.className='plan on'; PL.innerHTML=''; hot=null;
+    const lines=[`Segmento: <b>${esc(segLabel)}</b>`,`Momento: <b>${esc(M.txt)}</b>`,'Análise Estratégica: <b>gratuita</b>, a porta de entrada',`Pacote indicado: <b>${PKN[rec]}</b>`];
+    for(let i=0;i<lines.length;i++){ chk(t); const d=document.createElement('div'); d.innerHTML=`<i>✓</i><span>${lines[i]}</span>`; PL.appendChild(d); if(i===3) hot=rec; await sleep(650); }
+    await sleep(500); chk(t);
+    PL.className='plan';
+    await say(`Pronto! Agora vem comigo que eu explico os **3 pacotes** pensando em ${S.de}.`,t);
+    await ask([{label:'Vamos ▸',pri:1}]); chk(t);
+
+    /* tour pelos pódios */
+    const order=['start','growth','scale'];
+    for(let i=0;i<order.length;i++){
+      const pk=order[i]; OP.innerHTML=''; TX.innerHTML='';
+      await viewPod(pk,t);
+      const lead=pk==='start'?'O **START** é a base. Pra você, ele entrega ':pk==='growth'?'O **GROWTH** inclui tudo do START e soma ':'O **SCALE** inclui tudo do GROWTH e soma ';
+      const body=S[pk]; const fin=pk===rec?' **É o que eu indico pra você.**':'';
+      await say(lead+body+fin,t);
+      await ask([{label:i<2?'Próximo pacote ▸':'Ver minha proposta ▸',pri:1}]); chk(t);
+    }
+
+    /* fechamento: monta o carrinho e oferece os próximos passos */
+    hot=rec; if(!cart.has('analise')) add(CL.analise); if(!cart.has(rec)) add(CL[rec]);
+    await Promise.all([ RAVI.walkTo(podSpot(rec).rx,podSpot(rec).rz,2.2), camTo(clampv2(podSpot(rec).px*.72,-4.5,4.5),7.4,podSpot(rec).px,1.2,podSpot(rec).pz,1.1) ]); chk(t);
+    await say(`Pro seu caso eu indico o **${PKN[rec]}**. Valor eu não chuto: ele sai da **Análise Estratégica gratuita**. Por isso já deixei ela na sua proposta, junto com o ${PKN[rec]}.`,t);
+    const final=[{label:'Enviar minha proposta',sub:'nome e WhatsApp, a NEX responde',pri:1,k:'send'}];
+    if(S.erp) final.push({icon:'🧾',label:'Ver o Sistema NEW',sub:'estoque, PDV e nota fiscal',k:'erp'});
+    final.push({label:'Continuar explorando',k:'go'},{label:'Falar por texto',sub:'tecla C',k:'chat'});
+    const c=final[await ask(final)].k; chk(t);
+    finish();
+    if(c==='send') setTimeout(()=>openCheckout(),300);
+    else if(c==='erp') setTimeout(()=>{ const ty=types.get('erp'); if(ty) pin(ty.p,ty,0); },300);
+    else if(c==='chat') setTimeout(()=>{ if(window.__openChat) window.__openChat(); },400);
+  }catch(e){ if(e!==ABORT) console.error(e); }
+}
+function finish(){
+  tok++; active=false; rejectAsk=null; hot=null; RAVI.talking=false; RAVI.faceTo=null; if(SS) SS.cancel();
+  OP.innerHTML=''; PL.className='plan'; FM.style.display='none'; unlockPlayer();
+  const mine=tok; setTimeout(()=>{ if(tok===mine&&!active) RAVI.goHome(); },7000);
+}
+function skip(){ if(!active) return; const r=rejectAsk; rejectAsk=null; if(r) r(ABORT); finish(); toast('Tudo bem! Me chama no C quando quiser'); }
+$g('rvds').onclick=skip;
+
+/* ---- anéis dos pódios e olhar da Ravi ---- */
+const cOn=new THREE.Color('#fff1de'), cOff=new THREE.Color(OR);
+TICKS.push((dt,t)=>{
+  for(const k in PODS){ const r=PODS[k].ring, on=k===hot, s=on?1+Math.sin(t*4.2)*.03:1; r.scale.setScalar(r.scale.x+(s-r.scale.x)*.2); r.material.color.lerp(on?cOn:cOff,.12); }
+  if(active&&!RAVI.walking) RAVI.faceTo=[camera.position.x,camera.position.z];
+});
+
+/* ---- entrada: quando o jogador entra na loja, a Ravi vem ---- */
+let started=false;
+const watch=setInterval(()=>{ if(started){ clearInterval(watch); return; } if(overlay.style.display==='none'&&!window.__chat){ started=true; clearInterval(watch); setTimeout(()=>{ if(!window.__chat&&!active) run(); },1400); } },300);
+
+window.__guide={start:()=>{ if(active) return; started=true; run(); },skip,get active(){ return active; }};
+})();
+
+
+if(window.NewPerf) NewPerf.attach(renderer,scene);
+</script>
+</body>
+</html>

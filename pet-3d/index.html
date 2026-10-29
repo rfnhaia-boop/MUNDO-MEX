@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEW Pet</title>
+<style>
+  :root { --bg:#0b0b0f; --fg:#f5f5f7; --acc:#8b5cf6; --glass:rgba(18,18,24,.66); }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:"Segoe UI",system-ui,Roboto,sans-serif; overflow:hidden; }
+  canvas { display:block; }
+  .glass { background:var(--glass); backdrop-filter:blur(16px) saturate(1.4); border:1px solid rgba(255,255,255,.14); border-radius:18px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  #cross { position:fixed; left:50%; top:50%; width:10px; height:10px; margin:-5px; border-radius:50%; border:2px solid #fff; opacity:.8; pointer-events:none; box-shadow:0 0 0 1px rgba(0,0,0,.35); }
+  #cross.hot { background:var(--acc); border-color:#fff; transform:scale(1.5); }
+  #tip { position:fixed; left:50%; top:calc(50% + 28px); transform:translateX(-50%); padding:9px 16px; font-size:14px; white-space:nowrap; opacity:0; transition:opacity .12s; pointer-events:none; }
+  #tip b { color:var(--acc); }
+  #cart { position:fixed; right:16px; top:16px; width:270px; padding:14px 16px; font-size:14px; pointer-events:none; }
+  #cart h3 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.65; margin-bottom:8px; }
+  #cart .row { display:flex; justify-content:space-between; gap:8px; padding:3px 0; }
+  #cart .tot { border-top:1px solid rgba(255,255,255,.15); margin-top:8px; padding-top:8px; font-weight:700; display:flex; justify-content:space-between; }
+  #cart .empty { opacity:.55; }
+  #cart .cfin { pointer-events:auto; width:100%; margin-top:10px; padding:11px 12px; border:0; border-radius:12px; background:var(--acc); color:#fff; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; font-family:inherit; }
+  #cart .cfin kbd { background:rgba(0,0,0,.2); color:#fff; }
+  #cart .cfin:hover { filter:brightness(1.08); }
+  #help { position:fixed; left:16px; bottom:16px; padding:10px 14px; font-size:12.5px; line-height:1.7; opacity:.9; pointer-events:none; }
+  kbd { background:rgba(255,255,255,.16); border-radius:6px; padding:1px 7px; font-size:12px; font-family:inherit; }
+  #voltar { position:fixed; left:16px; top:16px; padding:10px 15px; font-size:13px; color:#fff; text-decoration:none; z-index:6; display:flex; align-items:center; gap:8px; }
+  #voltar:hover { background:rgba(139,92,246,.35); }
+  #toast { position:fixed; left:50%; bottom:90px; transform:translate(-50%,10px); padding:10px 18px; opacity:0; transition:all .25s; pointer-events:none; font-size:14px; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at center,rgba(0,0,0,.25),rgba(0,0,0,.78)); cursor:pointer; z-index:5; }
+  #overlay .box { text-align:center; padding:36px 44px; max-width:460px; }
+  #overlay h1 { font-size:36px; margin-bottom:6px; letter-spacing:-.02em; }
+  #overlay h1 span { color:var(--acc); }
+  #overlay p { opacity:.78; margin:8px 0; font-size:15px; line-height:1.5; }
+  .btn { display:inline-block; margin-top:16px; padding:13px 28px; border-radius:13px; background:var(--acc); color:#fff; font-weight:700; font-size:16px; border:0; cursor:pointer; }
+  .btn.ghost { background:rgba(255,255,255,.12); color:var(--fg); margin-left:8px; }
+  #modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.62); backdrop-filter:blur(4px); z-index:8; padding:14px; }
+  #modal.on { display:flex; animation:fadeIn .18s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes pop { from{transform:translateY(14px) scale(.97);opacity:0} to{transform:none;opacity:1} }
+  .co { position:relative; width:min(940px,100%); max-height:94vh; overflow:auto; padding:22px 26px 24px; animation:pop .25s cubic-bezier(.2,.9,.3,1.1); }
+  .coclose { position:absolute; right:14px; top:12px; width:34px; height:34px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:15px; z-index:2; }
+  .coclose:hover { background:rgba(255,255,255,.25); }
+  .costeps { display:flex; align-items:center; gap:10px; margin:0 44px 18px 0; font-size:13px; }
+  .costeps i { flex:1; height:2px; background:rgba(255,255,255,.14); border-radius:2px; max-width:70px; }
+  .cos { display:flex; align-items:center; gap:7px; opacity:.5; }
+  .cos b { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.14); display:grid; place-items:center; font-size:12px; }
+  .cos.on { opacity:1; } .cos.on b { background:var(--acc); color:#fff; }
+  .cos.done { opacity:.85; } .cos.done b { background:#2fb36a; color:#fff; }
+  .cogrid { display:grid; grid-template-columns:1.35fr 1fr; gap:26px; }
+  .cogrid.one { grid-template-columns:1fr; }
+  .comain h2 { font-size:26px; letter-spacing:-.02em; margin-bottom:14px; }
+  .comain h4, .coside h4 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.6; margin:16px 0 8px; }
+  .coside { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:16px 18px; align-self:start; }
+  .coside h4 { margin-top:0; }
+  .ci { display:grid; grid-template-columns:56px 1fr auto auto auto; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+  .ci img, .sl img { width:56px; height:56px; object-fit:contain; background:rgba(255,255,255,.06); border-radius:14px; padding:4px; }
+  .ci .cit b { display:block; font-size:15px; } .ci small, .sl small { opacity:.6; font-size:12.5px; }
+  .cip { min-width:78px; text-align:right; font-size:15px; }
+  .cirm { border:0; background:rgba(255,255,255,.08); border-radius:9px; width:34px; height:34px; cursor:pointer; opacity:.85; font-size:15px; } .cirm:hover { opacity:1; background:rgba(255,93,93,.3); }
+  .sl { display:grid; grid-template-columns:44px 1fr auto; gap:10px; align-items:center; padding:6px 0; font-size:14px; }
+  .sl img { width:44px; height:44px; border-radius:11px; } .sl b { display:block; font-size:13.5px; } .sl > span { font-weight:600; }
+  .sr { display:flex; justify-content:space-between; padding:5px 0; font-size:14px; opacity:.85; }
+  .sr.tot { border-top:1px solid rgba(255,255,255,.14); margin-top:6px; padding-top:10px; font-size:19px; font-weight:800; opacity:1; }
+  .sfree { display:block; margin-top:6px; opacity:.65; font-size:12.5px; } .sfree.ok { color:#6be39a; opacity:1; }
+  .coact { display:flex; gap:10px; margin-top:20px; }
+  .coact .btn { margin:0; padding:14px 22px; font-size:15px; } .coact .btn:not(.ghost) { flex:1; }
+  .coact .btn.ghost { margin-left:0; }
+  .btn:disabled { opacity:.6; cursor:wait; }
+  .fg { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fg label { font-size:12.5px; opacity:.9; display:flex; flex-direction:column; gap:5px; } .fg label.w2 { grid-column:1/-1; }
+  .co input[data-f], .co select { padding:12px 13px; border-radius:11px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:14.5px; font-family:inherit; outline:none; width:100%; }
+  .co input[data-f]:focus, .co select:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(139,92,246,.22); }
+  .co input.bad { border-color:#ff5d5d; background:rgba(255,93,93,.1); }
+  .opts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .opt { text-align:left; padding:12px 13px; border-radius:13px; border:1.5px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:var(--fg); cursor:pointer; font-family:inherit; }
+  .opt b { display:block; font-size:14px; } .opt small { opacity:.6; font-size:12px; }
+  .opt:hover { border-color:rgba(255,255,255,.35); } .opt.on { border-color:var(--acc); background:rgba(139,92,246,.12); }
+  .pix { display:flex; gap:18px; align-items:center; margin-top:14px; }
+  .pix canvas { width:176px; height:176px; border-radius:14px; background:#fff; padding:8px; flex:none; image-rendering:pixelated; }
+  .pix small { opacity:.65; display:block; margin:3px 0 10px; line-height:1.4; }
+  .copy { display:flex; gap:6px; } .copy input { flex:1; min-width:0; padding:10px 11px; border-radius:10px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:12px; }
+  .copy button { padding:0 14px; border:0; border-radius:10px; background:rgba(255,255,255,.16); color:#fff; cursor:pointer; font-weight:600; }
+  .demo { margin-top:12px; font-size:12px; opacity:.55; }
+  .done { text-align:center; padding:6px 0 4px; }
+  .check { width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,#2fb36a,#1f8a4f); display:grid; place-items:center; font-size:40px; margin:0 auto 12px; box-shadow:0 0 0 10px rgba(47,179,106,.18); animation:pop .5s cubic-bezier(.2,.9,.3,1.4); }
+  .done p { opacity:.8; margin-top:4px; }
+  .tl { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:22px 0 6px; }
+  .tl div { text-align:center; font-size:12.5px; opacity:.45; position:relative; padding-top:26px; }
+  .tl div::before { content:''; position:absolute; left:50%; top:0; width:20px; height:20px; margin-left:-10px; border-radius:50%; background:rgba(255,255,255,.14); }
+  .tl div::after { content:''; position:absolute; left:calc(50% + 14px); right:calc(-50% + 14px); top:9px; height:2px; background:rgba(255,255,255,.14); }
+  .tl div:last-child::after { display:none; }
+  .tl div.done, .tl div.on { opacity:1; } .tl div.done::before { background:#2fb36a; } .tl div.on::before { background:var(--acc); box-shadow:0 0 0 6px rgba(139,92,246,.25); }
+  .tl div.done::after { background:#2fb36a; }
+  .cog2 { display:grid; grid-template-columns:1.2fr 1fr; gap:22px; margin-top:12px; text-align:left; }
+  .info { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:14px 16px; font-size:14px; line-height:1.7; }
+  .info > b { opacity:.6; font-weight:600; font-size:12px; letter-spacing:.08em; text-transform:uppercase; display:block; margin-top:6px; }
+  @media (max-width:760px){ .cogrid,.cog2{grid-template-columns:1fr} .fg{grid-template-columns:1fr} .opts{grid-template-columns:1fr} .pix{flex-direction:column;align-items:flex-start} .ci{grid-template-columns:48px 1fr auto} .ci .cip{grid-column:2} .costeps span{display:none} }
+  #pc { position:fixed; left:50%; bottom:22px; transform:translate(-50%,26px); width:min(640px,94vw); display:none; opacity:0; z-index:6; --pc:#ff7a1a;
+    background:linear-gradient(135deg,rgba(26,26,33,.86),rgba(13,13,18,.82)); backdrop-filter:blur(20px) saturate(1.6); border:1px solid rgba(255,255,255,.14); border-radius:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.5), 0 0 70px -14px var(--pc); overflow:hidden; transition:opacity .16s, transform .24s cubic-bezier(.2,.9,.3,1.12); }
+  #pc.on { display:flex; opacity:1; transform:translate(-50%,0); }
+  #pc::before { content:''; position:absolute; left:-70px; top:-70px; width:300px; height:300px; background:radial-gradient(circle,var(--pc),transparent 65%); opacity:.5; filter:blur(8px); pointer-events:none; }
+  #pc::after { content:''; position:absolute; left:0; right:0; top:0; height:3px; background:linear-gradient(90deg,var(--pc),transparent); }
+  .pcimgw { position:relative; flex:0 0 156px; display:flex; align-items:center; justify-content:center; padding:14px 0 14px 8px; transition:flex-basis .24s; }
+  .pcimgw::before { content:''; position:absolute; width:118px; height:118px; border-radius:50%; background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),rgba(255,255,255,.04) 70%); border:1px solid rgba(255,255,255,.12); }
+  .pcimgw img { position:relative; width:136px; height:136px; object-fit:contain; filter:drop-shadow(0 14px 12px rgba(0,0,0,.5)); animation:floaty 3.8s ease-in-out infinite; }
+  #pc.full .pcimgw { flex-basis:206px; } #pc.full .pcimgw::before { width:150px; height:150px; } #pc.full .pcimgw img { width:182px; height:182px; }
+  .pcbody { position:relative; flex:1; padding:16px 20px 16px 6px; display:flex; flex-direction:column; gap:7px; min-width:0; justify-content:center; }
+  .pcbrand { font-size:11px; letter-spacing:.15em; text-transform:uppercase; opacity:.6; }
+  .pcname { font-size:22px; font-weight:800; letter-spacing:-.015em; line-height:1.1; }
+  #pc.full .pcname { font-size:28px; }
+  .pcprice { font-size:24px; font-weight:800; color:#fff; }
+  .pcprice b { color:var(--acc); font-weight:800; }
+  .pcprice small { font-size:13px; font-weight:600; opacity:.65; }
+  .pcdesc { display:none; font-size:14px; line-height:1.55; opacity:.88; }
+  #pc.full .pcdesc { display:block; }
+  .pcchips { display:flex; gap:6px; flex-wrap:wrap; }
+  .pcchips span { background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12); border-radius:99px; padding:4px 11px; font-size:12px; }
+  .pcchips span.hl { background:var(--pc); color:#fff; border-color:transparent; font-weight:700; text-shadow:0 1px 2px rgba(0,0,0,.4); }
+  .pchint { font-size:12px; opacity:.6; margin-top:2px; }
+  #pc.full .pchint { display:none; }
+  .pcact { display:none; align-items:center; gap:10px; margin-top:4px; }
+  #pc.full .pcact { display:flex; }
+  .pcact .btn { margin:0; flex:1; padding:12px 14px; font-size:15px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .pcact .btn kbd { background:rgba(0,0,0,.18); color:#fff; }
+  .pckeys { display:none; font-size:11.5px; opacity:.55; }
+  #pc.full .pckeys { display:block; }
+  .pcsizes { display:none; gap:7px; flex-wrap:wrap; align-items:center; }
+  #pc.full .pcsizes.has { display:flex; }
+  .pcsizes::before { content:'Tamanho'; font-size:12px; opacity:.6; margin-right:2px; }
+  .sz { min-width:42px; height:36px; padding:0 10px; border-radius:10px; border:1.5px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit; }
+  .sz:hover { border-color:rgba(255,255,255,.5); } .sz.on { background:var(--acc); color:#fff; border-color:transparent; }
+  #pcx { display:none; position:absolute; right:12px; top:10px; width:30px; height:30px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:14px; }
+  #pc.full #pcx { display:block; } #pcx:hover { background:rgba(255,255,255,.25); }
+  .qty { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,.1); border-radius:12px; padding:3px; }
+  .qty button { width:34px; height:34px; border:0; border-radius:9px; background:rgba(255,255,255,.14); color:#fff; font-size:19px; cursor:pointer; }
+  .qty button:hover { background:rgba(255,255,255,.28); }
+  .qty span { min-width:48px; text-align:center; font-weight:700; font-size:15px; }
+  @keyframes floaty { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(2deg)} }
+  @media (max-width:560px){ .pcimgw{flex-basis:110px} .pcimgw img{width:96px;height:96px} #pc.full .pcimgw{flex-basis:120px} #pc.full .pcimgw img{width:110px;height:110px} .pcname{font-size:18px} }
+</style>
+</head>
+<body>
+<div id="cross"></div>
+<div id="cart" class="glass"></div>
+<div id="help" class="glass"><kbd>W A S D</kbd> andar &nbsp; <kbd>Shift</kbd> correr &nbsp; <kbd>clique</kbd> fixar ficha &nbsp; <kbd>E</kbd> adicionar<br><kbd>Q</kbd> tirar o último &nbsp; <kbd>F</kbd> finalizar pedido &nbsp; <kbd>Esc</kbd> soltar mouse</div>
+<div id="toast" class="glass"></div>
+
+<div id="overlay"><div class="box glass">
+  <h1>NEW <span>Pet</span></h1>
+  <p>Passeie pela loja, escolha o produto ou agende o banho e tosa do seu pet.</p>
+  <p style="font-size:13px;opacity:.55">Demo · NEW</p>
+  <button class="btn">Entrar na loja</button>
+</div></div>
+
+<div id="pc"><div class="pcimgw"><img id="pcimg" alt=""></div><div class="pcbody">
+  <button id="pcx" title="Fechar (X)">✕</button>
+  <div class="pcbrand" id="pcbrand"></div>
+  <div class="pcname" id="pcname"></div>
+  <div class="pcprice" id="pcprice"></div>
+  <div class="pcdesc" id="pcdesc"></div>
+  <div class="pcchips" id="pcchips"></div>
+  <div class="pchint">clique pra fixar e ver os detalhes</div>
+  <div class="pcsizes" id="pcsizes"></div>
+  <div class="pcact"><div class="qty"><button id="qm">−</button><span id="qn">1</span><button id="qp">+</button></div><button class="btn" id="pcadd">Adicionar ao carrinho <kbd>E</kbd></button></div>
+  <div class="pckeys"><kbd>E</kbd> adicionar &nbsp; <kbd>+</kbd> <kbd>−</kbd> quantidade &nbsp; <kbd>X</kbd> fechar &nbsp; (clique fora pra voltar)</div>
+</div></div>
+
+<div id="modal"><div class="co glass">
+  <button class="coclose" id="coclose" title="Fechar (Esc)">✕</button>
+  <div class="costeps" id="costeps"></div>
+  <div class="cogrid"><div class="comain" id="comain"></div><aside class="coside" id="coside"></aside></div>
+</div></div>
+
+<script>
+window.addEventListener('error', e=>{ const b=document.querySelector('#overlay .box'); if(b) b.innerHTML='<h1>Erro 😕</h1><p>'+(e.message||'falha ao carregar')+'</p><p style="font-size:12px">Me manda um print dessa tela.</p>'; });
+setTimeout(()=>{ if(!window.__mercadoOk){ const b=document.querySelector('#overlay .box'); b.innerHTML='<h1>Não carregou 😕</h1><p>O 3D vem da internet (three.js). Confira se você está online e se o navegador não bloqueia cdn.jsdelivr.net. Depois recarregue (Ctrl+F5).</p>'; } }, 6000);
+</script>
+<script src="../shared/music.js"></script>
+<script>if(window.NewMusic) NewMusic.init('pet');</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="../shared/perf.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+window.__mercadoOk = true;
+
+const WHATSAPP = ''; // número com DDI+DDD (ex: 5511999999999). Vazio = o cliente escolhe o contato.
+const brl = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const $ = id => document.getElementById(id);
+
+// veio da Rua Digital (../mundo)? mostra o botão de voltar
+const FROM_RUA = /[?&]rua=1/.test(location.search), RUA_URL = '../mundo/index.html';
+if(FROM_RUA){
+  const a=document.createElement('a'); a.id='voltar'; a.className='glass'; a.href=RUA_URL; a.innerHTML='← Voltar pra rua <kbd>V</kbd>';
+  for(const ev of ['mousedown','mouseup']) a.addEventListener(ev,e=>e.stopPropagation());
+  document.body.appendChild(a);
+}
+
+/* ========== utilidades ========== */
+const rnd = (()=>{ let a=20261028; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; })();
+const R = (a,b)=>a+(b-a)*rnd();
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const lum = hex => { const c=new THREE.Color(hex); return .2126*c.r+.7152*c.g+.0722*c.b; };
+const onCol = hex => lum(hex)>.3 ? '#1b1b1b' : '#ffffff';
+function ctex(w,h,fn,rep){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; fn(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+  if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep[0],rep[1]); }
+  return t;
+}
+const M = o => new THREE.MeshStandardMaterial(Object.assign({roughness:.6,metalness:0,envMapIntensity:.55},o));
+const lathe = (pts,seg=20)=>new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg);
+
+/* ========== rótulos de embalagem ========== */
+function labelTex(p,w,h,wrap){
+  return ctex(w,h,(g)=>{
+    g.fillStyle=p.color; g.fillRect(0,0,w,h);
+    const fx=wrap?w*.25:0, fw=wrap?w*.5:w, cx=fx+fw/2;
+    g.fillStyle=p.accent; g.beginPath(); g.moveTo(fx,0); g.lineTo(fx+fw,0); g.lineTo(fx+fw,h*.17); g.quadraticCurveTo(cx,h*.27,fx,h*.15); g.closePath(); g.fill();
+    g.textAlign='center'; g.textBaseline='middle';
+    let fs=Math.min(fw*.2,h*.12); const brand=p.brand.toUpperCase();
+    g.font=`800 ${fs}px "Segoe UI",system-ui,sans-serif`; while(g.measureText(brand).width>fw*.84 && fs>6){ fs*=.92; g.font=`800 ${fs}px "Segoe UI",system-ui,sans-serif`; }
+    g.fillStyle=onCol(p.accent); g.fillText(brand,cx,h*.085);
+    const r=Math.min(fw,h)*.27;
+    g.fillStyle='rgba(255,255,255,.93)'; g.beginPath(); g.arc(cx,h*.47,r,0,7); g.fill();
+    g.lineWidth=Math.max(2,r*.07); g.strokeStyle=p.accent; g.stroke();
+    g.fillStyle='#000'; g.font=`${r*1.35}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`; g.fillText(p.emoji,cx,h*.475);
+    let ns=Math.min(fw*.13,h*.075); g.font=`700 ${ns}px "Segoe UI",system-ui,sans-serif`; while(g.measureText(p.name).width>fw*.86 && ns>6){ ns*=.92; g.font=`700 ${ns}px "Segoe UI",system-ui,sans-serif`; }
+    g.fillStyle=onCol(p.color); g.fillText(p.name,cx,h*.76);
+    const ps=Math.min(fw*.09,h*.055); g.font=`700 ${ps}px "Segoe UI",system-ui,sans-serif`;
+    const tw=g.measureText(p.sub).width+ps*1.2; g.fillStyle=p.accent; g.beginPath(); g.roundRect(cx-tw/2,h*.86,tw,ps*1.6,ps*.8); g.fill();
+    g.fillStyle=onCol(p.accent); g.fillText(p.sub,cx,h*.86+ps*.82);
+  });
+}
+function tagTex(p){
+  return ctex(256,80,(g,w,h)=>{
+    g.fillStyle='#fff'; g.fillRect(0,0,w,h); g.fillStyle='#ffd23f'; g.fillRect(0,0,w,10);
+    g.fillStyle='#222'; g.font='600 22px "Segoe UI",system-ui'; g.textAlign='left'; g.textBaseline='middle'; g.fillText(p.name,10,40);
+    g.fillStyle='#c8102e'; g.font='800 32px "Segoe UI",system-ui'; g.textAlign='right'; g.fillText(brl(p.price),w-10,50);
+  });
+}
+function chalkTex(p){
+  return ctex(256,128,(g,w,h)=>{
+    g.fillStyle='#8a5a30'; g.fillRect(0,0,w,h); g.fillStyle='#1f2a24'; g.fillRect(8,8,w-16,h-16);
+    for(let i=0;i<300;i++){ g.fillStyle=`rgba(255,255,255,${rnd()*.04})`; g.fillRect(8+rnd()*(w-16),8+rnd()*(h-16),2,2); }
+    g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#fff';
+    g.font='42px "Segoe UI Emoji","Apple Color Emoji",sans-serif'; g.fillText(p.emoji,40,h*.42);
+    g.font='700 30px "Segoe Print","Comic Sans MS",cursive'; g.fillText(p.name,w*.6,h*.34);
+    g.fillStyle='#ffd23f'; g.font='700 34px "Segoe Print","Comic Sans MS",cursive'; g.fillText(brl(p.price)+(p.unit==='kg'?' /kg':' /un'),w/2,h*.74);
+  });
+}
+
+/* ========== geometrias de embalagens ========== */
+function buildPack(p){
+  const parts=[], S=()=>M({color:p.color,roughness:.5});
+  const flat=(W,H)=>M({map:labelTex(p,256,Math.max(96,Math.min(640,Math.round(256*H/W))),false),roughness:.42});
+  const wrap=(r,H)=>M({map:labelTex(p,512,Math.max(64,Math.round(512*H/(2*Math.PI*r))),true),roughness:.4});
+  const metal=M({color:'#d5d9de',metalness:1,roughness:.28});
+  let w,d,h;
+  switch(p.kind){
+    case 'box': { const [W,H,D]=p.size; const geo=new THREE.BoxGeometry(W,H,D); geo.translate(0,H/2,0); const s=S(),L=flat(W,H); parts.push({geo,mat:[s,s,s,s,L,L],pick:1}); w=W;d=D;h=H; break; }
+    case 'bag': { const [W,H,D]=p.size; const geo=new RoundedBoxGeometry(W,H,D,1,Math.min(D*.42,.03)); geo.translate(0,H/2,0); const s=S(),L=flat(W,H); parts.push({geo,mat:[s,s,s,s,L,L],pick:1});
+      const cr=new THREE.BoxGeometry(W*.98,.014,D*.28); cr.translate(0,H-.004,0); parts.push({geo:cr,mat:S()}); w=W;d=D;h=H; break; }
+    case 'carton': { const [W,H,D]=p.size; const geo=new THREE.BoxGeometry(W,H,D); geo.translate(0,H/2,0); const s=S(),L=flat(W,H); parts.push({geo,mat:[s,s,s,s,L,L],pick:1});
+      const top=new THREE.BoxGeometry(W*.96,.03,D*.46); top.translate(0,H+.015,0); parts.push({geo:top,mat:S()}); w=W;d=D;h=H+.03; break; }
+    case 'can': { const r=p.r,H=p.h; const geo=new THREE.CylinderGeometry(r,r,H,12,1,false,Math.PI); geo.translate(0,H/2,0); parts.push({geo,mat:[wrap(r,H),metal,metal],pick:1}); w=d=2*r; h=H; break; }
+    case 'tub': case 'jar': { const r=p.r,H=p.h; const geo=new THREE.CylinderGeometry(r,r,H,12,1,false,Math.PI); geo.translate(0,H/2,0); parts.push({geo,mat:[wrap(r,H),S(),S()],pick:1});
+      const lid=new THREE.CylinderGeometry(r*1.03,r*1.03,.02,16); lid.translate(0,H+.01,0); parts.push({geo:lid,mat:M({color:p.lid,roughness:.4})}); w=d=2*r; h=H+.02; break; }
+    case 'bottle': case 'wine': {
+      const r=p.r,H=p.h, wine=p.kind==='wine';
+      const P = wine ? [[.0001,0],[r*.85,0],[r,.01],[r,H*.5],[r*.92,H*.6],[r*.5,H*.74],[r*.36,H*.8],[r*.34,H*.96],[r*.36,H],[.0001,H]]
+                     : [[.0001,0],[r*.85,0],[r,.012],[r,H*.64],[r*.93,H*.70],[r*.6,H*.82],[r*.38,H*.88],[r*.36,H*.97],[r*.4,H*.975],[r*.4,H],[.0001,H]];
+      const body=lathe(P,10);
+      parts.push({geo:body,mat:M({color:p.liquid,roughness:.1,metalness:.0,envMapIntensity:1.2,transparent:(p.opacity||1)<1,opacity:p.opacity||1}),pick:1});
+      const lh=H*(wine?.4:.34), lab=new THREE.CylinderGeometry(r*1.012,r*1.012,lh,12,1,true,Math.PI); lab.translate(0,H*(wine?.3:.36),0);
+      parts.push({geo:lab,mat:new THREE.MeshStandardMaterial({map:labelTex(p,512,Math.max(64,Math.round(512*lh/(2*Math.PI*r))),true),roughness:.4,side:THREE.DoubleSide})});
+      const capH=H*(wine?.16:.06), cap=new THREE.CylinderGeometry(r*(wine?.4:.42),r*(wine?.4:.42),capH,10); cap.translate(0,H-capH/2,0);
+      parts.push({geo:cap,mat:M({color:wine?p.foil:p.cap,roughness:.3,metalness:wine?.6:0})});
+      w=d=2*r; h=H; break; }
+  }
+  return {parts,w,d,h,r:Math.max(w,d)/2};
+}
+
+/* ========== renderer / cena ========== */
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.95;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#e9e3f4');
+scene.fog = new THREE.Fog('#efeaf7', 30, 80);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 120);
+camera.position.set(0,1.65,10.6);
+camera.rotation.order = 'YXZ';
+
+scene.add(new THREE.HemisphereLight('#ffffff','#d6cce8',1.15));
+const sun = new THREE.DirectionalLight('#fff3e2',1.0);
+sun.position.set(3,16,8); sun.target.position.set(0,0,-3);
+sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-12,right:12,top:20,bottom:-20,near:1,far:40});
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+scene.add(sun, sun.target);
+function spot(x,y,z,tx,ty,tz,i=60,ang=.55,col='#fff1de'){ const s=new THREE.SpotLight(col,i,14,ang,.65,2); s.position.set(x,y,z); s.target.position.set(tx,ty,tz); scene.add(s,s.target); }
+spot(0,4.3,5.3,0,.5,5.3,70,.6);
+
+const ROOM = {x0:-9,x1:9,z0:-17,z1:12,h:4.4};
+const colliders = [];
+const addBox = (g,w,h,d,mat,x,y,z,shadow=true)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=shadow; m.receiveShadow=true; g.add(m); return m; };
+const PUR='#8b5cf6', PUR_L='#c4b5fd', PUR_D='#4c1d95';
+
+/* ========== texturas ========== */
+const woodTex = (base='#c9a878',lines=120)=>ctex(512,256,(g,w,h)=>{
+  g.fillStyle=base; g.fillRect(0,0,w,h);
+  for(let i=0;i<lines;i++){ g.strokeStyle=`rgba(${90+rnd()*40|0},${60+rnd()*30|0},30,${.05+rnd()*.1})`; g.lineWidth=.5+rnd()*1.6; g.beginPath(); const y=rnd()*h; g.moveTo(0,y); g.bezierCurveTo(w*.3,y+R(-3,3),w*.6,y+R(-3,3),w,y+R(-4,4)); g.stroke(); }
+});
+const plank = ctex(512,512,(g,w,h)=>{
+  const rows=8, ph=h/rows, pw=w/2; const tones=['#cdb08a','#d4b891','#c6a780','#d0b48c','#c9ab84'];
+  for(let r=0;r<rows;r++){ const off=(r%3)*pw/3; for(let c=-1;c<3;c++){ const x=c*pw+off; g.fillStyle=tones[(rnd()*tones.length)|0]; g.fillRect(x,r*ph,pw,ph);
+    for(let i=0;i<8;i++){ g.strokeStyle=`rgba(90,60,30,${.04+rnd()*.08})`; g.lineWidth=1; g.beginPath(); const y=r*ph+rnd()*ph; g.moveTo(x,y); g.lineTo(x+pw,y+R(-2,2)); g.stroke(); }
+    g.strokeStyle='rgba(80,55,30,.4)'; g.lineWidth=2; g.strokeRect(x,r*ph,pw,ph); } }
+},[9,14.5]);
+const aoTex = ctex(128,128,(g,w,h)=>{ g.filter='blur(10px)'; g.fillStyle='#000'; g.fillRect(22,22,w-44,h-44); });
+function aoPlane(w,d,x,z,a=.35){ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,opacity:a,depthWrite:false,toneMapped:false})); m.rotation.x=-Math.PI/2; m.position.set(x,.006,z); scene.add(m); }
+
+/* ========== catálogo ========== */
+const BR='NEW Pet';
+const SZ_P=['P','M','G'];
+const CL = {
+  racaoCao:   {id:'racao-cao',   name:'Ração Cães Adultos 10 kg', price:189.9, emoji:'🐶', kind:'bag', size:[.32,.46,.12], brand:'NEW Pet Select', sub:'10,1 kg', color:'#5b3fd1', accent:'#ffd23a'},
+  racaoGato:  {id:'racao-gato',  name:'Ração Gatos Castrados 3 kg', price:89.9, emoji:'🐱', kind:'bag', size:[.23,.33,.09], brand:'NEW Pet Select', sub:'3 kg', color:'#b83c78', accent:'#ffffff'},
+  racaoFil:   {id:'racao-filhote',name:'Ração Filhotes 3 kg',     price:99.9,  emoji:'🐕', kind:'bag', size:[.23,.33,.09], brand:'NEW Pet Select', sub:'3 kg', color:'#e09a14', accent:'#4c1d95'},
+  petisco:    {id:'petisco',     name:'Petisco Ossinhos 500 g',   price:24.9,  emoji:'🦴', kind:'box', size:[.16,.22,.05], brand:'NEW Pet Snack',  sub:'500 g', color:'#8b5cf6', accent:'#ffffff'},
+  pate:       {id:'pate',        name:'Patê Cães Carne 280 g',    price:11.9,  emoji:'🥩', kind:'can', r:.04,h:.11,        brand:'NEW Pet Select', sub:'280 g', color:'#c2493f', accent:'#fff1c9'},
+  areia:      {id:'areia',       name:'Areia Sanitária 4 kg',     price:29.9,  emoji:'🐈', kind:'bag', size:[.25,.31,.1],  brand:'NEW Pet Clean',  sub:'4 kg',  color:'#2f9a86', accent:'#ffffff'},
+  shampoo:    {id:'shampoo',     name:'Shampoo Neutro 500 ml',    price:34.9,  emoji:'🛁', kind:'bottle', r:.036,h:.22, liquid:'#a78bfa', opacity:.92, cap:'#4c1d95', brand:'NEW Pet Care', sub:'500 ml', color:'#6d3fe0', accent:'#ffffff'},
+  antipulga:  {id:'antipulgas',  name:'Antipulgas Cães',          price:69.9,  emoji:'🛡️', kind:'box', size:[.07,.12,.03], brand:'NEW Pet Care',   sub:'Por porte', color:'#2f9e6e', accent:'#ffffff', sizes:SZ_P},
+  cama:       {id:'cama',        name:'Caminha Pet Conforto',     price:149.9, emoji:'🛏️', kind:'bed', color:'#8b5cf6', sizes:SZ_P, sub:'Lavável'},
+  bola:       {id:'bola',        name:'Bolinha de Borracha',      price:14.9,  emoji:'🎾', kind:'ball', color:'#f59e0b', sub:'Resistente'},
+  corda:      {id:'corda',       name:'Brinquedo de Corda',       price:19.9,  emoji:'🪢', kind:'rope', color:'#e9d5b0', accent:'#8b5cf6', sub:'Algodão'},
+  pelucia:    {id:'pelucia',     name:'Pelúcia Patinho',          price:29.9,  emoji:'🦆', kind:'plush', color:'#fcd34d', sub:'Com apito'},
+  comedouro:  {id:'comedouro',   name:'Comedouro Inox',           price:39.9,  emoji:'🥣', kind:'bowl', color:'#8b5cf6', sizes:['P','M'], sub:'Antiderrapante'},
+  coleira:    {id:'coleira',     name:'Coleira Nylon',            price:34.9,  emoji:'🦮', kind:'collar', color:'#8b5cf6', sizes:SZ_P, sub:'Ajustável'},
+  arranhador: {id:'arranhador',  name:'Arranhador Poste',         price:89.9,  emoji:'🐾', kind:'post', color:'#d9c29a', sub:'Sisal'},
+  caixa:      {id:'caixa-transp',name:'Caixa de Transporte',      price:129.9, emoji:'🧳', kind:'carrier', color:'#6d3fe0', sizes:SZ_P, sub:'Com trava'},
+  banho:      {id:'banho',       name:'Banho (a partir de)',      price:60,    emoji:'🛁', kind:'box', size:[.17,.25,.014], brand:'NEW Pet · Banho & Tosa', sub:'Por porte', color:'#4c1d95', accent:'#c4b5fd', sizes:SZ_P, service:true},
+  tosa:       {id:'tosa',        name:'Banho e Tosa (a partir de)', price:99.9, emoji:'✂️', kind:'box', size:[.17,.25,.014], brand:'NEW Pet · Banho & Tosa', sub:'Por porte', color:'#6d3fe0', accent:'#ffffff', sizes:SZ_P, service:true},
+};
+for(const p of Object.values(CL)) if(!p.brand) p.brand=BR;
+const DESC = {
+  'racao-cao':{d:'Ração premium para cães adultos, com proteína de qualidade e fibras para digestão saudável. Pacote econômico de 10 kg.',o:'Fabricada no Brasil',t:['Premium','Adultos']},
+  'racao-gato':{d:'Ração para gatos castrados, com controle de peso e cuidado com o trato urinário.',o:'Fabricada no Brasil',t:['Castrados','Trato urinário']},
+  'racao-filhote':{d:'Ração para filhotes, com nutrientes para crescer forte e saudável nos primeiros meses.',o:'Fabricada no Brasil',t:['Filhotes','Crescimento']},
+  'petisco':{d:'Ossinhos crocantes para premiar e ajudar na limpeza dos dentes. Ótimos para adestramento.',o:'Fabricado no Brasil',t:['Crocante','Adestramento']},
+  'pate':{d:'Patê macio de carne, para variar a refeição ou misturar na ração. Lata de 280 g.',o:'Fabricado no Brasil',t:['Macio','Carne']},
+  'areia':{d:'Areia sanitária granulada, com ótimo poder de absorção e controle de odores. Pacote de 4 kg.',o:'Fabricada no Brasil',t:['Controla odor','Absorvente']},
+  'shampoo':{d:'Shampoo neutro para cães e gatos, suave com a pele e com perfume discreto. Deixa o pelo macio.',o:'Fabricado no Brasil',t:['Neutro','Pelo macio']},
+  'antipulgas':{d:'Proteção contra pulgas e carrapatos, de fácil aplicação. Escolha o porte do seu cão.',o:'Fabricado no Brasil',t:['Pulgas','Carrapatos']},
+  'cama':{d:'Caminha redonda com borda alta e almofada removível e lavável. Aconchego pro soninho do seu pet.',o:'Feita no Brasil',t:['Lavável','Aconchegante']},
+  'bola':{d:'Bolinha de borracha resistente, que quica e dura. Perfeita pra brincar de buscar.',o:'Feita no Brasil',t:['Resistente','Diversão']},
+  'corda':{d:'Brinquedo de corda trançada, ótimo pra roer, puxar e brincar junto. Ajuda a limpar os dentes.',o:'Feito no Brasil',t:['Algodão','Roer']},
+  'pelucia':{d:'Patinho de pelúcia com apito, macio e do tamanho certo para carregar pela casa.',o:'Feito no Brasil',t:['Macio','Apito']},
+  'comedouro':{d:'Comedouro em inox com base antiderrapante, fácil de lavar e que não pega cheiro.',o:'Feito no Brasil',t:['Inox','Antiderrapante']},
+  'coleira':{d:'Coleira de nylon ajustável, resistente e confortável, com fecho de segurança.',o:'Feita no Brasil',t:['Ajustável','Resistente']},
+  'arranhador':{d:'Poste arranhador revestido de sisal, com plataforma almofadada. Protege o sofá e entretém o gato.',o:'Feito no Brasil',t:['Sisal','Gatos']},
+  'caixa-transp':{d:'Caixa de transporte com trava, ventilação lateral e alça. Segurança para passeios e idas ao veterinário.',o:'Feita no Brasil',t:['Ventilada','Trava de segurança']},
+  'banho':{d:'Banho completo com secagem e perfume. Você escolhe o dia e o horário no agendamento (integrado ao Flow).',o:'Estúdio NEW Pet',t:['Serviço','Agendável']},
+  'tosa':{d:'Banho e tosa higiênica ou completa, feitos por profissionais. Agende o dia e o horário que preferir.',o:'Estúdio NEW Pet',t:['Serviço','Agendável']},
+};
+
+/* ========== geometrias das peças que não são embalagem ========== */
+const PACKK = new Set(['box','bag','carton','can','tub','jar','bottle','wine']);
+function buildItem(p){
+  if(PACKK.has(p.kind)) return buildPack(p);
+  const parts=[]; const S=o=>M(Object.assign({roughness:.75,envMapIntensity:.35},o));
+  let w=.2,d=.2,h=.2;
+  switch(p.kind){
+    case 'bed': { const ring=new THREE.TorusGeometry(.28,.1,12,28); ring.rotateX(Math.PI/2); ring.translate(0,.1,0);
+      parts.push({geo:ring,mat:S({color:p.color,roughness:.9}),pick:1});
+      const cu=new THREE.CylinderGeometry(.3,.3,.13,28); cu.translate(0,.085,0); parts.push({geo:cu,mat:S({color:'#efe9fb',roughness:.95})}); w=d=.76; h=.2; break; }
+    case 'ball': { const g=new THREE.SphereGeometry(.04,14,10); g.translate(0,.04,0); parts.push({geo:g,mat:S({color:p.color,roughness:.4}),pick:1});
+      const st=new THREE.TorusGeometry(.04,.005,6,18); st.translate(0,.04,0); parts.push({geo:st,mat:S({color:'#ffffff'})}); w=d=.08; h=.08; break; }
+    case 'rope': { const body=new THREE.CylinderGeometry(.014,.014,.2,10); body.rotateZ(Math.PI/2); body.translate(0,.035,0);
+      parts.push({geo:body,mat:S({color:p.color,roughness:.95}),pick:1});
+      const kn=[]; for(const s of [-1,1]){ const k=new THREE.SphereGeometry(.03,10,8); k.translate(s*.115,.035,0); kn.push(k); } const bd=new THREE.CylinderGeometry(.016,.016,.04,10); bd.rotateZ(Math.PI/2); bd.translate(0,.035,0); kn.push(bd);
+      parts.push({geo:mergeGeometries(kn),mat:S({color:p.accent,roughness:.9})}); w=.27; d=.07; h=.07; break; }
+    case 'plush': { const b=new THREE.SphereGeometry(.07,14,10); b.scale(1,.85,1.1); b.translate(0,.065,0); const hd=new THREE.SphereGeometry(.05,14,10); hd.translate(0,.15,.045);
+      parts.push({geo:mergeGeometries([b,hd]),mat:S({color:p.color,roughness:.95}),pick:1});
+      const bk=new THREE.ConeGeometry(.02,.04,8); bk.rotateX(Math.PI/2); bk.translate(0,.145,.1); parts.push({geo:bk,mat:S({color:'#f97316'})});
+      const ey=[]; for(const s of [-1,1]){ const e=new THREE.SphereGeometry(.009,6,5); e.translate(s*.02,.17,.085); ey.push(e); } parts.push({geo:mergeGeometries(ey),mat:S({color:'#111'})}); w=.15; d=.17; h=.2; break; }
+    case 'bowl': { const g=lathe([[.0001,0],[.07,0],[.1,.018],[.112,.07],[.104,.07],[.094,.026],[.0001,.026]],24);
+      parts.push({geo:g,mat:M({color:'#d8dce2',metalness:.9,roughness:.25,envMapIntensity:1}),pick:1});
+      const rg=new THREE.TorusGeometry(.108,.008,6,24); rg.rotateX(Math.PI/2); rg.translate(0,.068,0); parts.push({geo:rg,mat:S({color:p.color,roughness:.4})}); w=d=.23; h=.075; break; }
+    case 'collar': { const t=new THREE.TorusGeometry(.085,.013,6,28); t.translate(0,.1,0); parts.push({geo:t,mat:S({color:p.color,roughness:.6}),pick:1});
+      const tg=new THREE.CylinderGeometry(.018,.018,.006,14); tg.rotateX(Math.PI/2); tg.translate(0,.012,.002); parts.push({geo:tg,mat:M({color:'#e8c14a',metalness:.9,roughness:.25})});
+      const bk=new THREE.BoxGeometry(.03,.02,.018); bk.translate(0,.185,0); parts.push({geo:bk,mat:M({color:'#c9ced6',metalness:.9,roughness:.3})}); w=.2; d=.03; h=.21; break; }
+    case 'post': { const bs=new RoundedBoxGeometry(.3,.03,.3,2,.01); bs.translate(0,.015,0); const pl=new THREE.CylinderGeometry(.04,.04,.5,14); pl.translate(0,.28,0);
+      parts.push({geo:pl,mat:S({color:p.color,roughness:1}),pick:1});
+      const top=new RoundedBoxGeometry(.24,.04,.24,2,.01); top.translate(0,.55,0); parts.push({geo:mergeGeometries([bs,top]),mat:S({color:'#8b5cf6',roughness:.9})});
+      const bl=new THREE.SphereGeometry(.03,10,8); bl.translate(.14,.43,0); parts.push({geo:bl,mat:S({color:'#f59e0b'})}); w=.3; d=.3; h=.58; break; }
+    case 'carrier': { const bd=new RoundedBoxGeometry(.42,.28,.28,3,.03); bd.translate(0,.14,0); parts.push({geo:bd,mat:S({color:p.color,roughness:.5}),pick:1});
+      const gr=new THREE.BoxGeometry(.26,.18,.01); gr.translate(0,.14,.145); parts.push({geo:gr,mat:S({color:'#1d1b24',roughness:.5})});
+      const hd=new THREE.TorusGeometry(.09,.009,6,16,Math.PI); hd.translate(0,.28,0); parts.push({geo:hd,mat:S({color:'#2b2733'})}); w=.43; d=.3; h=.36; break; }
+  }
+  return {parts,w,d,h,r:Math.max(w,d)/2};
+}
+
+/* ========== sistema de instâncias (tudo vira InstancedMesh) ========== */
+const types = new Map(), pickMeshes = [], tagList = [];
+const ONE = new THREE.Vector3(1,1,1);
+function getType(p){
+  let t=types.get(p.id);
+  if(!t){ t={p,def:buildItem(p),mats:[],meshes:[]}; types.set(p.id,t); }
+  return t;
+}
+function place(p,parent,pos,quat){
+  const m=new THREE.Matrix4().compose(pos,quat,ONE); if(parent) m.premultiply(parent); getType(p).mats.push(m);
+}
+function finalize(){
+  const col=new THREE.Color();
+  for(const t of types.values()){
+    const n=t.mats.length; if(!n) continue;
+    for(const part of t.def.parts){
+      const im=new THREE.InstancedMesh(part.geo,part.mat,n); im.castShadow=false; im.receiveShadow=true;
+      t.mats.forEach((m,i)=>im.setMatrixAt(i,m));
+      if(part.palette){ for(let i=0;i<n;i++){ col.set(part.palette[(rnd()*part.palette.length)|0]).multiplyScalar(R(.85,1.08)); im.setColorAt(i,col); } }
+      im.userData.type=t; t.meshes.push(im); scene.add(im); if(part.pick) pickMeshes.push(im);
+    }
+  }
+  const byP=new Map(); tagList.forEach(({p,m})=>{ if(!byP.has(p.id)) byP.set(p.id,{p,ms:[]}); byP.get(p.id).ms.push(m); });
+  for(const {p,ms} of byP.values()){
+    const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.19,.055),new THREE.MeshBasicMaterial({map:tagTex(p)}),ms.length);
+    ms.forEach((m,i)=>im.setMatrixAt(i,m)); scene.add(im);
+  }
+}
+const _s=new THREE.Matrix4();
+function setHover(t,i,on){
+  for(const im of t.meshes){ if(on){ _s.makeScale(1.1,1.1,1.1); im.setMatrixAt(i,t.mats[i].clone().multiply(_s)); } else im.setMatrixAt(i,t.mats[i]); im.instanceMatrix.needsUpdate=true; }
+}
+const qY = a=>new THREE.Quaternion().setFromAxisAngle(V3(0,1,0),a);
+const qE = (x,y,z)=>new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z));
+
+/* ========== a loja ========== */
+const white=M({color:'#f5f2fa',roughness:.45}), lilac=M({color:'#e2d9f6',roughness:.5}), oak=M({map:woodTex('#cdb08a'),roughness:.55,envMapIntensity:.35}), purM=M({color:PUR,roughness:.4}), purDM=M({color:PUR_D,roughness:.45});
+const darkM=M({color:'#2a2433',roughness:.5,metalness:.4}), steel=M({color:'#d5d9e0',metalness:.9,roughness:.25,envMapIntensity:1});
+const ledW=new THREE.MeshBasicMaterial({color:'#fffaf0',toneMapped:false}), ledP=new THREE.MeshBasicMaterial({color:PUR_L,toneMapped:false});
+
+// piso, teto, paredes
+{ const floor=new THREE.Mesh(new THREE.PlaneGeometry(18,29),M({map:plank,roughness:.4,envMapIntensity:.6})); floor.rotation.x=-Math.PI/2; floor.position.set(0,0,-2.5); floor.receiveShadow=true; scene.add(floor);
+  const ceil=new THREE.Mesh(new THREE.PlaneGeometry(18,29),new THREE.MeshBasicMaterial({color:'#f4f1f8'})); ceil.rotation.x=Math.PI/2; ceil.position.set(0,ROOM.h,-2.5); scene.add(ceil);
+  const wallM=M({color:'#f3f0f8',roughness:.9,envMapIntensity:.2});
+  for(const [x,ry] of [[-9,Math.PI/2],[9,-Math.PI/2]]){
+    const w=new THREE.Mesh(new THREE.PlaneGeometry(29,ROOM.h),wallM); w.position.set(x,ROOM.h/2,-2.5); w.rotation.y=ry; w.receiveShadow=true; scene.add(w);
+    const wa=new THREE.Mesh(new THREE.PlaneGeometry(29,1.05),M({color:'#e4dcf5',roughness:.7})); wa.position.set(x*.9985,.55,-2.5); wa.rotation.y=ry; scene.add(wa);
+    const sk=new THREE.Mesh(new THREE.PlaneGeometry(29,.12),purM); sk.position.set(x*.997,1.08,-2.5); sk.rotation.y=ry; scene.add(sk); }
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(18,ROOM.h),wallM); back.position.set(0,ROOM.h/2,-17); scene.add(back);
+  // painéis de LED no teto
+  const lg=new THREE.BoxGeometry(1.7,.05,.5), lp=new THREE.InstancedMesh(lg,ledW,5*7); let k=0;
+  for(const x of [-6,-3,0,3,6]) for(let z=-14;z<=10;z+=4){ lp.setMatrixAt(k++,new THREE.Matrix4().makeTranslation(x,ROOM.h-.03,z)); } lp.count=k; scene.add(lp);
+  // vitrine frontal + rua ao fundo
+  const g=new THREE.Group(); scene.add(g); const metalF=M({color:'#241f2e',metalness:.7,roughness:.35});
+  addBox(g,18,.8,.3,metalF,0,.4,12); addBox(g,18,.7,.3,metalF,0,4.05,12);
+  for(const x of [-9,-6,-3,3,6,9]) addBox(g,.1,3.0,.15,metalF,x,2.3,12); for(const x of [-1.2,1.2]) addBox(g,.12,3.2,.2,metalF,x,1.7,12); addBox(g,2.5,.12,.2,metalF,0,3.3,12);
+  for(const sx of [-1,1]){ const gl=new THREE.Mesh(new THREE.PlaneGeometry(7.8,3),new THREE.MeshPhysicalMaterial({color:'#e9e2ff',transparent:true,opacity:.1,roughness:0,envMapIntensity:1.2,depthWrite:false})); gl.position.set(sx*5.1,2.3,11.95); scene.add(gl); }
+  const dusk=ctex(1024,256,(c,w,h)=>{ const gr=c.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#4d3a96'); gr.addColorStop(.6,'#e08fa0'); gr.addColorStop(1,'#ffd9b0'); c.fillStyle=gr; c.fillRect(0,0,w,h); let x=0; while(x<w){ const bw=40+rnd()*80,bh=40+rnd()*130; c.fillStyle=`rgba(${70+rnd()*16|0},${58+rnd()*14|0},${112+rnd()*16|0},.95)`; c.fillRect(x,h-bh,bw,bh); c.fillStyle='rgba(255,226,180,.7)'; for(let wy=h-bh+8;wy<h-8;wy+=14) for(let wx=x+6;wx<x+bw-8;wx+=12) if(rnd()<.28) c.fillRect(wx,wy,5,7); x+=bw+rnd()*6; } });
+  const bd=new THREE.Mesh(new THREE.PlaneGeometry(90,28),new THREE.MeshBasicMaterial({map:dusk,fog:false})); bd.position.set(0,9,34); bd.rotation.y=Math.PI; scene.add(bd);
+  const st=new THREE.Mesh(new THREE.PlaneGeometry(90,40),M({color:'#4a4660',roughness:.9})); st.rotation.x=-Math.PI/2; st.position.set(0,-.02,32); scene.add(st);
+  const lgTex=ctex(1024,128,(c,w,h)=>{ c.fillStyle='#1a1424'; c.fillRect(0,0,w,h); c.fillStyle='#b69cff'; c.textAlign='center'; c.textBaseline='middle'; c.font='800 74px "Segoe UI",system-ui'; c.fillText('NEW',w/2-150,h/2+2); c.fillStyle='#fff'; c.fillText('PET',w/2+30,h/2+2); c.font='56px "Segoe UI Emoji",sans-serif'; c.fillText('🐾',w/2+170,h/2+4); c.fillStyle=PUR; c.fillRect(w*.2,h-10,w*.6,3); });
+  const lp2=new THREE.Mesh(new THREE.PlaneGeometry(7,.62),new THREE.MeshBasicMaterial({map:lgTex})); lp2.position.set(0,4.05,11.84); lp2.rotation.y=Math.PI; scene.add(lp2);
+  const mat=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.1),new THREE.MeshBasicMaterial({map:ctex(384,176,(c,w,h)=>{ c.fillStyle='#1a1424'; c.fillRect(0,0,w,h); c.strokeStyle=PUR; c.lineWidth=5; c.strokeRect(10,10,w-20,h-20); c.fillStyle='#d8ccff'; c.font='700 38px "Segoe UI",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('🐾 BEM-VINDO',w/2,h/2+2); }),toneMapped:false}));
+  mat.rotation.x=-Math.PI/2; mat.position.set(0,.012,10.9); scene.add(mat);
+}
+
+const plant=(x,z,s=1)=>{ const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); scene.add(g);
+  const pot=new THREE.Mesh(new THREE.CylinderGeometry(.3,.22,.55,18),M({color:'#efe9fb',roughness:.4})); pot.position.y=.275; pot.castShadow=true; g.add(pot);
+  const leaf=M({color:'#3a8a4a',roughness:.75}); for(let i=0;i<10;i++){ const l=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),leaf); l.scale.set(.6,1.6,.6); l.position.set(R(-.2,.2),1.0+R(0,.45),R(-.2,.2)); l.rotation.set(R(-.5,.5),0,R(-.5,.5)); l.castShadow=true; g.add(l); }
+  colliders.push({x0:x-.35*s,x1:x+.35*s,z0:z-.35*s,z1:z+.35*s}); };
+function panel(text,sub,w,h,x,y,z,ry,icon){ const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:ctex(1024,Math.round(1024*h/w),(c,cw,ch)=>{
+    const gr=c.createLinearGradient(0,0,cw,0); gr.addColorStop(0,'#2b1d4a'); gr.addColorStop(1,'#4c1d95'); c.fillStyle=gr; rr(c,0,0,cw,ch,Math.min(30,ch*.2)); c.fill();
+    c.textAlign='left'; c.textBaseline='middle'; c.fillStyle='#fff'; c.font=`800 ${ch*.42}px "Segoe UI",system-ui`; const x0=icon?ch*.95:ch*.35; if(icon){ c.fillStyle='rgba(255,255,255,.14)'; rr(c,ch*.18,ch*.18,ch*.64,ch*.64,ch*.14); c.fill(); c.font=`${ch*.4}px "Segoe UI Emoji",sans-serif`; c.textAlign='center'; c.fillStyle='#fff'; c.fillText(icon,ch*.5,ch*.52); c.textAlign='left'; c.font=`800 ${ch*.42}px "Segoe UI",system-ui`; }
+    c.fillStyle='#fff'; c.fillText(text,x0,ch*(sub?.4:.52)); if(sub){ c.fillStyle='rgba(255,255,255,.7)'; c.font=`500 ${ch*.17}px "Segoe UI",system-ui`; c.fillText(sub.toUpperCase(),x0+2,ch*.76); } c.fillStyle=PUR_L; c.fillRect(0,ch-6,cw,6); })})); p.position.set(x,y,z); p.rotation.y=ry; scene.add(p); return p; }
+function rr(c,x,y,w,h,r){ c.beginPath(); c.roundRect(x,y,w,h,r); }
+
+/* ---- prateleiras (corredores centrais e paredes) ---- */
+function gondola({x,z,ry=0,len,sides=[1,-1],levels,items,tall,title,icon}){
+  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+  const two=sides.length===2, W=two?1.4:.7, cxo=two?0:.35;
+  addBox(g,W+.05,.1,len,darkM,cxo,.05,0); addBox(g,.06,tall,len,lilac,0,tall/2,0); addBox(g,W,.05,len,purM,cxo,tall+.025,0);
+  for(let k=0;k<=Math.round(len/2.5);k++){ const zz=-len/2+k*(len/Math.round(len/2.5)); addBox(g,.08,tall,.06,white,0,tall/2,zz); }
+  if(title&&two) for(const e of [1,-1]){ const p=panel(title,null,1.6,.42,0,tall+.45,e*(len/2+.03),e>0?0:Math.PI,icon); scene.remove(p); g.add(p); p.position.set(0,tall+.45,e*(len/2+.03)); }
+  g.updateMatrixWorld(true); const PM=g.matrixWorld;
+  sides.forEach((s,si)=>{ levels.forEach((y,li)=>{
+    addBox(g,.55,.03,len-.06,white,s*.3,y,0); addBox(g,.015,.05,len-.06,purM,s*.575,y-.012,0,false);
+    let cursor=-len/2+.16,k=0;
+    while(cursor<len/2-.2){
+      const p=items[(k+li*2+si*3)%items.length]; k++;
+      const def=getType(p).def, cnt=2+(k%3); const first=cursor; let n=0;
+      for(let c=0;c<cnt;c++){ if(cursor+def.w>len/2-.16) break; place(p,PM,V3(s*(.55-def.d/2-.01),y+.0155,cursor+def.w/2),qY(s>0?Math.PI/2:-Math.PI/2)); cursor+=def.w+.02; n++; }
+      if(n) tagList.push({p,m:new THREE.Matrix4().compose(V3(s*.585,y-.012,(first+cursor)/2),qY(s>0?Math.PI/2:-Math.PI/2),ONE).premultiply(PM)});
+      cursor+=.05;
+    } }); });
+  return g;
+}
+const LV=[.3,.8,1.3,1.8];
+gondola({x:-3.4,z:-6,len:9,levels:LV,tall:2.2,items:[CL.racaoCao,CL.racaoGato,CL.racaoFil,CL.pate,CL.areia],title:'Alimentação',icon:'🍖'});
+gondola({x:3.4,z:-6,len:9,levels:LV,tall:2.2,items:[CL.shampoo,CL.antipulga,CL.petisco,CL.bola,CL.corda,CL.pelucia,CL.comedouro],title:'Brinquedos & Higiene',icon:'🎾'});
+colliders.push({x0:-4.2,x1:-2.6,z0:-10.6,z1:-1.4},{x0:2.6,x1:4.2,z0:-10.6,z1:-1.4});
+const WL=[.3,.8,1.3,1.8,2.3];
+gondola({x:-8.95,z:-5,ry:0,len:14,sides:[1],levels:WL,tall:2.6,items:[CL.racaoCao,CL.racaoGato,CL.racaoFil,CL.pate,CL.petisco,CL.areia,CL.racaoCao]});
+gondola({x:8.95,z:-5,ry:Math.PI,len:14,sides:[1],levels:WL,tall:2.6,items:[CL.coleira,CL.comedouro,CL.shampoo,CL.antipulga,CL.corda,CL.bola,CL.pelucia,CL.caixa]});
+colliders.push({x0:-9,x1:-8.3,z0:-12.1,z1:2.1},{x0:8.3,x1:9,z0:-12.1,z1:2.1});
+panel('CÃES & GATOS','alimentação e cuidados',4.2,.85,-8.96,3.55,-5,Math.PI/2,'🐕'); panel('ACESSÓRIOS','coleiras · caixas · brinquedos',4.2,.85,8.96,3.55,-5,-Math.PI/2,'🦮');
+
+/* ---- palco de caminhas ---- */
+{ const g=new THREE.Group(); g.position.set(0,0,5.4); scene.add(g);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.14,48),M({color:'#e9e2f7',roughness:.4})); base.position.y=.07; base.receiveShadow=true; g.add(base);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.9,.018,6,64),purM); rim.rotation.x=Math.PI/2; rim.position.y=.14; g.add(rim);
+  g.updateMatrixWorld(true); const PM=g.matrixWorld;
+  place(CL.cama,PM,V3(-.8,.14,-.3),qY(.3)); place(CL.cama,PM,V3(.2,.14,-.8),qY(-.2)); place(CL.cama,PM,V3(.9,.14,.2),qY(.5)); place(CL.cama,PM,V3(-.3,.14,.6),qY(0));
+  place(CL.pelucia,PM,V3(-.8,.31,-.3),qY(.4)); place(CL.bola,PM,V3(.5,.14,.5),qY(0)); place(CL.corda,PM,V3(-1.2,.14,.8),qY(.7)); place(CL.arranhador,PM,V3(1.35,.14,-.55),qY(0));
+  colliders.push({x0:-1.95,x1:1.95,z0:3.4,z1:7.4}); aoPlane(5,5,0,5.4,.35);
+  spot(-6,4.3,5.4,-6,.5,5.4,35,.6);
+}
+
+/* ---- totem de coleiras ---- */
+{ const g=new THREE.Group(); g.position.set(-5.8,0,6.6); g.rotation.y=Math.PI*.25; scene.add(g);
+  addBox(g,1.8,2.0,.12,purDM,0,1.2,0); addBox(g,1.9,.1,.5,darkM,0,.05,0); addBox(g,.1,.7,.1,darkM,0,.4,0);
+  g.updateMatrixWorld(true); const PM=g.matrixWorld;
+  for(let r=0;r<3;r++) for(let c=0;c<4;c++) place(CL.coleira,PM,V3(-.66+c*.44,.72+r*.5,.07),qY(0));
+  panel('COLEIRAS','todos os portes',1.7,.4,-5.8,2.6,6.6,Math.PI*.25+0,'🦮');
+  colliders.push({x0:-6.8,x1:-4.8,z0:5.7,z1:7.5});
+}
+
+/* ---- aquário ---- */
+{ const g=new THREE.Group(); g.position.set(-5.2,0,-16.4); scene.add(g);
+  addBox(g,6.2,.95,.8,white,0,.475,0); addBox(g,6.3,.05,.9,oak,0,.97,0); addBox(g,.1,.95,.8,purM,-3.05,.475,.01,false); addBox(g,.1,.95,.8,purM,3.05,.475,.01,false);
+  const water=ctex(512,160,(c,w,h)=>{ const gr=c.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#bff3ea'); gr.addColorStop(1,'#2a8fa0'); c.fillStyle=gr; c.fillRect(0,0,w,h); for(let i=0;i<14;i++){ const x=rnd()*w, gg=c.createLinearGradient(x,0,x+60,h); gg.addColorStop(0,'rgba(255,255,255,.18)'); gg.addColorStop(1,'rgba(255,255,255,0)'); c.fillStyle=gg; c.fillRect(x,0,26,h); } });
+  const bk=new THREE.Mesh(new THREE.PlaneGeometry(5.9,1.7),new THREE.MeshBasicMaterial({map:water})); bk.position.set(0,1.95,-.3); g.add(bk);
+  addBox(g,5.9,.12,.55,M({color:'#d8c9a6',roughness:1}),0,1.16,0,false);
+  const pl=M({color:'#2f9e5a',roughness:.8}); for(let i=0;i<12;i++){ const c=new THREE.Mesh(new THREE.ConeGeometry(.06,R(.4,.9),5),pl); c.position.set(R(-2.8,2.8),1.2+.3,R(-.2,.15)); g.add(c); }
+  for(let i=0;i<4;i++){ const rk=new THREE.Mesh(new THREE.IcosahedronGeometry(R(.15,.3),0),M({color:'#8a8794',roughness:.9})); rk.position.set(R(-2.5,2.5),1.28,R(-.1,.15)); g.add(rk); }
+  const fishM=['#f59e0b','#fb7185','#fde047','#a78bfa','#34d399','#f97316'].map(c=>new THREE.MeshBasicMaterial({color:c}));
+  for(let i=0;i<12;i++){ const f=new THREE.Group(); const b=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),fishM[i%6]); b.scale.set(1.5,.9,.6); f.add(b); const t=new THREE.Mesh(new THREE.ConeGeometry(.06,.1,6),fishM[i%6]); t.rotation.z=Math.PI/2; t.position.x=-.13; f.add(t); f.position.set(R(-2.7,2.7),R(1.45,2.5),R(-.15,.15)); if(rnd()<.5) f.rotation.y=Math.PI; g.add(f); }
+  const gl=new THREE.Mesh(new THREE.BoxGeometry(6,1.8,.62),new THREE.MeshPhysicalMaterial({color:'#dff7f3',transparent:true,opacity:.1,roughness:.02,envMapIntensity:1.2,depthWrite:false})); gl.position.set(0,2.0,0); g.add(gl);
+  addBox(g,6.1,.08,.7,darkM,0,2.95,0,false); addBox(g,5.6,.03,.3,ledW,0,2.9,.05,false);
+  glow2(g,0,2.1,.6);
+  const pt=new THREE.PointLight('#8fe9dc',14,7,2); pt.position.set(-5.2,2.2,-14.5); scene.add(pt);
+  colliders.push({x0:-8.4,x1:-2,z0:-17,z1:-15.8});
+  panel('AQUARISMO','peixes · aquários · acessórios',3.6,.78,-5.2,3.75,-16.9,0,'🐠');
+}
+function glow2(g,x,y,z){ const s=new THREE.Sprite(new THREE.SpriteMaterial({color:'#8fe9dc',transparent:true,opacity:.35,depthWrite:false,blending:THREE.AdditiveBlending,map:ctex(64,64,(c,w,h)=>{ const gr=c.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)'); c.fillStyle=gr; c.fillRect(0,0,w,h); })})); s.scale.set(7,3,1); s.position.set(x,y,z); g.add(s); }
+
+/* ---- estúdio de banho & tosa ---- */
+{ const g=new THREE.Group(); g.position.set(5.6,0,-14.4); scene.add(g);
+  const tile=ctex(256,256,(c,w,h)=>{ c.fillStyle='#f7f4fc'; c.fillRect(0,0,w,h); for(let y=0;y<4;y++) for(let x=0;x<4;x++){ c.fillStyle=(x+y)%2?'#ddd3f3':'#efe9fa'; c.fillRect(x*64+2,y*64+2,60,60); } },[3,2]);
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(6.4,3.2),M({map:tile,roughness:.3})); wall.position.set(0,1.6,-2.45); g.add(wall);
+  const fl=new THREE.Mesh(new THREE.PlaneGeometry(6.2,4.8),M({color:'#e4dcf5',roughness:.25})); fl.rotation.x=-Math.PI/2; fl.position.set(0,.012,0); g.add(fl);
+  // banheira e mesa
+  addBox(g,1.8,.9,.9,white,-1.6,.45,-1.8); addBox(g,1.6,.5,.7,M({color:'#bfeaf5',roughness:.1,metalness:.1}),-1.6,.78,-1.8,false); addBox(g,.06,.6,.06,steel,-1.6,1.15,-2.15); addBox(g,.5,.05,.06,steel,-1.6,1.42,-2.0);
+  addBox(g,1.4,.08,.8,steel,1.4,.95,-1.5); for(const [lx,lz] of [[-.6,-.3],[.6,-.3],[-.6,.3],[.6,.3]]) addBox(g,.06,.92,.06,steel,1.4+lx,.46,-1.5+lz);
+  const hs=new THREE.Mesh(new THREE.TorusGeometry(.3,.015,6,18,Math.PI*1.3),darkM); hs.position.set(2.6,1.5,-2.4); g.add(hs);
+  const mir=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.1),M({color:'#e8edf4',metalness:1,roughness:.04,envMapIntensity:1.5})); mir.position.set(.3,1.9,-2.43); g.add(mir);
+  // paredes de vidro
+  const glassP=()=>new THREE.MeshPhysicalMaterial({color:'#e9e2ff',transparent:true,opacity:.12,roughness:.02,envMapIntensity:1.3,depthWrite:false});
+  const gf=new THREE.Mesh(new THREE.PlaneGeometry(6.4,3.0),glassP()); gf.position.set(0,1.7,2.4); g.add(gf); const gs=new THREE.Mesh(new THREE.PlaneGeometry(4.8,3.0),glassP()); gs.rotation.y=Math.PI/2; gs.position.set(-3.2,1.7,0); g.add(gs);
+  addBox(g,6.5,.08,.08,darkM,0,3.2,2.4,false); addBox(g,6.5,.08,.08,darkM,0,.2,2.4,false); for(const x of [-3.2,-1.1,1.1,3.2]) addBox(g,.06,3.0,.06,darkM,x,1.7,2.4,false);
+  addBox(g,.08,3.0,4.8,darkM,-3.2,1.7,0,false);
+  const pt=new THREE.PointLight('#e8dcff',10,6,2); pt.position.set(5.6,3,-13); scene.add(pt);
+  colliders.push({x0:2.2,x1:9,z0:-17,z1:-11.9}); aoPlane(6.4,4.8,5.6,-14.4,.2);
+  panel('BANHO & TOSA','estúdio · com hora marcada',4.2,.85,5.6,3.85,-11.97,0,'🛁');
+  // balcão de serviços na frente do estúdio
+  addBox(g,2.4,.9,.7,purDM,.0,.45,3.4); addBox(g,2.5,.05,.8,oak,0,.93,3.4); g.updateMatrixWorld(true);
+  place(CL.banho,g.matrixWorld,V3(-.5,.955,3.4),qY(0)); place(CL.tosa,g.matrixWorld,V3(.5,.955,3.4),qY(0)); colliders.push({x0:4.3,x1:6.9,z0:-11.4,z1:-10.4});
+}
+
+/* ---- caixa ---- */
+{ const g=new THREE.Group(); g.position.set(5.8,0,7.6); g.rotation.y=Math.PI; scene.add(g);
+  addBox(g,3.4,1.0,.85,white,0,.5,0); addBox(g,3.4,.9,.04,purM,0,.5,.44); addBox(g,3.6,.05,1.0,oak,0,1.025,0); addBox(g,3.62,.012,1.02,purM,0,.995,0,false);
+  addBox(g,.3,.02,.22,darkM,-.9,1.06,0); const sc=addBox(g,.3,.2,.015,M({color:'#d8ecff',emissive:'#6aa8ff',emissiveIntensity:.5}),-.9,1.18,-.08,false); sc.rotation.x=-.25;
+  g.updateMatrixWorld(true); place(CL.petisco,g.matrixWorld,V3(.9,1.05,0),qY(0)); place(CL.petisco,g.matrixWorld,V3(1.15,1.05,0),qY(-.3)); place(CL.bola,g.matrixWorld,V3(1.4,1.05,.1),qY(0));
+  colliders.push({x0:4,x1:7.6,z0:7,z1:8.2}); aoPlane(4.4,1.8,5.8,7.6,.3);
+  panel('CAIXA','pagamento e retirada',1.8,.42,5.8,3.1,7.6,Math.PI,'💳');
+  for(const dx of [-1.2,1.2]){ const c=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,1.3,5),darkM); c.position.set(5.8+dx,3.75,7.6); scene.add(c); }
+}
+
+/* ---- mascote ---- */
+{ const g=new THREE.Group(); g.position.set(-7.2,0,9.4); g.rotation.y=Math.PI*.15; scene.add(g);
+  const fur=M({color:'#e9c58a',roughness:.9}), dk=M({color:'#8a5a2c',roughness:.9});
+  addBox(g,.9,.14,.9,purDM,0,.07,0); addBox(g,.88,.01,.88,purM,0,.145,0,false);
+  const bd=new THREE.Mesh(new RoundedBoxGeometry(.5,.55,.8,3,.18),fur); bd.position.set(0,.55,0); bd.castShadow=true; g.add(bd);
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),fur); hd.position.set(0,1.0,.34); hd.castShadow=true; g.add(hd);
+  const sn=new THREE.Mesh(new RoundedBoxGeometry(.2,.14,.2,2,.05),M({color:'#f3dcb0',roughness:.9})); sn.position.set(0,.93,.55); g.add(sn);
+  const ns=new THREE.Mesh(new THREE.SphereGeometry(.035,8,6),M({color:'#222'})); ns.position.set(0,.98,.66); g.add(ns);
+  for(const s of [-1,1]){ const e=new THREE.Mesh(new RoundedBoxGeometry(.09,.26,.16,2,.04),dk); e.position.set(s*.22,1.02,.3); e.rotation.z=s*.3; g.add(e); const ey=new THREE.Mesh(new THREE.SphereGeometry(.028,8,6),M({color:'#222'})); ey.position.set(s*.09,1.07,.56); g.add(ey);
+    const lg=new THREE.Mesh(new RoundedBoxGeometry(.14,.4,.16,2,.05),fur); lg.position.set(s*.16,.25,.34); g.add(lg); }
+  const cl=new THREE.Mesh(new THREE.TorusGeometry(.2,.03,6,20),purM); cl.position.set(0,.8,.32); cl.rotation.x=Math.PI/2; g.add(cl);
+  const tl=new THREE.Mesh(new THREE.CylinderGeometry(.04,.06,.4,8),fur); tl.position.set(0,.8,-.5); tl.rotation.x=-.9; g.add(tl);
+  colliders.push({x0:-7.8,x1:-6.6,z0:8.8,z1:10}); plant(7.9,10.8,1.1); plant(-8,2.4,1); plant(8,-.8,1); plant(-4.2,10.9,1);
+}
+/* ========== carrinho de compras (HUD) ========== */
+const cart=new Map(), order=[];
+const total=()=>[...cart.values()].reduce((s,i)=>s+i.p.price*i.q,0);
+const qtyTxt=i=>i.p.unit==='kg'?`${i.q} kg`:`×${i.q}`;
+function renderCart(){
+  const rows=[...cart.values()].map(i=>`<div class="row"><span>${i.p.emoji} ${i.p.name}${i.size?' · '+i.size:''} ${qtyTxt(i)}</span><span>${brl(i.p.price*i.q)}</span></div>`).join('');
+  $('cart').innerHTML=`<h3>Seu carrinho</h3>${rows||'<div class="empty">Vazio. Clique num produto pra ver os detalhes.</div>'}${cart.size?`<div class="tot"><span>Total</span><span>${brl(total())}</span></div><button class="cfin" id="cfin">Finalizar carrinho <kbd>F</kbd></button>`:''}`;
+}
+let toastT; function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('on'),1500); }
+function add(p,q=1,size=null){ const key=size?p.id+'|'+size:p.id; const i=cart.get(key)||{p,q:0,size,k:key}; i.q+=q; cart.set(key,i); for(let n=0;n<q;n++) order.push(key); renderCart(); toast(`${p.emoji} ${p.name}${size?' · '+size:''} no carrinho`); }
+function removeLast(){ const id=order.pop(); if(!id) return; const i=cart.get(id); if(--i.q<=0) cart.delete(id); renderCart(); toast('Item removido'); }
+renderCart();
+$('cart').addEventListener('click',e=>{ if(e.target.closest('#cfin')) openCheckout(); });
+for(const ev of ['mousedown','mouseup']) $('cart').addEventListener(ev,e=>e.stopPropagation());
+
+/* ========== monta tudo ========== */
+finalize();
+
+/* ========== controles ========== */
+let locked=false, free=false, drag=0, yaw=0, pitch=-.04, mx=0, my=0;
+const keys={}, overlay=$('overlay'), modal=$('modal'), pc=$('pc');
+let focusing=false, saved=null, camAnim=null;
+const ui=()=>modal.classList.contains('on')||focusing||!!camAnim;
+
+/* ---- miniatura 3D de cada produto (renderizada com o próprio three.js) ---- */
+const TS=384, thumbRT=new THREE.WebGLRenderTarget(TS,TS,{samples:4});
+thumbRT.texture.colorSpace=THREE.SRGBColorSpace;
+const thumbScene=new THREE.Scene(); thumbScene.environment=scene.environment;
+thumbScene.add(new THREE.HemisphereLight('#ffffff','#9a948a',1.3));
+const tKey=new THREE.DirectionalLight('#fff4e6',2.4); tKey.position.set(2,3,4); thumbScene.add(tKey);
+const tRim=new THREE.DirectionalLight('#9fc4ff',1.1); tRim.position.set(-3,2,-3); thumbScene.add(tRim);
+const thumbCam=new THREE.PerspectiveCamera(28,1,.01,10);
+function thumbOf(t){
+  if(t.thumb) return t.thumb;
+  const grp=new THREE.Group();
+  t.def.parts.forEach(pt=>{ let mat=pt.mat; if(pt.palette){ mat=pt.mat.clone(); mat.color.set(pt.palette[0]); } grp.add(new THREE.Mesh(pt.geo,mat)); });
+  grp.rotation.y=-.55; thumbScene.add(grp); grp.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(grp), c=box.getCenter(new THREE.Vector3()), rad=box.getSize(new THREE.Vector3()).length()/2;
+  grp.position.sub(c);
+  thumbCam.position.set(0,rad*.3,rad/Math.sin(THREE.MathUtils.degToRad(14))*.84); thumbCam.lookAt(0,0,0);
+  const prevT=renderer.getRenderTarget(), prevA=renderer.getClearAlpha(), prevC=renderer.getClearColor(new THREE.Color());
+  renderer.setRenderTarget(thumbRT); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(thumbScene,thumbCam);
+  const buf=new Uint8Array(TS*TS*4); renderer.readRenderTargetPixels(thumbRT,0,0,TS,TS,buf);
+  renderer.setRenderTarget(prevT); renderer.setClearColor(prevC,prevA);
+  const cv=document.createElement('canvas'); cv.width=cv.height=TS; const g=cv.getContext('2d'), img=g.createImageData(TS,TS);
+  for(let y=0;y<TS;y++) img.data.set(buf.subarray((TS-1-y)*TS*4,(TS-y)*TS*4),y*TS*4);
+  g.putImageData(img,0,0); thumbScene.remove(grp);
+  return t.thumb=cv.toDataURL();
+}
+
+/* ---- ficha do produto: aparece ao passar o mouse, fixa ao clicar ---- */
+let pinned=null, pinQ=1, pinSize=null, shownId=null;
+function fillCard(p){
+  const t=types.get(p.id), d=DESC[p.id]||{d:'',t:[]}, col=(()=>{ const c=new THREE.Color(p.color), l=.2126*c.r+.7152*c.g+.0722*c.b; return (l>.45||l<.03)?'#8b5cf6':p.color; })();
+  pc.style.setProperty('--pc',col);
+  $('pcimg').src=thumbOf(t);
+  $('pcbrand').textContent=p.brand||'NEW Pet';
+  $('pcname').textContent=p.name;
+  $('pcprice').innerHTML=`<b>${brl(p.price)}</b> <small>${p.unit==='kg'?'/ kg':p.unit==='un'?'/ unidade':''}</small>`;
+  $('pcdesc').textContent=d.d;
+  $('pcchips').innerHTML=(d.t||[]).map(x=>`<span class="hl">${x}</span>`).join('')+[d.o?`📍 ${d.o}`:null,p.sub?`🏷️ ${p.sub}`:null,'🛵 Entrega em 45 min'].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+  const sz=$('pcsizes');
+  if(p.sizes){ sz.className='pcsizes has'; sz.innerHTML=p.sizes.map(s=>`<button class="sz ${pinned===p&&pinSize===s?'on':''}" data-s="${s}">${s}</button>`).join(''); }
+  else { sz.className='pcsizes'; sz.innerHTML=''; }
+  shownId=p.id;
+}
+function renderQty(){
+  const p=pinned; if(!p) return;
+  $('qn').textContent=p.unit==='kg'?`${pinQ} kg`:pinQ;
+  $('pcadd').innerHTML=(p.sizes&&!pinSize)?`Escolha o tamanho <kbd>E</kbd>`:`Adicionar · ${brl(p.price*pinQ)} <kbd>E</kbd>`;
+}
+function showHover(p){ if(pinned) return; if(shownId!==p.id) fillCard(p); pc.classList.add('on'); }
+function hideHover(){ if(pinned) return; pc.classList.remove('on'); }
+const TAU=Math.PI*2, clampv=(v,a,b)=>Math.max(a,Math.min(b,v));
+function relock(){ try{ const pr=renderer.domElement.requestPointerLock(); if(pr&&pr.catch) pr.catch(()=>{ overlay.style.display='flex'; }); }catch(e){ overlay.style.display='flex'; } }
+// clicou no produto: solta o mouse e leva a câmera até ele
+function pin(p,t,i){
+  pinned=p; pinQ=1; pinSize=null; fillCard(p); renderQty(); pc.classList.add('on','full');
+  if(!focusing) saved={x:camera.position.x,z:camera.position.z,yaw,pitch};
+  focusing=true; locked=false; overlay.style.display='none';
+  if(!free) document.exitPointerLock();
+  if(!t) return;
+  const P=new THREE.Vector3().setFromMatrixPosition(t.mats[i]); P.y+=(t.def.cy!==undefined?t.def.cy:(t.def.h||.1)/2);
+  const C=camera.position, dx=P.x-C.x, dz=P.z-C.z, d=Math.hypot(dx,dz)||1, D=p.fruit?.95:1.0;
+  const tx=clampv(P.x-dx/d*D,ROOM.x0+.4,ROOM.x1-.4), tz=clampv(P.z-dz/d*D,ROOM.z0+.4,ROOM.z1-.4);
+  let ty=Math.atan2(-(P.x-tx),-(P.z-tz)); ty+=TAU*Math.round((yaw-ty)/TAU);
+  const tp=clampv(Math.atan2(P.y-1.65,Math.hypot(P.x-tx,P.z-tz))-.12,-1.2,1.2);
+  camAnim={fx:C.x,fz:C.z,fy:yaw,fp:pitch,tx,tz,ty,tp,t:0,dur:.55,done:null};
+}
+// fechou ou adicionou: volta pro lugar onde estava e devolve o controle do mouse
+function unpin(){
+  pinned=null; pc.classList.remove('full'); if(!hov) pc.classList.remove('on');
+  if(!focusing||!saved){ focusing=false; return; }
+  const ty=saved.yaw+TAU*Math.round((yaw-saved.yaw)/TAU);
+  if(!free) relock();
+  camAnim={fx:camera.position.x,fz:camera.position.z,fy:yaw,fp:pitch,tx:saved.x,tz:saved.z,ty,tp:saved.pitch,t:0,dur:.45,done:()=>{ focusing=false; if(free) locked=true; }};
+}
+function addPinned(){ if(!pinned) return; if(pinned.sizes&&!pinSize){ toast('Escolha o tamanho'); return; } add(pinned,pinQ,pinSize); unpin(); }
+$('pcsizes').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||!pinned) return; pinSize=b.dataset.s; fillCard(pinned); renderQty(); });
+$('qm').onclick=()=>{ pinQ=Math.max(1,pinQ-1); renderQty(); };
+$('qp').onclick=()=>{ pinQ=Math.min(20,pinQ+1); renderQty(); };
+$('pcadd').onclick=addPinned; $('pcx').onclick=unpin;
+for(const ev of ['mousedown','mouseup','click']) pc.addEventListener(ev,e=>e.stopPropagation());
+addEventListener('wheel',e=>{ if(!pinned) return; pinQ=Math.max(1,Math.min(20,pinQ+(e.deltaY<0?1:-1))); renderQty(); },{passive:true});
+function enterFree(){ free=true; locked=true; overlay.style.display='none'; toast('Mova o mouse pra olhar (centro = parado) · clique num produto pra ver'); }
+function enter(){
+  if(ui()) return;
+  free=false;
+  try{ const p=renderer.domElement.requestPointerLock(); if(p&&p.catch) p.catch(()=>{ if(!locked) enterFree(); }); }catch(e){ enterFree(); return; }
+  setTimeout(()=>{ if(!locked) enterFree(); },500);
+}
+overlay.addEventListener('click',enter);
+document.addEventListener('pointerlockchange',()=>{
+  if(free) return;
+  locked=document.pointerLockElement===renderer.domElement;
+  overlay.style.display=(locked||ui())?'none':'flex';
+});
+document.addEventListener('mousemove',e=>{
+  const onCard=e.target.closest&&e.target.closest('#pc,#cart'); mx=onCard?0:e.clientX/innerWidth*2-1; my=onCard?0:e.clientY/innerHeight*2-1;
+  if(!locked) return;
+  if(free){ if(!(e.buttons&1)) return; drag+=Math.abs(e.movementX)+Math.abs(e.movementY); }
+  yaw-=e.movementX*.0022; pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
+});
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(FROM_RUA&&e.code==='KeyV'&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName||'')){ location.href=RUA_URL; return; }
+  if(modal.classList.contains('on')){ if(e.code==='Escape') closeCO(); return; }
+  if(focusing){
+    if(e.code==='Escape'||e.code==='KeyX') unpin();
+    else if(pinned&&(e.code==='KeyE'||e.code==='Enter')) addPinned();
+    else if(pinned&&(e.code==='Equal'||e.code==='NumpadAdd'||e.code==='ArrowUp')){ pinQ=Math.min(20,pinQ+1); renderQty(); }
+    else if(pinned&&(e.code==='Minus'||e.code==='NumpadSubtract'||e.code==='ArrowDown')){ pinQ=Math.max(1,pinQ-1); renderQty(); }
+    return;
+  }
+  if(free&&e.code==='Escape'){ free=false; locked=false; overlay.style.display='flex'; return; }
+  if(!locked) return;
+  if(e.code==='KeyQ') removeLast();
+  if(e.code==='KeyE'){ if(pinned) addPinned(); else if(hov){ if(hov.t.p.sizes) pick(); else add(hov.t.p,1); } }
+  if(e.code==='KeyX') unpin();
+  if(pinned&&(e.code==='Equal'||e.code==='NumpadAdd')){ pinQ=Math.min(20,pinQ+1); renderQty(); }
+  if(pinned&&(e.code==='Minus'||e.code==='NumpadSubtract')){ pinQ=Math.max(1,pinQ-1); renderQty(); }
+  if(e.code==='KeyF') openCheckout();
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+const ray=new THREE.Raycaster(); ray.far=3.6;
+let hov=null; // {t,i}
+function pick(){ if(hov) pin(hov.t.p,hov.t,hov.i); }
+addEventListener('mousedown',()=>{ if(focusing){ if(!camAnim) unpin(); return; } if(free){ drag=0; return; } if(locked) pick(); });
+addEventListener('mouseup',()=>{ if(free&&locked&&drag<6) pick(); });
+
+function hit(x,z){ const r=.32; return x<ROOM.x0+r||x>ROOM.x1-r||z<ROOM.z0+r||z>ROOM.z1-r||colliders.some(c=>x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r); }
+
+/* ========== checkout (DEMO) ==========
+   Pagamento simulado. Pra ligar no seu ERP, defina window.onMercadoOrder = async pedido => {...}
+   (ou escute o evento 'mercado:order'). O objeto "pedido" traz itens, valores, cliente, endereço e forma de pagamento. */
+const DELIVERY_FEE=9.9, FREE_ABOVE=149;
+const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let co=null, coTimer=null;
+const fee=()=>total()>=FREE_ABOVE?0:DELIVERY_FEE;
+const imgOf=p=>thumbOf(types.get(p.id));
+function cartSet(id,q){
+  const i=cart.get(id); if(!i) return; i.q=Math.max(0,Math.min(20,q)); if(i.q===0) cart.delete(id);
+  order.length=0; cart.forEach(it=>{ for(let k=0;k<it.q;k++) order.push(it.k); }); renderCart();
+}
+function openCheckout(){
+  if(!cart.size){ toast('Carrinho vazio'); return; }
+  document.exitPointerLock(); if(free) locked=false;
+  co={step:1,nome:'',fone:'',end:'',comp:'',quando:'agora',pay:'pix',cash:'dinheiro',troco:'',cnum:'',cnome:'',cval:'',ccvv:'',parc:'1',err:false,busy:false,order:null,stage:0,code:'DEMO'+Math.random().toString(36).slice(2,10).toUpperCase()};
+  modal.classList.add('on'); overlay.style.display='none'; renderCO();
+}
+function closeCO(){ clearInterval(coTimer); modal.classList.remove('on'); if(free) locked=true; else enter(); }
+const WHEN={agora:'Agora · em ~45 min',hoje:'Hoje à noite · 19h às 21h',amanha:'Amanhã de manhã · 8h às 10h'};
+const PAYL={pix:'Pix',card:'Cartão de crédito',cash:'Na entrega'};
+function drawQR(cv,seed){
+  const n=29,sz=cv.width/n,g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,cv.width,cv.height); g.fillStyle='#111';
+  let a=0; for(const ch of seed) a=(a*31+ch.charCodeAt(0))|0;
+  const r=()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  for(let y=0;y<n;y++) for(let x=0;x<n;x++){ const f=(x<8&&y<8)||(x>n-9&&y<8)||(x<8&&y>n-9); if(!f&&r()>.5) g.fillRect(x*sz,y*sz,sz,sz); }
+  for(const [x,y] of [[0,0],[n-7,0],[0,n-7]]){ g.fillStyle='#111'; g.fillRect(x*sz,y*sz,7*sz,7*sz); g.fillStyle='#fff'; g.fillRect((x+1)*sz,(y+1)*sz,5*sz,5*sz); g.fillStyle='#111'; g.fillRect((x+2)*sz,(y+2)*sz,3*sz,3*sz); }
+}
+function renderCO(){
+  const steps=['Pedido','Entrega','Pagamento','Pronto'];
+  $('costeps').innerHTML=steps.map((t,i)=>`<div class="cos ${i+1<co.step?'done':''} ${i+1===co.step?'on':''}"><b>${i+1<co.step?'✓':i+1}</b><span>${t}</span></div>`).join('<i></i>');
+  const sub=total(), f=fee(), tot=sub+f, lines=[...cart.values()];
+  const grid=document.querySelector('.cogrid'); grid.classList.toggle('one',co.step===4); $('coside').style.display=co.step===4?'none':'';
+  $('coside').innerHTML=`<h4>Resumo</h4>`+lines.map(i=>`<div class="sl"><img src="${imgOf(i.p)}" alt=""><div><b>${esc(i.p.name)}</b><small>${i.size?'Tam. '+i.size+' · ':''}${qtyTxt(i)}</small></div><span>${brl(i.p.price*i.q)}</span></div>`).join('')
+    +`<div class="sr"><span>Subtotal</span><span>${brl(sub)}</span></div><div class="sr"><span>Entrega</span><span>${f?brl(f):'Grátis'}</span></div><div class="sr tot"><span>Total</span><span>${brl(tot)}</span></div>`
+    +(f?`<small class="sfree">Faltam ${brl(FREE_ABOVE-sub)} pra entrega grátis</small>`:`<small class="sfree ok">🎉 Entrega grátis!</small>`);
+  let m='';
+  if(co.step===1){
+    m=`<h2>Seu pedido</h2>`+lines.map(i=>`<div class="ci" data-id="${i.k}"><img src="${imgOf(i.p)}" alt=""><div class="cit"><b>${esc(i.p.name)}${i.size?' · '+esc(i.size):''}</b><small>${brl(i.p.price)}${i.p.unit==='kg'?' / kg':''}</small></div><div class="qty"><button data-a="dec">−</button><span>${qtyTxt(i)}</span><button data-a="inc">+</button></div><b class="cip">${brl(i.p.price*i.q)}</b><button class="cirm" data-a="rm" title="Remover">🗑</button></div>`).join('')
+      +`<div class="coact"><button class="btn ghost" data-a="back">Continuar comprando</button><button class="btn" data-a="next">Continuar · ${brl(tot)}</button></div>`;
+  } else if(co.step===2){
+    const bad=k=>co.err&&!co[k]?'bad':'';
+    m=`<h2>Entrega</h2><div class="fg"><label>Nome<input data-f="nome" class="${bad('nome')}" placeholder="Como te chamamos?" value="${esc(co.nome)}"></label><label>WhatsApp<input data-f="fone" inputmode="tel" placeholder="(11) 99999-9999" value="${esc(co.fone)}"></label><label class="w2">Endereço<input data-f="end" class="${bad('end')}" placeholder="Rua, número e bairro" value="${esc(co.end)}"></label><label class="w2">Complemento<input data-f="comp" placeholder="Apto, bloco, ponto de referência" value="${esc(co.comp)}"></label></div>`
+      +`<h4>Quando você quer receber?</h4><div class="opts">${Object.entries({agora:['⚡ Agora','chega em ~45 min'],hoje:['🕒 Hoje à noite','19h às 21h'],amanha:['📅 Amanhã cedo','8h às 10h']}).map(([k,[a,b]])=>`<button class="opt ${co.quando===k?'on':''}" data-q="${k}"><b>${a}</b><small>${b}</small></button>`).join('')}</div>`
+      +`<div class="coact"><button class="btn ghost" data-a="prev">Voltar</button><button class="btn" data-a="next">Ir pro pagamento</button></div>`;
+  } else if(co.step===3){
+    let body='';
+    if(co.pay==='pix') body=`<div class="pix"><canvas id="qr" width="232" height="232"></canvas><div><b>Escaneie ou copie o código</b><small>QR de demonstração. No sistema final, o pagamento é confirmado automaticamente pelo banco.</small><div class="copy"><input readonly value="${co.code}"><button data-a="copy">Copiar</button></div></div></div>`;
+    else if(co.pay==='card') body=`<div class="fg" style="margin-top:14px"><label class="w2">Número do cartão<input data-f="cnum" inputmode="numeric" placeholder="0000 0000 0000 0000" value="${esc(co.cnum)}"></label><label class="w2">Nome impresso<input data-f="cnome" placeholder="Como está no cartão" value="${esc(co.cnome)}"></label><label>Validade<input data-f="cval" placeholder="MM/AA" value="${esc(co.cval)}"></label><label>CVV<input data-f="ccvv" inputmode="numeric" placeholder="123" value="${esc(co.ccvv)}"></label><label class="w2">Parcelas<select data-f="parc">${[1,2,3].map(n=>`<option value="${n}" ${co.parc==n?'selected':''}>${n}x de ${brl(tot/n)} sem juros</option>`).join('')}</select></label></div>`;
+    else body=`<h4>Pagar na entrega</h4><div class="opts" style="grid-template-columns:1fr 1fr"><button class="opt ${co.cash==='dinheiro'?'on':''}" data-c="dinheiro"><b>💵 Dinheiro</b><small>leve o troco certinho</small></button><button class="opt ${co.cash==='maquina'?'on':''}" data-c="maquina"><b>💳 Maquininha</b><small>débito ou crédito</small></button></div>${co.cash==='dinheiro'?`<div class="fg" style="margin-top:12px"><label class="w2">Troco pra quanto? (opcional)<input data-f="troco" placeholder="Ex: R$ 100,00" value="${esc(co.troco)}"></label></div>`:''}`;
+    m=`<h2>Pagamento</h2><div class="opts">${[['pix','⚡ Pix','aprovação na hora'],['card','💳 Cartão','até 3x sem juros'],['cash','🛵 Na entrega','dinheiro ou maquininha']].map(([k,a,b])=>`<button class="opt ${co.pay===k?'on':''}" data-p="${k}"><b>${a}</b><small>${b}</small></button>`).join('')}</div>${body}`
+      +`<div class="coact"><button class="btn ghost" data-a="prev">Voltar</button><button class="btn" data-a="pay" ${co.busy?'disabled':''}>${co.busy?'Processando…':(co.pay==='cash'?'Confirmar pedido · ':'Pagar ')+brl(tot)}</button></div><div class="demo">🔒 Ambiente de demonstração · nenhum pagamento real é feito</div>`;
+  } else {
+    const o=co.order, st=['Recebido','Separando','Saiu pra entrega','Entregue'];
+    m=`<div class="done"><div class="check">✓</div><h2>Pedido confirmado!</h2><p>Obrigado, <b>${esc(o.cliente.nome)}</b>. Pedido <b>#${o.id}</b></p></div>`
+      +`<div class="tl">${st.map((t,i)=>`<div class="${i<co.stage?'done':i===co.stage?'on':''}">${t}</div>`).join('')}</div>`
+      +`<div class="cog2"><div class="info">${o.itens.map(i=>`<div class="sl"><img src="${i.img}" alt=""><div><b>${esc(i.nome)}</b><small>${i.tamanho?'Tam. '+i.tamanho+' · ':''}${i.un==='kg'?i.qtd+' kg':'×'+i.qtd}</small></div><span>${brl(i.total)}</span></div>`).join('')}<div class="sr"><span>Entrega</span><span>${o.entrega?brl(o.entrega):'Grátis'}</span></div><div class="sr tot"><span>Total</span><span>${brl(o.total)}</span></div></div>`
+      +`<div class="info"><b>Entregar em</b>${esc(o.cliente.endereco)}${o.cliente.complemento?'<br>'+esc(o.cliente.complemento):''}<b>Quando</b>${WHEN[o.quando]}<b>Pagamento</b>${PAYL[o.pagamento]}</div></div>`
+      +`<div class="coact"><button class="btn ghost" data-a="wa">Enviar comprovante no WhatsApp</button><button class="btn" data-a="new">Fazer novo pedido</button></div>`;
+  }
+  $('comain').innerHTML=m;
+  if(co.step===3&&co.pay==='pix'){ const cv=$('qr'); if(cv) drawQR(cv,co.code); }
+}
+function finishOrder(){
+  const itens=[...cart.values()].map(i=>({id:i.p.id,tamanho:i.size||null,nome:i.p.name,qtd:i.q,un:i.p.unit||'un',preco:i.p.price,total:i.p.price*i.q,img:imgOf(i.p)}));
+  const sub=total(), f=fee();
+  co.order={id:'NX'+Math.floor(1000+Math.random()*9000),itens,subtotal:sub,entrega:f,total:sub+f,quando:co.quando,pagamento:co.pay,
+    cliente:{nome:co.nome,whatsapp:co.fone,endereco:co.end,complemento:co.comp},criadoEm:new Date().toISOString()};
+  try{ if(typeof window.onMercadoOrder==='function') window.onMercadoOrder(co.order); window.dispatchEvent(new CustomEvent('mercado:order',{detail:co.order})); }catch(e){ console.error(e); }
+  cart.clear(); order.length=0; renderCart(); co.step=4; co.busy=false; co.stage=0; renderCO();
+  clearInterval(coTimer); coTimer=setInterval(()=>{ if(co.stage<3){ co.stage++; renderCO(); } else clearInterval(coTimer); },2600);
+}
+$('comain').addEventListener('input',e=>{
+  const k=e.target.dataset&&e.target.dataset.f; if(!k) return;
+  if(k==='cnum'){ e.target.value=e.target.value.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim(); }
+  if(k==='cval'){ let v=e.target.value.replace(/\D/g,'').slice(0,4); if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2); e.target.value=v; }
+  co[k]=e.target.value;
+});
+$('comain').addEventListener('change',e=>{ if(e.target.dataset&&e.target.dataset.f==='parc') co.parc=e.target.value; });
+$('comain').addEventListener('click',e=>{
+  const bt=e.target.closest('button'); if(!bt) return;
+  const d=bt.dataset;
+  if(d.q){ co.quando=d.q; return renderCO(); }
+  if(d.p){ co.pay=d.p; return renderCO(); }
+  if(d.c){ co.cash=d.c; return renderCO(); }
+  const row=bt.closest('.ci'), id=row&&row.dataset.id, it=id&&cart.get(id);
+  switch(d.a){
+    case 'dec': cartSet(id,it.q-1); break;
+    case 'inc': cartSet(id,it.q+1); break;
+    case 'rm': cartSet(id,0); break;
+    case 'back': return closeCO();
+    case 'prev': co.step--; co.err=false; break;
+    case 'next':
+      if(co.step===2&&(!co.nome.trim()||!co.end.trim())){ co.err=true; renderCO(); return toast('Preencha nome e endereço'); }
+      co.step++; co.err=false; break;
+    case 'copy': try{ navigator.clipboard.writeText(co.code); }catch(_){} toast('Código copiado'); return;
+    case 'pay': co.busy=true; renderCO(); setTimeout(finishOrder,1300); return;
+    case 'wa': { const o=co.order, l=o.itens.map(i=>`• ${i.qtd}x ${i.nome}${i.tamanho?' (tam. '+i.tamanho+')':''} — ${brl(i.total)}`).join('\n');
+      open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`*Pedido #${o.id} — NEW Pet*\n${l}\n\n*Total:* ${brl(o.total)}\n*Pagamento:* ${PAYL[o.pagamento]}\n*Entrega:* ${o.cliente.endereco}\n*Nome:* ${o.cliente.nome}`)}`,'_blank'); return; }
+    case 'new': return closeCO();
+  }
+  if(!cart.size&&co.step<4){ toast('Carrinho vazio'); return closeCO(); }
+  renderCO();
+});
+$('coclose').onclick=closeCO;
+
+/* ========== loop ========== */
+const clock=new THREE.Clock(), fwd=new THREE.Vector3(), rgt=new THREE.Vector3();
+let bob=0, rc=0;
+function frame(){
+  requestAnimationFrame(frame); // agenda primeiro: um erro num quadro nunca congela a loja
+  const dt=Math.min(clock.getDelta(),.05);
+  if(camAnim){
+    const a=camAnim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<.5?2*a.t*a.t:1-Math.pow(-2*a.t+2,2)/2;
+    camera.position.x=a.fx+(a.tx-a.fx)*e; camera.position.z=a.fz+(a.tz-a.fz)*e; yaw=a.fy+(a.ty-a.fy)*e; pitch=a.fp+(a.tp-a.fp)*e;
+    if(a.t>=1){ const done=a.done; camAnim=null; if(done) done(); }
+  }
+  if(free&&locked&&!ui()){
+    const dz=v=>Math.abs(v)<.12?0:(v-Math.sign(v)*.12)/.88;
+    yaw-=dz(mx)*dt*2.4; pitch=Math.max(-1.35,Math.min(1.35,pitch-dz(my)*dt*1.6));
+  }
+  let moving=false;
+  if(locked&&!ui()){
+    const sp=(keys.ShiftLeft||keys.ShiftRight?5.5:3.2)*dt;
+    const f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0);
+    const r=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);
+    fwd.set(-Math.sin(yaw),0,-Math.cos(yaw)); rgt.set(Math.cos(yaw),0,-Math.sin(yaw));
+    const dx=(fwd.x*f+rgt.x*r)*sp, dzz=(fwd.z*f+rgt.z*r)*sp;
+    if(dx||dzz){ moving=true; bob+=dt*(keys.ShiftLeft?11:8); }
+    if(!hit(camera.position.x+dx,camera.position.z)) camera.position.x+=dx;
+    if(!hit(camera.position.x,camera.position.z+dzz)) camera.position.z+=dzz;
+  }
+  camera.position.y=1.65+(moving?Math.sin(bob)*.016:0);
+  camera.rotation.set(pitch,yaw,0);
+
+  if(locked&&!ui()){
+    if((rc++&1)===0){
+      ray.setFromCamera({x:0,y:0},camera);
+      const h=ray.intersectObjects(pickMeshes,false)[0];
+      const nh=(h&&h.instanceId!=null)?{t:h.object.userData.type,i:h.instanceId}:null;
+      if(hov&&(!nh||nh.t!==hov.t||nh.i!==hov.i)) setHover(hov.t,hov.i,false);
+      if(nh&&(!hov||nh.t!==hov.t||nh.i!==hov.i)) setHover(nh.t,nh.i,true);
+      hov=nh;
+      if(hov){ showHover(hov.t.p); $('cross').classList.add('hot'); } else { hideHover(); $('cross').classList.remove('hot'); }
+    }
+  } else { if(hov){ setHover(hov.t,hov.i,false); hov=null; } $('cross').classList.remove('hot'); hideHover(); }
+  renderer.render(scene,camera);
+}
+frame();
+window.__dbg = { info:()=>({calls:renderer.info.render.calls,tris:renderer.info.render.triangles,meshes:pickMeshes.length,inst:[...types.values()].reduce((a,t)=>a+t.mats.length,0),pr:renderer.getPixelRatio()}), go:(x,z,y,p)=>{ camera.position.x=x; camera.position.z=z; yaw=y; pitch=p; }, pin:(id,i=0)=>{ const t=types.get(id); pin(t.p,t,i); }, pose:()=>({x:camera.position.x,z:camera.position.z,yaw,pitch,focusing,locked,pinned:!!pinned}), addp:()=>addPinned(), hover:id=>showHover(types.get(id).p) };
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+
+if(window.NewPerf) NewPerf.attach(renderer,scene);
+</script>
+</body>
+</html>

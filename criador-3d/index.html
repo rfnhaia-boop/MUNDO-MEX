@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Faça sua loja · NEW</title>
+<style>
+  :root { --fg:#f3efff; --acc:#8b5cf6; --accl:#c4b5fd; --bg:#0f0b1a; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--fg); font-family:"Segoe UI",system-ui,sans-serif; }
+  #cv { position:fixed; top:0; right:0; cursor:grab; } #cv:active { cursor:grabbing; }
+  #panel { position:fixed; z-index:3; display:flex; flex-direction:column; background:linear-gradient(180deg,rgba(28,20,48,.97),rgba(15,11,26,.98)); border:1px solid rgba(255,255,255,.1); box-shadow:0 20px 70px rgba(0,0,0,.5); }
+  #panel header { padding:16px 18px 10px; } #panel h1 { font-size:19px; font-weight:800; letter-spacing:.02em; } #panel h1 span { color:var(--accl); } #panel header p { font-size:12.5px; opacity:.65; margin-top:2px; }
+  #dots { display:flex; gap:6px; margin-top:12px; } #dots i { flex:1; height:5px; border-radius:5px; background:rgba(255,255,255,.12); transition:.25s; } #dots i.on { background:var(--acc); } #dots i.done { background:var(--accl); }
+  #body { flex:1; overflow:auto; padding:6px 18px 14px; } #body::-webkit-scrollbar { width:6px; } #body::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:6px; }
+  h2 { font-size:15.5px; margin:10px 0 4px; } .sub { font-size:13px; opacity:.7; margin-bottom:12px; line-height:1.45; }
+  .models { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .mc { border:2px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); border-radius:16px; padding:14px 12px; cursor:pointer; text-align:left; color:inherit; font:inherit; transition:.15s; } .mc:hover { background:rgba(139,92,246,.18); } .mc.on { border-color:var(--acc); background:rgba(139,92,246,.22); box-shadow:0 0 30px -10px var(--acc); } .mc .e { font-size:30px; display:block; margin-bottom:6px; } .mc b { display:block; font-size:14.5px; } .mc small { opacity:.65; font-size:12px; }
+  label { display:block; font-size:12.5px; font-weight:600; margin:12px 0 5px; opacity:.85; }
+  input[type=text],input[type=number],input[type=tel],textarea { width:100%; padding:10px 12px; border-radius:11px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--fg); font:14px "Segoe UI",system-ui; outline:none; } input:focus,textarea:focus { border-color:var(--acc); box-shadow:0 0 0 3px rgba(139,92,246,.22); } textarea { resize:vertical; min-height:90px; }
+  .sw { display:flex; flex-wrap:wrap; gap:8px; align-items:center; } .sw button { width:32px; height:32px; border-radius:50%; border:3px solid transparent; cursor:pointer; } .sw button.on { border-color:#fff; } .sw input[type=color] { width:36px; height:32px; border:0; background:none; cursor:pointer; padding:0; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; } .chips button { padding:8px 14px; border-radius:99px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.05); color:inherit; font:600 13px "Segoe UI",system-ui; cursor:pointer; } .chips button.on { background:var(--acc); border-color:var(--acc); }
+  .tools { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; } .tools button { padding:9px 13px; border-radius:12px; border:1px solid rgba(139,92,246,.6); background:rgba(139,92,246,.14); color:#e9e1ff; font:600 12.5px "Segoe UI",system-ui; cursor:pointer; } .tools button:hover { background:rgba(139,92,246,.35); } .tools button.main { background:var(--acc); border-color:var(--acc); color:#fff; }
+  .prow { display:grid; grid-template-columns:1fr 78px 54px 28px; gap:6px; margin-bottom:6px; } .prow input { padding:8px 9px; font-size:13px; } .prow button { border:0; border-radius:8px; background:rgba(255,255,255,.08); color:#fff; cursor:pointer; } .prow button:hover { background:#ef4444; } .phead { display:grid; grid-template-columns:1fr 78px 54px 28px; gap:6px; font-size:11px; opacity:.55; margin-bottom:4px; padding:0 2px; }
+  .note { font-size:12px; opacity:.6; line-height:1.45; margin-top:8px; } .sum { border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:12px 14px; background:rgba(255,255,255,.04); font-size:13.5px; line-height:1.7; } .sum b { color:var(--accl); }
+  footer { display:flex; gap:10px; padding:12px 18px 16px; border-top:1px solid rgba(255,255,255,.08); } footer button { flex:1; padding:12px; border-radius:99px; border:1px solid rgba(255,255,255,.2); background:transparent; color:var(--fg); font:700 14px "Segoe UI",system-ui; cursor:pointer; } footer button.pri { background:var(--acc); border-color:var(--acc); color:#fff; flex:1.5; } footer button:disabled { opacity:.35; cursor:default; }
+  #tip { position:fixed; z-index:4; pointer-events:none; padding:7px 12px; border-radius:11px; background:rgba(15,11,26,.92); border:1px solid rgba(255,255,255,.18); font-size:13px; opacity:0; transition:opacity .12s; } #tip b { color:var(--accl); }
+  #toast { position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-20px); z-index:9; padding:10px 18px; border-radius:99px; background:rgba(28,20,48,.96); border:1px solid rgba(255,255,255,.18); font-size:13.5px; opacity:0; transition:.25s; pointer-events:none; max-width:92vw; text-align:center; } #toast.on { opacity:1; transform:translateX(-50%); }
+  #back { position:fixed; top:14px; right:14px; z-index:4; padding:8px 14px; border-radius:99px; border:1px solid rgba(255,255,255,.2); background:rgba(28,22,44,.8); color:#f3efff; font:600 12.5px "Segoe UI",system-ui; cursor:pointer; display:none; }
+  #hint { position:fixed; z-index:2; bottom:14px; right:16px; font-size:12px; opacity:.6; pointer-events:none; }
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<aside id="panel">
+  <header><h1>Faça <span>sua loja</span></h1><p>Escolha um modelo, ajuste e coloque os seus produtos. A loja ao lado muda na hora.</p><div id="dots"><i></i><i></i><i></i><i></i></div></header>
+  <div id="body"></div>
+  <footer><button id="prev">Voltar</button><button id="next" class="pri">Próximo</button></footer>
+</aside>
+<div id="tip"></div><div id="toast"></div><button id="back">← Voltar pra rua</button>
+<div id="hint">arraste pra girar · role pra aproximar · passe o mouse nos produtos</div>
+<script src="../shared/perf.js"></script>
+<script type="module">
+/* ============================================================================================
+   CRIADOR DE LOJA (cidade-molde da Rua NEW)
+   Ligação com o ERP (pro programador):
+     • window.NewStockAPI = async ()=>[ {sku, nome, preco, estoque, categoria, imagem?} , ... ]   (ou { name, price, stock, category })
+       OU abrir a página com ?stock=https://.../produtos.json (mesmo formato).
+   Saída (quando o lojista envia): window.onLojaLead(lead) e evento 'loja:lead' com
+     { id, loja:{modelo,nome,slogan,cor,fachada,produtos:[...]}, contato:{nome,whatsapp}, origem, criadoEm }
+   ============================================================================================ */
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+window.__criadorOk=1;
+const $=id=>document.getElementById(id), WHATSAPP='';
+const FROM_RUA=/[?&]rua=1/.test(location.search), STOCK_URL=(new URLSearchParams(location.search)).get('stock');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastT; const toast=t=>{ const e=$('toast'); e.textContent=t; e.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('on'),3200); };
+if(FROM_RUA){ $('back').style.display='block'; $('back').onclick=()=>location.href='../mundo/index.html'; }
+
+/* ---------- dados: modelos e produtos de exemplo ---------- */
+const MODELS={
+  mercado:{e:'🛒',n:'Mercado',d:'Gôndolas, caixa e entrega',sample:[['Arroz 5kg',27.9],['Feijão 1kg',8.5],['Café 500g',18.9],['Leite 1L',5.2],['Refrigerante 2L',9.5],['Macarrão 500g',5.9],['Açúcar 1kg',5.5],['Óleo 900ml',7.9],['Biscoito recheado',4.5],['Sabão em pó',17.9],['Água 1,5L',3.5],['Suco 1L',7]]},
+  moda:{e:'👗',n:'Moda',d:'Araras, manequins e provador',sample:[['Camiseta básica',59.9],['Calça jeans',159],['Vestido midi',189],['Jaqueta',249],['Bermuda',99],['Camisa social',139],['Saia plissada',119],['Boné',49]]},
+  pet:{e:'🐾',n:'Pet shop',d:'Rações, camas e acessórios',sample:[['Ração cães 10kg',169],['Ração gatos 3kg',79],['Petisco',19.9],['Coleira',39.9],['Caminha M',149],['Areia sanitária',24.9],['Brinquedo',29.9],['Shampoo pet',34.9]]},
+  atacado:{e:'🥬',n:'Atacado',d:'Caixas e paletes, venda B2B',sample:[['Tomate cx 22kg',95],['Banana prata cx',70],['Laranja cx 40kg',88],['Alface cx 12un',36],['Batata 50kg',190],['Cebola 20kg',78],['Maçã cx 18kg',160],['Melancia un',18]]},
+};
+const STYLES={stone:{n:'Pedra',c:'#d6cdbf'},graphite:{n:'Grafite',c:'#34343e'},sand:{n:'Areia',c:'#dccdb8'},white:{n:'Branca',c:'#e9e6ef'}};
+const COLORS=['#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#3b82f6','#111827'];
+const mkSample=m=>MODELS[m].sample.map(([nome,preco],i)=>({sku:(m.slice(0,3)+'-'+(i+1)).toUpperCase(),nome,preco,estoque:20+((i*7)%40),categoria:MODELS[m].n}));
+let S={model:'mercado',name:'Minha Loja',slogan:'',color:'#8b5cf6',style:'stone',products:mkSample('mercado'),erp:false,contato:{nome:'',whatsapp:''}};
+try{ const sv=JSON.parse(localStorage.getItem('newLojaBuilder')||'null'); if(sv&&sv.model&&MODELS[sv.model]&&Array.isArray(sv.products)) S=Object.assign(S,sv); }catch(e){}
+const save=()=>{ try{ localStorage.setItem('newLojaBuilder',JSON.stringify(S)); }catch(e){} };
+const normalize=(p,i)=>({sku:String(p.sku??p.codigo??'P'+(i+1)),nome:String(p.nome??p.name??p.descricao??'Produto'),preco:Number(p.preco??p.price??p.valor??0)||0,estoque:Number(p.estoque??p.stock??p.quantidade??0)||0,categoria:String(p.categoria??p.category??''),imagem:p.imagem??p.image??null});
+const brl=v=>'R$ '+(Number(v)||0).toFixed(2).replace('.',',');
+
+/* ---------- cena 3D ---------- */
+const cv=$('cv'), renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15; renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#171127'); scene.fog=new THREE.Fog('#171127',26,60);
+scene.environment=new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(),.04).texture;
+const camera=new THREE.PerspectiveCamera(42,1,.1,120); camera.position.set(8.5,5.2,12.5);
+const ctl=new OrbitControls(camera,cv); ctl.target.set(0,1.5,0); ctl.enableDamping=true; ctl.autoRotate=true; ctl.autoRotateSpeed=.55; ctl.minDistance=6; ctl.maxDistance=24; ctl.maxPolarAngle=Math.PI/2.05; ctl.enablePan=false;
+cv.addEventListener('pointerdown',()=>{ ctl.autoRotate=false; });
+scene.add(new THREE.HemisphereLight('#ffffff','#8d7bc2',1.25));
+const sun=new THREE.DirectionalLight('#fff1dd',1.5); sun.position.set(6,12,9); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); Object.assign(sun.shadow.camera,{left:-12,right:12,top:12,bottom:-12,near:1,far:40}); sun.shadow.bias=-.0004; scene.add(sun);
+const pl=new THREE.PointLight('#ffe2c0',40,16,2); pl.position.set(0,3.6,0); scene.add(pl);
+const ground=new THREE.Mesh(new THREE.CircleGeometry(60,64),new THREE.MeshStandardMaterial({color:'#241a3a',roughness:.9})); ground.rotation.x=-Math.PI/2; ground.position.y=-.02; ground.receiveShadow=true; scene.add(ground);
+const grid=new THREE.GridHelper(30,30,'#4c3a80','#2f2450'); grid.position.y=-.01; grid.material.transparent=true; grid.material.opacity=.35; scene.add(grid);
+const matC=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.6,envMapIntensity:.5},o||{}));
+const bx=(g,w,h,d,m,x,y,z,sh=true)=>{ const e=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); e.position.set(x,y,z); e.castShadow=sh; e.receiveShadow=true; g.add(e); return e; };
+function ctex(w,h,fn){ const c=document.createElement('canvas'); c.width=w; c.height=h; fn(c.getContext('2d'),w,h); const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; }
+const hue=s=>{ let h=0; for(const ch of s) h=(h*31+ch.charCodeAt(0))%360; return h; };
+const itemCol=(p,o)=>new THREE.Color().setHSL(hue(p.nome)/360,.6,.55+(o||0));
+let store=null; const hoverables=[];
+
+function signTex(){ return ctex(1400,320,(c,w,h)=>{ const g=c.createLinearGradient(0,0,w,h); g.addColorStop(0,'#15101f'); g.addColorStop(1,S.color); c.fillStyle=g; c.fillRect(0,0,w,h); c.fillStyle='rgba(255,255,255,.14)'; c.fillRect(0,h-16,w,16);
+  let px=190; const name=S.name||'Minha Loja'; c.font=`900 ${px}px "Segoe UI",system-ui`; while(c.measureText(name).width>w-120&&px>50){ px-=6; c.font=`900 ${px}px "Segoe UI",system-ui`; }
+  c.fillStyle='#fff'; c.textAlign='center'; c.textBaseline='middle'; c.shadowColor='rgba(0,0,0,.35)'; c.shadowBlur=18; c.fillText(name,w/2,S.slogan?h*.43:h*.5); c.shadowBlur=0;
+  if(S.slogan){ c.font='600 52px "Segoe UI",system-ui'; c.fillStyle='rgba(255,255,255,.85)'; c.fillText(S.slogan,w/2,h*.8); } }); }
+function labelTex(text,sub){ return ctex(256,96,(c,w,h)=>{ c.fillStyle='#fff'; c.fillRect(0,0,w,h); c.fillStyle=S.color; c.fillRect(0,0,w,10); c.fillStyle='#16101f'; c.textAlign='center'; c.textBaseline='middle'; let px=34; c.font=`800 ${px}px "Segoe UI",system-ui`; while(c.measureText(text).width>w-16&&px>14){ px-=2; c.font=`800 ${px}px "Segoe UI",system-ui`; } c.fillText(text,w/2,h*.45); c.font='700 26px "Segoe UI",system-ui'; c.fillStyle=S.color; c.fillText(sub,w/2,h*.8); }); }
+
+function shelfUnit(g,x,z,w,tiers,ry,products,kind,start){
+  const u=new THREE.Group(); u.position.set(x,0,z); u.rotation.y=ry; g.add(u); const fr=matC('#2b2733',{metalness:.6,roughness:.4}), sh=matC('#efeaf5',{roughness:.4}), tr=new THREE.MeshBasicMaterial({color:S.color,toneMapped:false});
+  bx(u,.08,2.0,.55,fr,-w/2,1,0); bx(u,.08,2.0,.55,fr,w/2,1,0);
+  for(let t=0;t<tiers;t++){ const y=.18+t*.5; bx(u,w,.05,.55,sh,0,y,0); bx(u,w,.04,.03,tr,0,y+.03,.28,false);
+    const n=Math.floor(w/.34); for(let i=0;i<n;i++){ const p=products[(start+t*n+i)%products.length]; if(!p) continue; const m=itemMesh(p,kind); m.position.set(-w/2+.2+i*.34,y+.03,0); m.rotation.y=(rndSeed(p.nome+t+i)-.5)*.2; u.add(m); } }
+  return u; }
+let seedv=1; const rndSeed=s=>{ let h=2166136261; for(const c of s) h=Math.imul(h^c.charCodeAt(0),16777619); return ((h>>>0)%1000)/1000; };
+function itemMesh(p,kind){ let m;
+  if(kind==='cylinder'){ m=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.26,14),new THREE.MeshStandardMaterial({color:itemCol(p),roughness:.35,metalness:.2})); m.position.y=.13; }
+  else if(kind==='bag'){ m=new THREE.Mesh(new RoundedBoxGeometry(.24,.34,.12,2,.03),new THREE.MeshStandardMaterial({color:itemCol(p),roughness:.55})); m.position.y=.17; }
+  else if(kind==='crate'){ m=new THREE.Group(); const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.2,.3),matC('#a07a4a',{roughness:.8})); b.position.y=.1; m.add(b); for(let i=0;i<4;i++){ const s=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),matC('#'+itemCol(p,i*.02).getHexString())); s.position.set((i%2-.5)*.14,.24,(i>>1)*.14-.07); m.add(s); } }
+  else { m=new THREE.Mesh(new RoundedBoxGeometry(.24,.3,.12,2,.02),new THREE.MeshStandardMaterial({color:itemCol(p),roughness:.5})); m.position.y=.15; }
+  const w=new THREE.Group(); w.add(m); m.castShadow=true; w.userData.p=p; w.traverse(o=>{ if(o.isMesh){ o.userData.p=p; hoverables.push(o); } }); return w; }
+
+function buildStore(){
+  if(store){ scene.remove(store); store.traverse(o=>{ if(o.isMesh){ o.geometry.dispose(); const ms=[].concat(o.material); ms.forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); } }); }
+  hoverables.length=0; const g=store=new THREE.Group(); scene.add(g); const st=STYLES[S.style]||STYLES.stone, P=S.products.length?S.products:[{nome:'Produto',preco:0}], acc=matC(S.color,{roughness:.35});
+  // piso, fundo, parede direita (a esquerda fica aberta pra ver por dentro)
+  const floor=new THREE.Mesh(new THREE.BoxGeometry(11,.2,9),matC('#cfc9d8',{roughness:.3,envMapIntensity:.9})); floor.position.y=-.1; floor.receiveShadow=true; g.add(floor);
+  bx(g,11,.02,.3,acc,0,.01,3.5,false);
+  bx(g,11,4.4,.3,matC(st.c),0,2.2,-4.35); bx(g,.3,4.4,8.7,matC(st.c),5.35,2.2,0); bx(g,11,.15,.3,acc,0,4.45,-4.35,false);
+  bx(g,.18,2.6,8.7,matC('#fff',{transparent:true,opacity:.14,roughness:.05}),-5.4,1.4,0,false); bx(g,.12,.12,8.7,matC('#2b2733',{metalness:.6}),-5.4,2.7,0,false); bx(g,.12,.12,8.7,matC('#2b2733',{metalness:.6}),-5.4,.1,0,false);
+  // fachada frontal: base, pilares, vitrine de vidro, porta, letreiro e marquise
+  const fz=4.35; bx(g,11,.55,.3,matC(st.c),0,.28,fz); for(const x of [-5.35,5.35]) bx(g,.3,4.4,.3,matC(st.c),x,2.2,fz); bx(g,11,.9,.3,matC(st.c),0,3.95,fz);
+  bx(g,10.4,3.0,.06,matC('#e8e0ff',{transparent:true,opacity:.12,roughness:.02,metalness:.1}),0,2.0,fz,false);
+  for(const x of [-3.5,-1.1,1.1,3.5]) bx(g,.07,3.0,.1,matC('#1d1b24',{metalness:.6}),x,2.0,fz,false); bx(g,10.4,.08,.12,matC('#1d1b24',{metalness:.6}),0,3.5,fz,false);
+  bx(g,2.1,2.6,.1,matC('#d9ccff',{transparent:true,opacity:.28,roughness:.05}),0,1.4,fz+.02,false);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(9.4,2.15),new THREE.MeshBasicMaterial({map:signTex(),toneMapped:false})); sign.position.set(0,4.55,fz+.3); g.add(sign); bx(g,9.6,2.3,.2,matC('#15101f',{metalness:.5}),0,4.55,fz+.15);
+  bx(g,10.4,.1,1.4,matC('#1d1b24',{metalness:.5}),0,3.55,fz+.7); bx(g,10.4,.04,.04,new THREE.MeshBasicMaterial({color:S.color,toneMapped:false}),0,3.5,fz+1.4,false);
+  // interior por modelo
+  const m=S.model; let k=0;
+  if(m==='mercado'||m==='pet'){ const kind=m==='mercado'?'cylinder':'bag'; for(const [x,z,w] of [[-2.6,-3.4,3.2],[2.6,-3.4,3.2]]) shelfUnit(g,x,z,w,4,0,P,kind,k+=7);
+    for(const z of [-1.2,.9]) for(const x of [-2.6,2.6]) shelfUnit(g,x,z,3.2,3,Math.PI,P,kind,k+=5);
+    const cx=4.2, cz=2.2; bx(g,1.8,1.0,.8,matC('#2b2733'),cx,.5,cz); bx(g,1.9,.06,.9,acc,cx,1.03,cz); bx(g,.5,.35,.04,new THREE.MeshBasicMaterial({color:'#16101f'}),cx-.4,1.28,cz); addCharge(g,cx,cz);
+    if(m==='pet'){ for(const [x,z] of [[-4.2,1.8],[-3.4,2.8]]){ const b=new THREE.Mesh(new THREE.TorusGeometry(.38,.14,10,22),matC('#'+itemCol(P[0%P.length]).getHexString())); b.rotation.x=Math.PI/2; b.position.set(x,.15,z); g.add(b); } } }
+  if(m==='moda'){ for(const [x,z] of [[-2.8,-3.3],[2.8,-3.3],[-2.8,-.6],[2.8,-.6]]){ const r=new THREE.Group(); r.position.set(x,0,z); g.add(r); bx(r,.05,1.7,.05,matC('#1d1b24',{metalness:.7}),-1.3,.85,0); bx(r,.05,1.7,.05,matC('#1d1b24',{metalness:.7}),1.3,.85,0); bx(r,2.65,.04,.04,matC('#cfcfd6',{metalness:.8,roughness:.2}),0,1.62,0,false);
+      for(let i=0;i<7;i++){ const p=P[(k++)%P.length]; const w=new THREE.Group(); w.position.set(-1.1+i*.37,1.1,0); const c=new THREE.Mesh(new RoundedBoxGeometry(.3,.9,.1,2,.03),new THREE.MeshStandardMaterial({color:itemCol(p),roughness:.7})); c.castShadow=true; c.userData.p=p; hoverables.push(c); w.add(c); r.add(w); } }
+    for(const [x,z,c] of [[-4.2,1.4,'#e9e6ef'],[4.0,1.2,'#e9e6ef']]){ const mq=new THREE.Group(); mq.position.set(x,0,z); g.add(mq); bx(mq,.5,.04,.5,matC('#1d1b24'),0,.02,0); bx(mq,.04,1.4,.04,matC('#1d1b24'),0,.7,0); const t=new THREE.Mesh(new RoundedBoxGeometry(.4,.7,.22,3,.08),new THREE.MeshStandardMaterial({color:S.color,roughness:.5})); t.position.y=1.25; mq.add(t); const h=new THREE.Mesh(new THREE.SphereGeometry(.12,14,10),matC(c)); h.position.y=1.74; mq.add(h); }
+    bx(g,2.2,1.0,.8,matC('#2b2733'),4.2,.5,2.6); bx(g,2.3,.06,.9,acc,4.2,1.03,2.6); }
+  if(m==='atacado'){ for(const [x,z] of [[-3.0,-2.9],[0,-2.9],[3.0,-2.9],[-3.0,.4],[0,.4],[3.0,.4]]){ const pal=new THREE.Group(); pal.position.set(x,0,z); g.add(pal); bx(pal,1.4,.14,1.2,matC('#8a6a3a',{roughness:.9}),0,.07,0);
+      for(let l=0;l<2;l++) for(let i=0;i<2;i++) for(let j=0;j<2;j++){ const p=P[(k++)%P.length]; const c=itemMesh(p,'crate'); c.scale.setScalar(1.15); c.position.set(-.35+i*.7,.14+l*.2,-.3+j*.6); pal.add(c); } } }
+  g.traverse(o=>{ if(o.isMesh&&!o.userData.noShadow) o.receiveShadow=true; });
+}
+function addCharge(g,x,z){ const t=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.04,16),new THREE.MeshBasicMaterial({color:S.color,toneMapped:false})); t.position.set(x+.5,1.08,z); g.add(t); }
+
+/* ---------- tooltip dos produtos ---------- */
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(), tip=$('tip');
+cv.addEventListener('pointermove',e=>{ const r=cv.getBoundingClientRect(); mouse.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(mouse,camera); const h=ray.intersectObjects(hoverables,false)[0]; if(h&&h.object.userData.p){ const p=h.object.userData.p; tip.innerHTML=`<b>${esc(p.nome)}</b> · ${brl(p.preco)}${p.estoque?` · ${p.estoque} em estoque`:''}`; tip.style.left=Math.min(innerWidth-260,e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; tip.style.opacity=1; } else tip.style.opacity=0; });
+cv.addEventListener('pointerleave',()=>{ tip.style.opacity=0; });
+
+/* ---------- layout ---------- */
+const panel=$('panel');
+function layout(){ const W=innerWidth,H=innerHeight, wide=W>820; let cw,ch;
+  if(wide){ const pw=Math.min(430,Math.round(W*.36)); Object.assign(panel.style,{left:0,top:0,bottom:0,right:'auto',width:pw+'px',height:'auto',borderRadius:'0 22px 22px 0'}); cw=W-pw; ch=H; Object.assign(cv.style,{width:cw+'px',height:ch+'px',left:'auto',right:0,top:0}); }
+  else { const ph=Math.round(H*.56); Object.assign(panel.style,{left:0,right:0,top:'auto',bottom:0,width:'auto',height:ph+'px',borderRadius:'22px 22px 0 0'}); cw=W; ch=H-ph; Object.assign(cv.style,{width:cw+'px',height:ch+'px',left:0,right:'auto',top:0}); }
+  renderer.setSize(cw,ch,false); camera.aspect=cw/ch; camera.updateProjectionMatrix(); $('hint').style.right=wide?'16px':'auto'; $('hint').style.left=wide?'auto':'12px'; $('hint').style.bottom=wide?'14px':(H-ch+8)+'px'; }
+addEventListener('resize',layout);
+
+/* ---------- painel: 4 passos ---------- */
+let step=0; const body=$('body');
+const STEPS=['Modelo','Identidade','Produtos','Enviar'];
+function render(){
+  document.querySelectorAll('#dots i').forEach((d,i)=>{ d.className=i===step?'on':(i<step?'done':''); });
+  $('prev').disabled=step===0; $('next').textContent=step===3?'Enviar proposta':'Próximo';
+  if(step===0){ body.innerHTML=`<h2>1. Escolha o modelo da loja</h2><p class="sub">É o ponto de partida. Você ajusta tudo nos próximos passos.</p><div class="models">${Object.entries(MODELS).map(([k,v])=>`<button class="mc ${S.model===k?'on':''}" data-m="${k}"><span class="e">${v.e}</span><b>${v.n}</b><small>${v.d}</small></button>`).join('')}</div>`;
+    body.querySelectorAll('.mc').forEach(b=>b.onclick=()=>{ const m=b.dataset.m; if(m!==S.model){ const sampleNow=!S.erp&&S.products.every(p=>p.sku.startsWith(S.model.slice(0,3).toUpperCase()+'-')); S.model=m; if(sampleNow) S.products=mkSample(m); } save(); buildStore(); render(); }); }
+  if(step===1){ body.innerHTML=`<h2>2. Identidade da loja</h2><p class="sub">Nome, cor e fachada aparecem no letreiro ao lado.</p>
+    <label>Nome da loja</label><input type="text" id="fName" maxlength="28" value="${esc(S.name)}">
+    <label>Frase curta (opcional)</label><input type="text" id="fSlog" maxlength="40" value="${esc(S.slogan)}" placeholder="Ex.: sempre perto de você">
+    <label>Cor da marca</label><div class="sw">${COLORS.map(c=>`<button data-c="${c}" style="background:${c}" class="${S.color===c?'on':''}"></button>`).join('')}<input type="color" id="fCol" value="${S.color}"></div>
+    <label>Fachada</label><div class="chips">${Object.entries(STYLES).map(([k,v])=>`<button data-s="${k}" class="${S.style===k?'on':''}">${v.n}</button>`).join('')}</div>`;
+    let t; const re=()=>{ clearTimeout(t); t=setTimeout(()=>{ save(); buildStore(); },160); };
+    $('fName').oninput=e=>{ S.name=e.target.value; re(); }; $('fSlog').oninput=e=>{ S.slogan=e.target.value; re(); };
+    body.querySelectorAll('.sw button').forEach(b=>b.onclick=()=>{ S.color=b.dataset.c; save(); buildStore(); render(); }); $('fCol').oninput=e=>{ S.color=e.target.value; re(); };
+    body.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{ S.style=b.dataset.s; save(); buildStore(); render(); }); }
+  if(step===2){ body.innerHTML=`<h2>3. Seus produtos</h2><p class="sub">${S.erp?'Vindos do estoque do ERP.':'Hoje são produtos de exemplo. Importe do ERP ou edite aqui.'} Eles aparecem nas prateleiras.</p>
+    <div class="tools"><button class="main" id="bErp">⬇ Importar do estoque (ERP)</button><button id="bSample">Exemplo do modelo</button><button id="bPaste">Colar lista</button><button id="bAdd">+ Produto</button></div>
+    <div id="pasteBox" style="display:none"><textarea id="pasteTx" placeholder="Um produto por linha: nome ; preço&#10;Arroz 5kg ; 27,90&#10;Feijão 1kg ; 8,50"></textarea><div class="tools" style="margin-top:8px"><button class="main" id="pasteOk">Usar esta lista</button></div></div>
+    <div class="phead"><span>Produto</span><span>Preço</span><span>Estq.</span><span></span></div><div id="rows"></div>
+    <p class="note">${S.products.length} produto(s). Formato do ERP (pro programador): <code>[{sku, nome, preco, estoque, categoria}]</code> via <code>window.NewStockAPI</code> ou <code>?stock=URL</code>.</p>`;
+    const rows=$('rows'); let rt; const re=()=>{ clearTimeout(rt); rt=setTimeout(()=>{ save(); buildStore(); },200); };
+    const draw=()=>{ rows.innerHTML=S.products.map((p,i)=>`<div class="prow"><input type="text" data-i="${i}" data-f="nome" value="${esc(p.nome)}"><input type="number" step="0.01" data-i="${i}" data-f="preco" value="${p.preco}"><input type="number" data-i="${i}" data-f="estoque" value="${p.estoque}"><button data-d="${i}">✕</button></div>`).join('');
+      rows.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{ const p=S.products[+inp.dataset.i], f=inp.dataset.f; p[f]=f==='nome'?inp.value:(Number(inp.value)||0); S.erp=S.erp; re(); });
+      rows.querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{ S.products.splice(+b.dataset.d,1); save(); buildStore(); draw(); }); };
+    draw();
+    $('bAdd').onclick=()=>{ S.products.push({sku:'NOVO-'+(S.products.length+1),nome:'Novo produto',preco:10,estoque:10,categoria:''}); save(); buildStore(); draw(); rows.lastElementChild&&rows.lastElementChild.scrollIntoView(); };
+    $('bSample').onclick=()=>{ S.products=mkSample(S.model); S.erp=false; save(); buildStore(); render(); };
+    $('bPaste').onclick=()=>{ const b=$('pasteBox'); b.style.display=b.style.display==='none'?'block':'none'; };
+    $('pasteOk').onclick=()=>{ const ls=$('pasteTx').value.split('\n').map(l=>l.trim()).filter(Boolean); const out=ls.map((l,i)=>{ const [n,p]=l.split(/[;\t]/); return {sku:'P'+(i+1),nome:(n||'').trim(),preco:Number(String(p||'0').replace(/[^\d,.-]/g,'').replace(',','.'))||0,estoque:10,categoria:''}; }).filter(p=>p.nome); if(!out.length){ toast('Cole pelo menos uma linha: nome ; preço'); return; } S.products=out; S.erp=false; save(); buildStore(); render(); toast(out.length+' produtos colocados nas prateleiras'); };
+    $('bErp').onclick=importERP; }
+  if(step===3){ const tot=S.products.reduce((a,p)=>a+(p.preco*p.estoque),0);
+    body.innerHTML=`<h2>4. Revise e envie</h2><p class="sub">A NEX monta essa loja pra você e liga ao seu estoque.</p>
+    <div class="sum"><b>${esc(S.name)}</b> · modelo ${MODELS[S.model].n}<br>Fachada ${STYLES[S.style].n} · cor <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${S.color};vertical-align:-1px"></span><br>${S.products.length} produtos ${S.erp?'(do ERP)':'(exemplo/manual)'}<br>Valor em estoque: <b>${brl(tot)}</b></div>
+    <label>Seu nome</label><input type="text" id="cNome" value="${esc(S.contato.nome)}" placeholder="Como te chamamos?"><label>WhatsApp</label><input type="tel" id="cZap" value="${esc(S.contato.whatsapp)}" placeholder="(11) 90000-0000">
+    <div class="tools" style="margin-top:14px"><button class="main" id="bWalk">🚶 Entrar na minha loja</button><button id="bJson">Copiar configuração (JSON)</button><button id="bDl">Baixar JSON</button></div><p class="note">O JSON é o que o programador usa pra gerar a loja de verdade a partir do estoque. Sua loja também aparece na Rua NEW (no fim da rua) neste navegador.</p>`;
+    $('bWalk').onclick=()=>{ save(); location.href='../loja-cliente/index.html'+(FROM_RUA?'?rua=1':''); };
+    $('cNome').oninput=e=>{ S.contato.nome=e.target.value; save(); }; $('cZap').oninput=e=>{ S.contato.whatsapp=e.target.value; save(); };
+    $('bJson').onclick=async()=>{ try{ await navigator.clipboard.writeText(JSON.stringify(cfg(),null,2)); toast('Configuração copiada'); }catch(e){ toast('Não consegui copiar. Use "Baixar JSON".'); } };
+    $('bDl').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(cfg(),null,2)],{type:'application/json'})); a.download='minha-loja-new.json'; a.click(); }; }
+}
+const cfg=()=>({modelo:S.model,nome:S.name,slogan:S.slogan,cor:S.color,fachada:S.style,produtos:S.products});
+async function importERP(){ toast('Buscando o estoque...'); try{ let list=null; if(typeof window.NewStockAPI==='function') list=await window.NewStockAPI(); else if(STOCK_URL){ const r=await fetch(STOCK_URL); list=await r.json(); }
+    if(Array.isArray(list)&&list.length){ S.products=list.map(normalize); S.erp=true; save(); buildStore(); render(); toast(list.length+' produtos importados do ERP'); }
+    else { S.products=mkSample(S.model); S.erp=false; save(); buildStore(); render(); toast('O ERP ainda não está conectado. Coloquei produtos de exemplo (modo demonstração).'); } }
+  catch(e){ toast('Não consegui falar com o ERP. Mantive os produtos atuais.'); } }
+$('prev').onclick=()=>{ if(step>0){ step--; render(); } };
+$('next').onclick=()=>{ if(step<3){ step++; render(); body.scrollTop=0; return; }
+  if(!S.contato.nome.trim()||S.contato.whatsapp.replace(/\D/g,'').length<10){ toast('Preencha seu nome e WhatsApp pra enviar'); return; }
+  const lead={id:'LJ'+Math.floor(1000+Math.random()*9000),loja:cfg(),contato:{nome:S.contato.nome.trim(),whatsapp:S.contato.whatsapp.trim()},origem:'Rua NEW · criador de loja',criadoEm:new Date().toISOString()};
+  try{ if(typeof window.onLojaLead==='function') window.onLojaLead(lead); window.dispatchEvent(new CustomEvent('loja:lead',{detail:lead})); }catch(e){ console.error(e); }
+  const txt=`*Montei minha loja na Rua NEW*\nLoja: ${lead.loja.nome} (${MODELS[S.model].n})\nProdutos: ${S.products.length}\nNome: ${lead.contato.nome}\nWhatsApp: ${lead.contato.whatsapp}\nProtocolo: ${lead.id}`;
+  body.innerHTML=`<h2>Proposta enviada ✓</h2><p class="sub">Protocolo <b>${lead.id}</b>. A NEX entra em contato pelo WhatsApp pra montar a sua loja e ligar ao seu estoque.</p><div class="tools"><button class="main" id="bWa">Falar no WhatsApp agora</button><button id="bNew">Ajustar a loja</button></div>`;
+  $('bWa').onclick=()=>{ if(!WHATSAPP){ toast('Número do WhatsApp da NEX ainda não configurado'); return; } open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(txt)}`,'_blank'); }; $('bNew').onclick=()=>{ step=0; render(); }; };
+
+/* ---------- loop ---------- */
+layout(); buildStore(); render();
+(function frame(){ requestAnimationFrame(frame); ctl.update(); renderer.render(scene,camera); })();
+window.__dbg={S:()=>S,go:n=>{ step=n; render(); },info:()=>({calls:renderer.info.render.calls,tris:renderer.info.render.triangles})};
+
+if(window.NewPerf) NewPerf.attach(renderer,scene);
+</script>
+</body>
+</html>

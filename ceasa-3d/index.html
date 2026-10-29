@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEW CEASA</title>
+<style>
+  :root { --bg:#0b0b0f; --fg:#f5f5f7; --acc:#8b5cf6; --glass:rgba(18,18,24,.68); }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:"Segoe UI",system-ui,Roboto,sans-serif; overflow:hidden; }
+  canvas { display:block; }
+  .glass { background:var(--glass); backdrop-filter:blur(16px) saturate(1.4); border:1px solid rgba(255,255,255,.14); border-radius:18px; box-shadow:0 10px 40px rgba(0,0,0,.35); }
+  #cross { position:fixed; left:50%; top:50%; width:10px; height:10px; margin:-5px; border-radius:50%; border:2px solid #fff; opacity:.8; pointer-events:none; box-shadow:0 0 0 1px rgba(0,0,0,.35); transition:transform .1s; }
+  #cross.hot { background:var(--acc); transform:scale(1.5); }
+  #help { position:fixed; left:16px; bottom:16px; padding:10px 14px; font-size:12.5px; line-height:1.7; opacity:.9; pointer-events:none; }
+  kbd { background:rgba(255,255,255,.16); border-radius:6px; padding:1px 7px; font-size:12px; font-family:inherit; }
+  #voltar { position:fixed; left:16px; top:16px; padding:10px 15px; font-size:13px; color:#fff; text-decoration:none; z-index:6; display:flex; align-items:center; gap:8px; }
+  #voltar:hover { background:rgba(139,92,246,.35); }
+  #tag { position:fixed; right:16px; top:16px; padding:9px 14px; font-size:12px; letter-spacing:.1em; text-transform:uppercase; opacity:.85; pointer-events:none; }
+  #tag b { color:var(--acc); }
+  #overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at center,rgba(0,0,0,.25),rgba(0,0,0,.78)); cursor:pointer; z-index:5; }
+  #overlay .box { text-align:center; padding:36px 44px; max-width:480px; }
+  #overlay h1 { font-size:36px; margin-bottom:6px; letter-spacing:-.02em; }
+  #overlay h1 span { color:var(--acc); }
+  #overlay p { opacity:.78; margin:8px 0; font-size:15px; line-height:1.5; }
+  .btn { display:inline-block; margin-top:16px; padding:13px 28px; border-radius:13px; background:var(--acc); color:#fff; font-weight:700; font-size:16px; border:0; cursor:pointer; }
+  #pc { position:fixed; left:50%; bottom:22px; transform:translate(-50%,26px); width:min(600px,94vw); display:flex; opacity:0; pointer-events:none; z-index:6; --pc:#8b5cf6;
+    background:linear-gradient(135deg,rgba(26,26,33,.88),rgba(13,13,18,.84)); backdrop-filter:blur(20px) saturate(1.6); border:1px solid rgba(255,255,255,.14); border-radius:22px;
+    box-shadow:0 24px 70px rgba(0,0,0,.5), 0 0 70px -14px var(--pc); overflow:hidden; transition:opacity .16s, transform .24s cubic-bezier(.2,.9,.3,1.12); }
+  #pc.on { opacity:1; transform:translate(-50%,0); }
+  #pc::after { content:''; position:absolute; left:0; right:0; top:0; height:3px; background:linear-gradient(90deg,var(--pc),transparent); }
+  .pcbody { padding:16px 20px 16px; display:flex; flex-direction:column; gap:7px; min-width:0; width:100%; }
+  .pcbrand { font-size:11px; letter-spacing:.15em; text-transform:uppercase; opacity:.6; }
+  .pcname { font-size:25px; font-weight:800; letter-spacing:-.015em; line-height:1.1; }
+  .pcname small { font-size:15px; font-weight:600; opacity:.65; margin-left:6px; }
+  .pcprice { font-size:26px; font-weight:800; }
+  .pcprice b { color:var(--acc); }
+  .pcprice small { font-size:13px; font-weight:600; opacity:.65; }
+  .pcchips { display:flex; gap:6px; flex-wrap:wrap; }
+  .pcchips span { background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12); border-radius:99px; padding:4px 11px; font-size:12px; }
+  .pcchips span.hl { background:var(--pc); color:#fff; border-color:transparent; font-weight:700; }
+  .pcdesc { font-size:13.5px; line-height:1.5; opacity:.82; }
+  .pchint { font-size:12px; opacity:.6; }
+  #cart { position:fixed; right:16px; top:64px; width:290px; padding:14px 16px; font-size:14px; z-index:4; }
+  #cart h3 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.65; margin-bottom:8px; }
+  #cart .row { display:flex; justify-content:space-between; gap:8px; padding:3px 0; }
+  #cart .row span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #cart .tot { border-top:1px solid rgba(255,255,255,.15); margin-top:8px; padding-top:8px; font-weight:700; display:flex; justify-content:space-between; }
+  #cart .sub { font-size:12px; opacity:.6; margin-top:2px; }
+  #cart .empty { opacity:.55; }
+  #cart .cfin { width:100%; margin-top:10px; padding:11px 12px; border:0; border-radius:12px; background:var(--acc); color:#fff; font-weight:800; font-size:14px; cursor:pointer; font-family:inherit; }
+  #cart .cfin kbd { background:rgba(0,0,0,.2); }
+  #toast { position:fixed; left:50%; top:22px; transform:translate(-50%,-10px); padding:10px 18px; opacity:0; transition:all .25s; pointer-events:none; font-size:14px; z-index:9; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.62); backdrop-filter:blur(4px); z-index:8; padding:14px; }
+  #modal.on { display:flex; }
+  .co { position:relative; width:min(900px,100%); max-height:94vh; overflow:auto; padding:22px 26px 24px; }
+  .coclose { position:absolute; right:14px; top:12px; width:34px; height:34px; border-radius:50%; border:0; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; font-size:15px; }
+  .costeps { display:flex; align-items:center; gap:10px; margin:0 44px 18px 0; font-size:13px; }
+  .costeps i { flex:1; height:2px; background:rgba(255,255,255,.14); max-width:70px; }
+  .cos { display:flex; align-items:center; gap:7px; opacity:.5; }
+  .cos b { width:24px; height:24px; border-radius:50%; background:rgba(255,255,255,.14); display:grid; place-items:center; font-size:12px; }
+  .cos.on { opacity:1; } .cos.on b { background:var(--acc); }
+  .cos.done { opacity:.85; } .cos.done b { background:#2fb36a; }
+  .cogrid { display:grid; grid-template-columns:1.35fr 1fr; gap:26px; }
+  .cogrid.one { grid-template-columns:1fr; }
+  .comain h2 { font-size:24px; letter-spacing:-.02em; margin-bottom:14px; }
+  .coside { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:16px 18px; align-self:start; }
+  .coside h4 { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.6; margin-bottom:8px; }
+  .ci { display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+  .ci b { display:block; font-size:15px; } .ci small { opacity:.6; font-size:12.5px; }
+  .qty { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,.1); border-radius:12px; padding:3px; }
+  .qty button { width:30px; height:30px; border:0; border-radius:9px; background:rgba(255,255,255,.14); color:#fff; font-size:17px; cursor:pointer; }
+  .qty span { min-width:34px; text-align:center; font-weight:700; }
+  .sr { display:flex; justify-content:space-between; padding:5px 0; font-size:14px; opacity:.85; }
+  .sr.tot { border-top:1px solid rgba(255,255,255,.14); margin-top:6px; padding-top:10px; font-size:19px; font-weight:800; opacity:1; }
+  .sfree { display:block; margin-top:6px; opacity:.65; font-size:12.5px; } .sfree.ok { color:#6be39a; opacity:1; }
+  .coact { display:flex; gap:10px; margin-top:20px; }
+  .coact .btn { margin:0; padding:14px 22px; font-size:15px; flex:1; } .coact .btn.ghost { background:rgba(255,255,255,.12); flex:0 0 auto; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .fg { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fg label { font-size:12.5px; opacity:.9; display:flex; flex-direction:column; gap:5px; } .fg label.w2 { grid-column:1/-1; }
+  .co input[data-f], .co select { padding:12px 13px; border-radius:11px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.07); color:var(--fg); font-size:14.5px; font-family:inherit; outline:none; width:100%; }
+  .co select option { color:#111; }
+  .co input.bad { border-color:#ff5d5d; background:rgba(255,93,93,.1); }
+  .opts { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .opt { text-align:left; padding:12px 13px; border-radius:13px; border:1.5px solid rgba(255,255,255,.14); background:rgba(255,255,255,.05); color:var(--fg); cursor:pointer; font-family:inherit; }
+  .opt b { display:block; font-size:14px; } .opt small { opacity:.6; font-size:12px; }
+  .opt.on { border-color:var(--acc); background:rgba(139,92,246,.12); }
+  .demo { margin-top:12px; font-size:12px; opacity:.55; }
+  .done { text-align:center; padding:6px 0 4px; }
+  .check { width:76px; height:76px; border-radius:50%; background:linear-gradient(135deg,#2fb36a,#1f8a4f); display:grid; place-items:center; font-size:40px; margin:0 auto 12px; box-shadow:0 0 0 10px rgba(47,179,106,.18); }
+  .info { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:14px 16px; font-size:14px; line-height:1.7; text-align:left; margin-top:14px; }
+  @media (max-width:760px){ .cogrid{grid-template-columns:1fr} .fg{grid-template-columns:1fr} .opts{grid-template-columns:1fr} .costeps span{display:none} }
+</style>
+</head>
+<body>
+<div id="cross"></div>
+<div id="tag" class="glass"><b>NEW</b> CEASA · pavilhão de frutas</div>
+<div id="help" class="glass"><kbd>W A S D</kbd> andar &nbsp; <kbd>Shift</kbd> correr &nbsp; <kbd>mouse</kbd> olhar &nbsp; <kbd>Esc</kbd> soltar mouse<br>Aponte pra uma caixa pra ver a ficha · <kbd>M</kbd> música</div>
+
+<div id="cart" class="glass"></div>
+<div id="toast" class="glass"></div>
+<div id="modal"><div class="co glass">
+  <button class="coclose" id="coclose" title="Fechar (Esc)">✕</button>
+  <div class="costeps" id="costeps"></div>
+  <div class="cogrid" id="cogrid"><div class="comain" id="comain"></div><aside class="coside" id="coside"></aside></div>
+</div></div>
+
+<div id="overlay"><div class="box glass">
+  <h1>NEW <span>CEASA</span></h1>
+  <p>Entre no pavilhão de frutas: doca com caminhão descarregando, boxes de atacadista, caixas de madeira, plástico e papelão.</p>
+  <p style="font-size:13px;opacity:.55">Demo · NEW</p>
+  <button class="btn">Entrar no pavilhão</button>
+</div></div>
+
+<div id="pc"><div class="pcbody">
+  <div class="pcbrand" id="pcbrand"></div>
+  <div class="pcname" id="pcname"></div>
+  <div class="pcprice" id="pcprice"></div>
+  <div class="pcchips" id="pcchips"></div>
+  <div class="pcdesc" id="pcdesc"></div>
+  <div class="pchint"><kbd>E</kbd> ou clique: +1 caixa · <kbd>Q</kbd> tira a última · <kbd>F</kbd> fechar pedido</div>
+</div></div>
+
+<script>
+window.addEventListener('error', e=>{ const b=document.querySelector('#overlay .box'); if(b) b.innerHTML='<h1>Erro 😕</h1><p>'+(e.message||'falha ao carregar')+'</p><p style="font-size:12px">Me manda um print dessa tela.</p>'; });
+setTimeout(()=>{ if(!window.__ceasaOk){ const b=document.querySelector('#overlay .box'); b.innerHTML='<h1>Não carregou 😕</h1><p>O 3D vem da internet (three.js). Confira se está online e recarregue (Ctrl+F5).</p>'; } }, 8000);
+</script>
+<script src="../shared/music.js"></script>
+<script src="../shared/vendedor.js"></script>
+<script>if(window.NewMusic) NewMusic.init('mercado');</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="../shared/perf.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+window.__ceasaOk = true;
+// aberto por duplo clique (file://), o navegador não grava a permissão do microfone: sugere o atalho com localhost
+if(location.protocol==='file:'){ const p=document.createElement('p'); p.style.cssText='font-size:12.5px;opacity:.85;background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.4);border-radius:12px;padding:9px 12px;margin-top:12px'; p.innerHTML='🎤 Pra voz funcionar sem pedir permissão toda hora, abra pelo atalho <b>abrir-lojas.bat</b> (pasta Ativos).'; document.querySelector('#overlay .box').appendChild(p); }
+
+const brl = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+// Modo de preço: 'oculto' (padrão) = sem valores na loja, o pedido vai pro WhatsApp e o dono passa o valor/cotação do dia.
+// 'tabela' = mostra preços e fecha com pagamento demo. Troque na URL com ?preco=tabela
+const PRICE_MODE = new URLSearchParams(location.search).get('preco')==='tabela' ? 'tabela' : 'oculto';
+const TABELA = PRICE_MODE==='tabela';
+const DONO = 'Matheus';          // quem recebe o pedido
+const WHATSAPP = '';             // número do dono com DDI+DDD (ex: 5511999999999). Vazio = o cliente escolhe o contato.
+const ENTREGA_TXT = 'A entrega leva de 2 a 3 dias úteis, dependendo da região.';
+const $ = id => document.getElementById(id);
+
+const FROM_RUA = /[?&]rua=1/.test(location.search), RUA_URL = '../mundo/index.html';
+if(FROM_RUA){
+  const a=document.createElement('a'); a.id='voltar'; a.className='glass'; a.href=RUA_URL; a.innerHTML='← Voltar pra rua <kbd>V</kbd>';
+  for(const ev of ['mousedown','mouseup']) a.addEventListener(ev,e=>e.stopPropagation());
+  document.body.appendChild(a);
+}
+
+/* ========== utilidades ========== */
+const rnd = (()=>{ let a=20261029; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; })();
+const R = (a,b)=>a+(b-a)*rnd();
+const V3 = (x,y,z)=>new THREE.Vector3(x,y,z);
+const ONE = V3(1,1,1);
+const qY = a=>new THREE.Quaternion().setFromAxisAngle(V3(0,1,0),a);
+const qE = (x,y,z)=>new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z));
+function ctex(w,h,fn,rep){
+  const c=document.createElement('canvas'); c.width=w; c.height=h; fn(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+  if(rep){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rep[0],rep[1]); }
+  return t;
+}
+const M = o => new THREE.MeshStandardMaterial(Object.assign({roughness:.6,metalness:0,envMapIntensity:.55},o));
+const lathe = (pts,seg=14)=>new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),seg);
+const ell = (rx,ry,rz,ws=6,hs=4)=>{ const g=new THREE.SphereGeometry(1,ws,hs); g.scale(rx,ry,rz); return g; };
+
+/* ========== renderer / cena ========== */
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.82;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#d8e6f2');
+scene.fog = new THREE.Fog('#d9d6cc', 28, 95);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.05).texture;
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 400);
+camera.position.set(0,1.65,16.5);
+camera.rotation.order = 'YXZ';
+
+scene.add(new THREE.HemisphereLight('#f4f1e8','#8d8a82',0.9));
+const SUN_POS=V3(-14,30,14), SUN_TGT=V3(0,0,-5);
+const sun = new THREE.DirectionalLight('#fff0d6',2.1);
+sun.position.copy(SUN_POS); sun.target.position.copy(SUN_TGT);
+sun.castShadow = true; sun.shadow.mapSize.set(4096,4096);
+Object.assign(sun.shadow.camera,{left:-27,right:27,top:36,bottom:-36,near:1,far:90});
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04;
+scene.add(sun, sun.target);
+
+const ROOM = {x0:-17,x1:17,z0:-31,z1:21,h:7.5};
+const colliders = [];
+const addBox = (g,w,h,d,mat,x,y,z,shadow=true)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=shadow; m.receiveShadow=true; g.add(m); return m; };
+const col = (x0,x1,z0,z1)=>colliders.push({x0,x1,z0,z1});
+
+/* ========== texturas ========== */
+const noiseBump = ctex(128,128,(g,w,h)=>{ g.fillStyle='#808080'; g.fillRect(0,0,w,h); for(let i=0;i<1800;i++){ const v=100+rnd()*90|0; g.fillStyle=`rgb(${v},${v},${v})`; g.fillRect(rnd()*w,rnd()*h,2,2); } });
+const woodTex = (base='#b98650')=>ctex(512,256,(g,w,h)=>{
+  g.fillStyle=base; g.fillRect(0,0,w,h);
+  for(let i=0;i<170;i++){ g.strokeStyle=`rgba(${50+rnd()*40|0},${25+rnd()*20|0},8,${.05+rnd()*.14})`; g.lineWidth=.5+rnd()*2; g.beginPath(); const y=rnd()*h; g.moveTo(0,y); g.bezierCurveTo(w*.3,y+R(-3,3),w*.6,y+R(-3,3),w,y+R(-4,4)); g.stroke(); }
+  for(let i=0;i<5;i++){ g.fillStyle='rgba(30,15,5,.28)'; g.beginPath(); g.ellipse(rnd()*w,rnd()*h,3+rnd()*6,2+rnd()*3,0,0,7); g.fill(); }
+});
+const kraftTex = ctex(512,512,(g,w,h)=>{
+  g.fillStyle='#b88c58'; g.fillRect(0,0,w,h);
+  for(let i=0;i<900;i++){ g.fillStyle=`rgba(${rnd()<.5?60:255},${rnd()<.5?40:230},${rnd()<.5?20:190},${rnd()*.06})`; g.fillRect(rnd()*w,rnd()*h,3,2); }
+  g.fillStyle='#2f8f3d'; g.fillRect(0,h*.46,w,h*.17);
+  g.fillStyle='#fff'; g.font='800 54px "Segoe UI",system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('FRUTAS SELECIONADAS',w/2,h*.545);
+  g.fillStyle='rgba(30,20,10,.75)'; g.font='700 28px "Segoe UI",system-ui'; g.fillText('NEW · CLASSE 1 · MANUSEIE COM CUIDADO',w/2,h*.72);
+  g.font='700 40px "Segoe UI"'; g.fillText('▲  ☂  ⬆',w/2,h*.85);
+  g.fillStyle='rgba(40,25,10,.8)'; for(const x of [.2,.8]){ g.beginPath(); g.roundRect(w*x-46,h*.1,92,26,13); g.fill(); }
+  g.fillStyle='rgba(210,190,150,.55)'; g.fillRect(0,0,w,14);
+});
+const paloxTex = ctex(512,512,(g,w,h)=>{
+  g.fillStyle='#a87b49'; g.fillRect(0,0,w,h);
+  for(let i=0;i<1200;i++){ g.fillStyle=`rgba(${rnd()<.5?50:255},${rnd()<.5?30:220},10,${rnd()*.07})`; g.fillRect(rnd()*w,rnd()*h,4,2); }
+  g.fillStyle='#fff'; g.font='800 70px "Segoe UI",system-ui'; g.textAlign='center'; g.fillText('PALOX',w/2,h*.45);
+  g.font='700 34px "Segoe UI"'; g.fillStyle='rgba(30,20,10,.8)'; g.fillText('NEW · HORTIFRÚTI',w/2,h*.6);
+});
+
+/* ========== chão com marcações, sujeira e manchas (um canvas só, não repete) ========== */
+const FW=36, FD=52, FCX=0, FCZ=-5, FPX=2304, FPZ=3328;
+const gx = x=>(x+FW/2)/FW*FPX, gz = z=>(z-(FCZ-FD/2))/FD*FPZ;
+const floorBase = ctex(512,512,(g,w,h)=>{
+  g.fillStyle='#a8a59d'; g.fillRect(0,0,w,h);
+  for(let i=0;i<5200;i++){ g.fillStyle=`rgba(${rnd()<.5?0:255},${rnd()<.5?0:255},${rnd()<.5?0:255},${rnd()*.05})`; g.fillRect(rnd()*w,rnd()*h,3,3); }
+  g.fillStyle='rgba(70,66,60,.55)'; g.fillRect(0,0,w,3); g.fillRect(0,0,3,h);
+},[7,10]);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(FW,FD), M({map:floorBase,roughness:.55,metalness:.02,envMapIntensity:.5}));
+floor.rotation.x=-Math.PI/2; floor.position.set(FCX,0,FCZ); floor.receiveShadow=true; scene.add(floor);
+
+const floorDecal = ctex(FPX,FPZ,(g,w,h)=>{
+  g.clearRect(0,0,w,h);
+  // manchas largas de umidade/óleo
+  for(let i=0;i<70;i++){ const x=rnd()*w,y=rnd()*h,r=40+rnd()*170; const gr=g.createRadialGradient(x,y,0,x,y,r); const a=.06+rnd()*.16; gr.addColorStop(0,`rgba(30,28,24,${a})`); gr.addColorStop(1,'rgba(30,28,24,0)'); g.fillStyle=gr; g.beginPath(); g.ellipse(x,y,r,r*R(.4,1),rnd()*3,0,7); g.fill(); }
+  // corredor central: pneus de carrinho e desgaste
+  for(let i=0;i<260;i++){ const x=gx(R(-3,3)), y=rnd()*h; g.strokeStyle=`rgba(25,22,20,${.04+rnd()*.07})`; g.lineWidth=2+rnd()*6; g.beginPath(); g.moveTo(x,y); g.lineTo(x+R(-30,30),y+R(80,400)); g.stroke(); }
+  // restos de fruta, folhas e papelão
+  const bits=['#5f8f2e','#7ab03a','#e7a21f','#d4521e','#9a2f2a','#b88c58','#e6d36a'];
+  for(let i=0;i<900;i++){ const x=rnd()<.6?gx(R(-17,17)):gx(R(-3.6,3.6)), y=rnd()*h; g.fillStyle=bits[(rnd()*bits.length)|0]; g.globalAlpha=.25+rnd()*.4; g.beginPath(); g.ellipse(x,y,2+rnd()*6,1.5+rnd()*4,rnd()*6,0,7); g.fill(); }
+  g.globalAlpha=1;
+  // faixas amarelas do corredor
+  g.fillStyle='#e8b923'; for(const x of [-3.6,3.6]) g.fillRect(gx(x)-9,gz(-30),18,gz(11)-gz(-30));
+  // linhas de divisão dos boxes e números pintados
+  const zc=[6,-2,-10,-18]; g.strokeStyle='#ecece6'; g.lineWidth=8; g.globalAlpha=.9;
+  for(const s of [-1,1]){ for(const zb of [10,2,-6,-14,-22]){ g.beginPath(); g.moveTo(gx(s*3.6),gz(zb)); g.lineTo(gx(s*16.4),gz(zb)); g.stroke(); } }
+  g.globalAlpha=1; g.fillStyle='rgba(236,236,230,.88)'; g.font='800 120px "Segoe UI",system-ui'; g.textAlign='center'; g.textBaseline='middle';
+  [-1,1].forEach((s,si)=>zc.forEach((z,i)=>{ g.save(); g.translate(gx(s*4.15),gz(z)); g.rotate(s>0?-Math.PI/2:Math.PI/2); g.fillText(String(si*4+i+1).padStart(2,'0'),0,0); g.restore(); }));
+  // área de doca: faixas diagonais amarelo/preto
+  g.save(); g.beginPath(); g.rect(gx(-3.6),gz(11.2),gx(3.6)-gx(-3.6),30); g.clip();
+  for(let i=-10;i<80;i++){ g.fillStyle=i%2?'#e8b923':'#222'; g.beginPath(); g.moveTo(gx(-3.6)+i*30,gz(11.2)); g.lineTo(gx(-3.6)+i*30+30,gz(11.2)); g.lineTo(gx(-3.6)+i*30,gz(11.2)+30); g.lineTo(gx(-3.6)+i*30-30,gz(11.2)+30); g.fill(); }
+  g.restore();
+  g.fillStyle='rgba(236,236,230,.9)'; g.font='800 56px "Segoe UI"'; g.save(); g.translate(gx(0),gz(13.4)); g.fillText('DOCA · CARGA E DESCARGA',0,0); g.restore();
+  g.save(); g.translate(gx(0),gz(-26)); g.font='800 64px "Segoe UI"'; g.fillText('↑  PEDESTRES  ↑',0,0); g.restore();
+});
+const decal = new THREE.Mesh(new THREE.PlaneGeometry(FW,FD), new THREE.MeshStandardMaterial({map:floorDecal,transparent:true,roughness:.5,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+decal.rotation.x=-Math.PI/2; decal.position.set(FCX,.004,FCZ); decal.receiveShadow=true; scene.add(decal);
+
+/* ========== céu e chão externo ========== */
+{
+  const sky = ctex(2048,1024,(g,w,h)=>{
+    const gr=g.createLinearGradient(0,0,0,h*.56); gr.addColorStop(0,'#5f9fe0'); gr.addColorStop(.7,'#cfe3f4'); gr.addColorStop(1,'#efeadf'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+    g.fillStyle='rgba(255,255,255,.8)'; for(let i=0;i<28;i++){ g.beginPath(); g.ellipse(rnd()*w,60+rnd()*200,70+rnd()*110,12+rnd()*12,0,0,7); g.fill(); }
+    g.fillStyle='#b5bec8'; for(let i=0;i<70;i++){ const bw=30+rnd()*70,bh=20+rnd()*70; g.fillRect(i*30+rnd()*10,h*.56-bh,bw,bh); }
+    g.fillStyle='#6d8d63'; for(let i=0;i<60;i++){ g.beginPath(); g.arc(i*36+rnd()*10,h*.56-6,26+rnd()*14,Math.PI,0); g.fill(); }
+    g.fillStyle='#4d5056'; g.fillRect(0,h*.56,w,h*.44);
+  });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(180,32,16), new THREE.MeshBasicMaterial({map:sky,side:THREE.BackSide,fog:false}));
+  dome.position.y=-4; scene.add(dome);
+  const asph = ctex(256,256,(g,w,h)=>{ g.fillStyle='#55585e'; g.fillRect(0,0,w,h); for(let i=0;i<3000;i++){ const v=70+rnd()*50|0; g.fillStyle=`rgba(${v},${v},${v+4},.5)`; g.fillRect(rnd()*w,rnd()*h,2,2); } },[60,60]);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(500,500), M({map:asph,roughness:.95}));
+  ground.rotation.x=-Math.PI/2; ground.position.y=-.02; ground.receiveShadow=true; scene.add(ground);
+}
+
+/* ========== galpão: estrutura, telhado, colunas, luminárias ========== */
+const steel = M({color:'#4d6590',metalness:.3,roughness:.5,envMapIntensity:.6,emissive:'#2a3b5c',emissiveIntensity:.5});
+const steelYellow = M({color:'#e0b020',metalness:.2,roughness:.55});
+const concreteWall = M({color:'#cfcac0',roughness:.9,envMapIntensity:.25});
+{
+  // paredes baixas laterais (alvenaria) + parede do fundo
+  for(const s of [-1,1]){
+    const w=new THREE.Mesh(new THREE.BoxGeometry(.35,1.25,52),concreteWall); w.position.set(s*17,.625,-5); w.castShadow=w.receiveShadow=true; scene.add(w);
+    const stripe=new THREE.Mesh(new THREE.BoxGeometry(.37,.22,52),M({color:'#8b5cf6',roughness:.6})); stripe.position.set(s*17,1.05,-5); scene.add(stripe);
+  }
+  const back=new THREE.Mesh(new THREE.BoxGeometry(34.7,ROOM.h+2.6,.4),M({color:'#e6e2d9',roughness:.92,envMapIntensity:.25})); back.position.set(0,(ROOM.h+2.6)/2,-31.2); back.receiveShadow=true; scene.add(back);
+  const bandTex=ctex(2048,256,(g,w,h)=>{ g.fillStyle='#17131f'; g.fillRect(0,0,w,h); g.fillStyle='#8b5cf6'; g.fillRect(0,0,w,10); g.fillRect(0,h-10,w,10); g.fillStyle='#fff'; g.font='800 150px "Segoe UI",system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('NEW',w/2-420,h/2+6); g.fillStyle='#c4b5fd'; g.fillText('CEASA',w/2-40,h/2+6); g.fillStyle='rgba(255,255,255,.7)'; g.font='700 54px "Segoe UI"'; g.fillText('PAVILHÃO DE FRUTAS · ATACADO',w/2+560,h/2+6); });
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(20,2.5),new THREE.MeshBasicMaterial({map:bandTex})); sign.position.set(0,6.6,-30.95); scene.add(sign);
+  // colunas (borda do corredor e perímetro), base zebrada
+  const colGeo=new THREE.BoxGeometry(.3,ROOM.h,.3), baseGeo=new THREE.BoxGeometry(.34,1.1,.34);
+  const colPos=[]; for(const z of [18,10,2,-6,-14,-22,-30]) for(const x of [-17,-3.6,3.6,17]) colPos.push([x,z]);
+  colPos.forEach(([x,z])=>{ const c=new THREE.Mesh(colGeo,steel); c.position.set(x,ROOM.h/2,z); c.castShadow=true; scene.add(c); const b=new THREE.Mesh(baseGeo,steelYellow); b.position.set(x,.55,z); scene.add(b); if(Math.abs(x)<10) col(x-.3,x+.3,z-.3,z+.3); });
+  // tesouras do telhado (uma geometria só)
+  const beams=[]; const beam=(x1,y1,x2,y2,z,t=.14)=>{ const L=Math.hypot(x2-x1,y2-y1); const g=new THREE.BoxGeometry(L,t,t); g.rotateZ(Math.atan2(y2-y1,x2-x1)); g.translate((x1+x2)/2,(y1+y2)/2,z); beams.push(g); };
+  const EY=ROOM.h, RY=ROOM.h+2.6;
+  for(let z=-30;z<=18;z+=6){ beam(-17,EY,17,EY,z,.2); beam(-17,EY,0,RY,z,.2); beam(0,RY,17,EY,z,.2); beam(0,EY,0,RY,z,.16);
+    for(const x of [-8.5,8.5]) beam(x,EY,x*(8.5/8.5)*0+ (x<0?-4.25:4.25),(EY+RY)/2+.15,z,.12); beam(-8.5,EY,0,RY,z,.1); beam(8.5,EY,0,RY,z,.1); beam(-8.5,EY+.05,-4.25,EY+(RY-EY)*.5,z,.1); beam(8.5,EY+.05,4.25,EY+(RY-EY)*.5,z,.1); }
+  for(const x of [-12,-6,0,6,12]){ const y=EY+(RY-EY)*(1-Math.abs(x)/17); const g=new THREE.BoxGeometry(.12,.12,48); g.translate(x,y,-6); beams.push(g); }
+  const truss=new THREE.Mesh(mergeGeometries(beams),steel); truss.castShadow=true; scene.add(truss);
+  // telhado: duas águas em chapa + faixas translúcidas
+  const roofTex=ctex(256,256,(g,w,h)=>{ g.fillStyle='#b9bec4'; g.fillRect(0,0,w,h); for(let i=0;i<16;i++){ g.fillStyle=i%2?'rgba(255,255,255,.35)':'rgba(0,0,0,.2)'; g.fillRect(i*16,0,8,h); } },[10,6]);
+  const roofMat=M({map:roofTex,metalness:.2,roughness:.6,side:THREE.DoubleSide,envMapIntensity:.4,emissive:'#a9afb8',emissiveMap:roofTex,emissiveIntensity:.55});
+  const a=Math.atan2(RY-EY,17), L=Math.hypot(17,RY-EY);
+  for(const s of [-1,1]){
+    const gp=new THREE.Group(); gp.position.set(s*8.5,(EY+RY)/2,-5); gp.rotation.z=-s*a; scene.add(gp);
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(L,52),roofMat); m.rotation.x=-Math.PI/2; gp.add(m);
+    for(let z=-27;z<=21;z+=12){ const sk=new THREE.Mesh(new THREE.PlaneGeometry(L*.62,3.2),new THREE.MeshBasicMaterial({color:'#e9f4ff',side:THREE.DoubleSide,fog:false})); sk.rotation.x=-Math.PI/2; sk.position.set(0,-.03,z+5); gp.add(sk); }
+  }
+  // luminárias industriais penduradas
+  const lampG=new THREE.CylinderGeometry(.5,.12,.32,14,1,true), lampM=new THREE.MeshBasicMaterial({color:'#fff6d8',side:THREE.DoubleSide});
+  const bulbG=new THREE.SphereGeometry(.14,8,6);
+  for(const x of [-10,-5,0,5,10]) for(let z=-27;z<=18;z+=6){ const l=new THREE.Mesh(lampG,M({color:'#2a2f38',metalness:.6,side:THREE.DoubleSide})); l.position.set(x,6.0,z); scene.add(l); const b=new THREE.Mesh(bulbG,lampM); b.position.set(x,5.86,z); scene.add(b); const c=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,1,4),steel); c.position.set(x,6.7,z); scene.add(c); }
+  // feixes de sol (falsos) entrando pelas faixas translúcidas
+  const shaftTex=ctex(64,256,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'rgba(255,240,200,.0)'); gr.addColorStop(.25,'rgba(255,240,200,.55)'); gr.addColorStop(1,'rgba(255,240,200,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h); const gh=g.createLinearGradient(0,0,w,0); gh.addColorStop(0,'rgba(0,0,0,1)'); gh.addColorStop(.5,'rgba(0,0,0,0)'); gh.addColorStop(1,'rgba(0,0,0,1)'); g.globalCompositeOperation='destination-out'; g.fillStyle=gh; g.fillRect(0,0,w,h); });
+  const dir=SUN_TGT.clone().sub(SUN_POS).normalize();
+  const shMat=new THREE.MeshBasicMaterial({map:shaftTex,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false});
+  for(const s of [-1,1]) for(let z=-22;z<=21;z+=12){
+    const top=V3(s*8.5-s*1.2,ROOM.h+1.4,z), t=top.y/(-dir.y), len=t, mid=top.clone().addScaledVector(dir,len/2);
+    for(const rot of [0,Math.PI/2]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(2.4,len),shMat); p.position.copy(mid); p.quaternion.setFromUnitVectors(V3(0,1,0),dir.clone().negate()); p.rotateY(rot); p.renderOrder=3; scene.add(p); }
+  }
+}
+
+/* ========== catálogo ========== */
+// preços e origens são REFERÊNCIA demo — trocar pela tabela real do distribuidor
+const P = {
+  banprata:{name:'Banana',var:'Prata',        fruit:'banprata',pack:'K',  kg:20,  price:72,  org:'Norte de Minas / BA',  note:'Cacho verde-maduro, ponto de entrega. Vende bem pra mercado e sacolão.', box:'#f2cd2e'},
+  bannanica:{name:'Banana',var:'Nanica',      fruit:'bannanica',pack:'K', kg:20,  price:64,  org:'Vale do Ribeira · SP', note:'Mais doce e macia, boa pra vitamina e padaria.', box:'#f2cd2e'},
+  banmaca:{name:'Banana',var:'Maçã',          fruit:'banmaca',pack:'K',   kg:18,  price:96,  org:'Norte de Minas',       note:'Pequena e adocicada, saída forte em restaurante.', box:'#f2cd2e'},
+  laranja:{name:'Laranja',var:'Pera',         fruit:'laranja',pack:'K',   kg:20,  price:48,  org:'Limeira / Araras · SP', note:'Laranja de suco e de mesa, a mais vendida do pavilhão.', box:'#f08a14'},
+  limao:{name:'Limão',var:'Tahiti',          fruit:'limao',pack:'K',     kg:20,  price:84,  org:'Itápolis · SP',         note:'Preço varia muito na semana. Cotar no dia.', box:'#7fae2a'},
+  tanger:{name:'Tangerina',var:'Ponkan',     fruit:'tanger',pack:'K',    kg:20,  price:92,  org:'Vale do Paraíba · SP',  note:'Fácil de descascar, pico no outono/inverno.', box:'#f08a14'},
+  gala:{name:'Maçã',var:'Gala',              fruit:'gala',pack:'C',      kg:18,  price:122, org:'São Joaquim · SC',      note:'Calibre 110/120, categoria 1.', box:'#c42a2a'},
+  fuji:{name:'Maçã',var:'Fuji',              fruit:'fuji',pack:'C',      kg:18,  price:112, org:'Vacaria · RS',          note:'Mais crocante e doce. Boa de armazenagem.', box:'#c42a2a'},
+  pera:{name:'Pera',var:'Williams',          fruit:'pera',pack:'C',      kg:20,  price:168, org:'Importada (Argentina)', note:'Entra em caixas de papelão, compra por pallet.', box:'#a9c250'},
+  uva:{name:'Uva',var:'Itália',              fruit:'uva',pack:'C',       kg:8.2, price:98,  org:'Jales · SP / Petrolina', note:'Cacho embalado em saco, caixa de 8,2 kg.', box:'#b9c968'},
+  morango:{name:'Morango',var:'Albion',      fruit:'morango',pack:'C',   kg:3.6, price:74,  org:'Atibaia · SP',          note:'12 bandejas de 300 g. Perecível, entrega no dia.', box:'#d33a2c'},
+  kiwi:{name:'Kiwi',var:'Verde',             fruit:'kiwi',pack:'C',      kg:3.2, price:62,  org:'Caxias do Sul · RS',    note:'Caixa de 3,2 kg com 24 a 30 unidades.', box:'#8a6a42'},
+  melancia:{name:'Melancia',var:'Graúda',    fruit:'melancia',pack:'BIN',kg:600, price:1380,org:'Uruana · GO / TO',      note:'Vendida por palox (~60 un). Também por unidade.', box:'#2e7d32'},
+  melao:{name:'Melão',var:'Amarelo',         fruit:'melao',pack:'P',     kg:13,  price:58,  org:'Mossoró · RN',          note:'Caixa plástica ou papelão de 13 kg, 6 a 8 un.', box:'#e8c84a'},
+  mamao:{name:'Mamão',var:'Papaya',          fruit:'mamao',pack:'P',     kg:12,  price:52,  org:'Linhares · ES',         note:'Caixa de 12 kg, calibre 6 a 8. Comprar maduro só pro dia.', box:'#f0a03a'},
+  manga:{name:'Manga',var:'Palmer',           fruit:'manga',pack:'C',    kg:6,   price:44,  org:'Petrolina · PE',        note:'Caixa de 6 kg, bem demandada no verão.', box:'#c9423a'},
+  abacaxi:{name:'Abacaxi',var:'Pérola',      fruit:'abacaxi',pack:'K',   kg:20,  price:64,  org:'Guaraí · TO',           note:'Caixa K com 8 a 12 frutos, coroa pra cima.', box:'#e3a52f'},
+  maracuja:{name:'Maracujá',var:'Azedo',     fruit:'maracuja',pack:'P',  kg:13,  price:112, org:'Livramento · BA',       note:'Caixa plástica de 13 kg. Preço sobe forte na entressafra.', box:'#e6c42b'},
+  coco:{name:'Coco verde',var:'Anão',        fruit:'coco',pack:'BIN',    kg:540, price:210, org:'Litoral NE',            note:'Palox com ~60 unidades. Saída forte no calor.', box:'#6fa23a'},
+  pessego:{name:'Pêssego',var:'Aurora',      fruit:'pessego',pack:'C',   kg:8,   price:78,  org:'Pelotas · RS / Paraná', note:'Caixa de 8 kg, bandejas alveoladas.', box:'#e8895a'},
+  goiaba:{name:'Goiaba',var:'Vermelha',      fruit:'goiaba',pack:'K',    kg:15,  price:70,  org:'Vista Alegre · SP',     note:'Caixa K de 15 kg, ponto de vez.', box:'#b6c24a'},
+  kcx:{name:'Caixa K',var:'madeira vazia',   fruit:null,pack:'K',empty:1,   kg:0,   price:14,  org:'Reflorestamento',       note:'Caixa de madeira de eucalipto/pinus, padrão de hortifrúti. Retornável.', box:'#b98650'},
+  pcx:{name:'Caixa plástica',var:'vazada',   fruit:null,pack:'P',empty:1,  kg:0,   price:32,  org:'PEAD reciclado',        note:'Caixa de colheita e transporte, empilhável e lavável.', box:'#1f5fa8'},
+  ccx:{name:'Caixa de papelão',var:'autoexpositiva', fruit:null,pack:'C',empty:1, kg:0, price:7, org:'Papelão ondulado', note:'Mercado grande vem trocando a caixa K por papelão autoexpositivo.', box:'#b88c58'},
+  xepa:{name:'Xepa',var:'sobras do fim do dia', fruit:['laranja','banprata','gala','mamao','manga'],pack:'K',kg:20,price:18,org:'Mistura do dia', note:'Fruta passada ou machucada, vendida barata no fim do expediente.', box:'#8b5cf6'},
+};
+const PACKNAME={K:'Caixa K de madeira',P:'Caixa plástica',C:'Caixa de papelão',BIN:'Palox de papelão'};
+Object.values(P).forEach(p=>{ p.perKg = p.kg? p.price/p.kg : 0; });
+
+/* ========== fruta: geometrias ========== */
+function appleGeo(R_,wTop,dimple,hf=.95){
+  const Pt=[]; for(let i=0;i<=10;i++){ const a=i/10*Math.PI; let y=R_*(1-Math.cos(a))*hf - dimple*R_*Math.exp(-Math.pow((Math.PI-a)/.4,2)); Pt.push([Math.max(.0001,Math.sin(a)*R_*(1+wTop*(a/Math.PI-.5))),y]); }
+  return lathe(Pt,12);
+}
+function centerAll(list){ const b=new THREE.Box3(); list.forEach(g=>{ g.computeBoundingBox(); b.union(g.boundingBox); }); const c=b.getCenter(V3(0,0,0)); list.forEach(g=>g.translate(-c.x,-c.y,-c.z)); }
+const fm = (o={})=>M(Object.assign({color:'#ffffff',roughness:.45,envMapIntensity:.7},o));
+const stripeTex=ctex(256,128,(g,w,h)=>{ g.fillStyle='#4f9a45'; g.fillRect(0,0,w,h); g.fillStyle='#1d5a24'; for(let i=0;i<12;i++){ const x=i*w/12; g.beginPath(); g.moveTo(x,0); g.bezierCurveTo(x+14,h*.3,x-10,h*.7,x,h); g.lineTo(x+11,h); g.bezierCurveTo(x+3,h*.7,x+19,h*.3,x+11,0); g.fill(); } });
+const netTex=ctex(256,128,(g,w,h)=>{ g.fillStyle='#e9cb55'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(110,80,20,.5)'; g.lineWidth=1.3; for(let i=0;i<46;i++){ g.beginPath(); g.moveTo(rnd()*w,0); g.bezierCurveTo(rnd()*w,h*.3,rnd()*w,h*.7,rnd()*w,h); g.stroke(); } for(let i=0;i<30;i++){ g.beginPath(); g.moveTo(0,rnd()*h); g.bezierCurveTo(w*.3,rnd()*h,w*.7,rnd()*h,w,rnd()*h); g.stroke(); } });
+const pineTex=ctex(256,256,(g,w,h)=>{ g.fillStyle='#d9a232'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(90,50,10,.6)'; g.lineWidth=2.5; for(let i=-16;i<32;i++){ g.beginPath(); g.moveTo(i*16,0); g.lineTo(i*16+h,h); g.stroke(); g.beginPath(); g.moveTo(i*16+h,0); g.lineTo(i*16,h); g.stroke(); } g.fillStyle='rgba(90,40,5,.6)'; for(let i=0;i<24;i++) for(let j=0;j<16;j++){ g.beginPath(); g.arc(i*11+(j%2)*5.5,j*16+8,2,0,7); g.fill(); } });
+const trayTex=ctex(256,160,(g,w,h)=>{ g.fillStyle='#a52a22'; g.fillRect(0,0,w,h); for(let i=0;i<150;i++){ const x=rnd()*w,y=rnd()*h,r=14+rnd()*6; g.fillStyle=['#d83a2b','#c92e24','#e24a37','#b42219'][(rnd()*4)|0]; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); g.fillStyle='rgba(255,230,150,.7)'; for(let k=0;k<4;k++) g.fillRect(x+R(-r*.5,r*.5),y+R(-r*.5,r*.5),1.6,2.4); g.fillStyle='#4b8f2f'; g.beginPath(); g.arc(x,y-r*.7,3.5,0,7); g.fill(); } });
+const FD_ = {}; // definições (lazy)
+const FDEF = {
+  laranja:()=>({parts:[{geo:ell(.04,.038,.04),mat:fm({bumpMap:noiseBump,bumpScale:1.8,roughness:.55}),pal:['#f08a14','#f39a1f','#ec7f0c','#f4a52a']}],r:.04,lay:'rand'}),
+  limao:()=>{ const Pt=[]; for(let i=0;i<=12;i++){ const a=i/12*Math.PI; Pt.push([Math.max(.0001,Math.pow(Math.sin(a),.8)*.03),.042*(1-Math.cos(a))]); } const g=lathe(Pt,12); centerAll([g]); return {parts:[{geo:g,mat:fm({bumpMap:noiseBump,bumpScale:1.2,roughness:.5}),pal:['#7fae2a','#6e9c25','#9ab937','#86b52e']}],r:.03,lay:'rand'}; },
+  tanger:()=>({parts:[{geo:ell(.042,.032,.042),mat:fm({bumpMap:noiseBump,bumpScale:1.5,roughness:.5}),pal:['#f2791a','#ee6f12','#f48a22']}],r:.042,lay:'up'}),
+  gala:()=>{ const a=appleGeo(.04,.14,.3); centerAll([a]); return {parts:[{geo:a,mat:fm({roughness:.32,envMapIntensity:.9}),pal:['#b3202a','#c42a2a','#a31d25','#d1402e','#cf5a35']}],r:.04,lay:'up'}; },
+  fuji:()=>{ const a=appleGeo(.042,.14,.3); centerAll([a]); return {parts:[{geo:a,mat:fm({roughness:.32,envMapIntensity:.9}),pal:['#c96a5a','#d98a6a','#b8453c','#dba87a','#c5574a']}],r:.042,lay:'up'}; },
+  pera:()=>{ const a=lathe([[.0001,0],[.016,.002],[.03,.014],[.036,.03],[.031,.05],[.021,.07],[.016,.088],[.016,.098],[.009,.108],[.0001,.11]],12); centerAll([a]); return {parts:[{geo:a,mat:fm({roughness:.5}),pal:['#a9c250','#b6c85a','#9db548','#c4cd66']}],r:.036,lay:'lying'}; },
+  uva:()=>{ const gs=[]; for(let i=0;i<24;i++){ const f=i/24, sp=.034*(1-f)+.008, a=rnd()*6.28; const s=new THREE.SphereGeometry(.0135,6,4); s.translate(Math.cos(a)*sp*R(.4,1),-f*.11,Math.sin(a)*sp*R(.4,1)); gs.push(s); } const b=mergeGeometries(gs); centerAll([b]); return {parts:[{geo:b,mat:fm({roughness:.3,envMapIntensity:.9}),pal:['#bdcb6a','#c9d67c','#b3c35e']}],r:.075,lay:'lying',w:.13,d:.085}; },
+  melancia:()=>({parts:[{geo:ell(.17,.125,.125,12,8),mat:fm({map:stripeTex,roughness:.4}),pal:['#ffffff','#e6efe0','#f3f8ee']}],r:.15,lay:'rand'}),
+  melao:()=>({parts:[{geo:ell(.095,.085,.095,9,6),mat:fm({map:netTex,roughness:.55}),pal:['#ffffff','#f5ecd0','#efe0a6']}],r:.09,lay:'rand'}),
+  mamao:()=>({parts:[{geo:ell(.055,.055,.115,8,5),mat:fm({roughness:.4}),pal:['#f0a03a','#e89030','#cfc24a','#f4b24a']}],r:.058,lay:'lying',w:.23,d:.12}),
+  manga:()=>({parts:[{geo:ell(.052,.045,.04,8,5),mat:fm({roughness:.4}),pal:['#c9423a','#d4543e','#e0a23a','#b8c04a','#cf6a3a']}],r:.048,lay:'rand'}),
+  abacaxi:()=>{ const b=ell(.058,.095,.058,8,6); const cs=[]; for(let i=0;i<12;i++){ const c=new THREE.ConeGeometry(.009,.09,4); c.translate(0,.045,0); c.rotateZ(R(-.5,.5)); c.rotateY(i*.52); c.translate(0,.085,0); cs.push(c); } const crown=mergeGeometries(cs); return {parts:[{geo:b,mat:fm({map:pineTex,roughness:.5}),pal:['#ffffff','#f3e6c0','#e8d9a0']},{geo:crown,mat:fm({color:'#3f7d2c',roughness:.6})}],r:.065,lay:'up',h:.21}; },
+  maracuja:()=>({parts:[{geo:ell(.034,.036,.034,6,5),mat:fm({bumpMap:noiseBump,bumpScale:2.5,roughness:.5}),pal:['#e6c42b','#dcb82a','#e9cf3e','#cfae22']}],r:.034,lay:'rand'}),
+  coco:()=>({parts:[{geo:ell(.085,.11,.085,8,6),mat:fm({roughness:.7,bumpMap:noiseBump,bumpScale:1}),pal:['#6fa23a','#5f9230','#7aae44','#8fb454']}],r:.09,lay:'rand'}),
+  pessego:()=>({parts:[{geo:ell(.037,.036,.037,8,5),mat:fm({roughness:.7,bumpMap:noiseBump,bumpScale:1}),pal:['#e8895a','#ef9c6a','#e9a979','#dd7a52']}],r:.038,lay:'rand'}),
+  goiaba:()=>({parts:[{geo:ell(.04,.045,.04,8,5),mat:fm({roughness:.55,bumpMap:noiseBump,bumpScale:1.3}),pal:['#b6c24a','#c2cc58','#d4cf6a','#a5b83e']}],r:.042,lay:'rand'}),
+  kiwi:()=>({parts:[{geo:ell(.03,.026,.026,6,5),mat:fm({roughness:.85,bumpMap:noiseBump,bumpScale:2}),pal:['#8a6a42','#7d5f3a','#957347']}],r:.028,lay:'rand'}),
+  morango:()=>({parts:[{geo:new THREE.BoxGeometry(.19,.045,.13),mat:new THREE.MeshStandardMaterial({color:'#f2f6f4',transparent:true,opacity:.35,roughness:.1}),pal:null},{geo:(()=>{ const p=new THREE.PlaneGeometry(.185,.125); p.rotateX(-Math.PI/2); p.translate(0,.021,0); return p; })(),mat:fm({map:trayTex,roughness:.4})}],r:.1,lay:'tray',w:.2,d:.14,h:.045}),
+};
+function bananaDef(sc,pal,tipCol){ return ()=>{ const bodies=[],tips=[];
+  for(let i=0;i<5;i++){ const curve=new THREE.CatmullRomCurve3([V3(-.09,.01,0),V3(-.045,-.025,0),V3(.02,-.035,0),V3(.075,-.01,0),V3(.1,.04,0)]); const t=new THREE.TubeGeometry(curve,8,.0165,6,false); const tip=new THREE.SphereGeometry(.011,8,6); tip.translate(.1,.04,0); const st=new THREE.CylinderGeometry(.008,.011,.025,8); st.translate(-.092,.018,0); for(const g of [t,tip,st]){ g.translate(0,i*.003,(i-2)*.034); g.rotateY((i-2)*.07); } bodies.push(t); tips.push(tip,st); }
+  const b=mergeGeometries(bodies), t=mergeGeometries(tips); b.scale(sc,sc,sc); t.scale(sc,sc,sc); centerAll([b,t]);
+  return {parts:[{geo:b,mat:fm({roughness:.45}),pal},{geo:t,mat:fm({color:tipCol,roughness:.8})}],r:.1*sc,lay:'bunch',w:.2*sc,d:.17*sc,h:.07}; }; }
+FDEF.banprata=bananaDef(1,['#f2cd2e','#efc427','#d9c030','#f5d543'],'#5a4a22');
+FDEF.bannanica=bananaDef(1.08,['#e9c628','#c8c336','#d6c42a','#b9c23a'],'#4d4a22');
+FDEF.banmaca=bananaDef(.78,['#f5d94a','#f2d23e','#e9cb36'],'#6a5a2a');
+const getF = k=>FD_[k]||(FD_[k]=Object.assign({kind:k,bag:null},FDEF[k]()));
+
+/* ========== sistema de instâncias ========== */
+const bags = [];
+const mkBag = (geo,mat,{shadow=true,color=false}={})=>{ const b={geo,mat,m:[],c:[],shadow,color}; bags.push(b); return b; };
+const _tmp=new THREE.Matrix4(), _c=new THREE.Color();
+const compose=(PM,pos,q,sc=ONE)=>{ _tmp.compose(pos,q,sc); return PM.clone().multiply(_tmp); };
+function finalizeBags(){
+  for(const b of bags){ const n=b.m.length; if(!n) continue;
+    const im=new THREE.InstancedMesh(b.geo,b.mat,n); im.castShadow=b.shadow; im.receiveShadow=true;
+    b.m.forEach((m,i)=>im.setMatrixAt(i,m));
+    if(b.color) b.c.forEach((c,i)=>im.setColorAt(i,c));
+    scene.add(im);
+  }
+}
+const colorOf=(hex,k=1)=>new THREE.Color(hex).multiplyScalar(k);
+
+/* ========== embalagens ========== */
+const woodMat = M({map:woodTex('#caa070'),roughness:.82,envMapIntensity:.3});
+const plasticMat = M({color:'#ffffff',roughness:.42,envMapIntensity:.6});
+const kraftMat = M({map:kraftTex,roughness:.92,side:THREE.DoubleSide,envMapIntensity:.25});
+const paloxMat = M({map:paloxTex,roughness:.92,side:THREE.DoubleSide,envMapIntensity:.25});
+const fillMat = M({color:'#ffffff',roughness:.7,envMapIntensity:.3});
+const palletMat = M({map:woodTex('#c79a63'),roughness:.88,envMapIntensity:.25});
+
+function kCrateGeo(w,h,d){ const g=[]; const b=(W,H,D,x,y,z)=>{ const q=new THREE.BoxGeometry(W,H,D); q.translate(x,y,z); g.push(q); };
+  for(let i=0;i<4;i++) b(w,.014,d*.22,0,.007,(i-1.5)*d*.26);
+  for(const s of [-1,1]){ for(let i=0;i<3;i++){ b(.014,h*.2,d,s*(w/2-.007),.04+h*.12+i*h*.3,0); b(w,h*.2,.014,0,.04+h*.12+i*h*.3,s*(d/2-.007)); } }
+  for(const sx of [-1,1]) for(const sz of [-1,1]) b(.03,h,.03,sx*(w/2-.015),h/2,sz*(d/2-.015));
+  return mergeGeometries(g); }
+function pCrateGeo(w,h,d){ const g=[]; const b=(W,H,D,x,y,z)=>{ const q=new THREE.BoxGeometry(W,H,D); q.translate(x,y,z); g.push(q); };
+  b(w,.012,d,0,.006,0); b(w,.03,d,0,h-.015,0);
+  for(const s of [-1,1]){ b(.012,.03,d,s*(w/2-.006),.02,0); b(w,.03,.012,0,.02,s*(d/2-.006)); b(.012,.03,d,s*(w/2-.006),h-.015,0);
+    for(let i=0;i<Math.round(d/.07);i++) b(.012,h-.05,.014,s*(w/2-.006),h/2,-d/2+.035+i*(d-.07)/(Math.round(d/.07)-1));
+    for(let i=0;i<Math.round(w/.07);i++) b(.014,h-.05,.012,-w/2+.035+i*(w-.07)/(Math.round(w/.07)-1),h/2,s*(d/2-.006)); }
+  return mergeGeometries(g); }
+function boxOpenGeo(w,h,d,t=.007){ const g=[]; const b=(W,H,D,x,y,z)=>{ const q=new THREE.BoxGeometry(W,H,D); q.translate(x,y,z); g.push(q); };
+  b(w,t,d,0,t/2,0); for(const s of [-1,1]){ b(t,h,d,s*(w/2-t/2),h/2,0); b(w,h,t,0,h/2,s*(d/2-t/2)); } return mergeGeometries(g); }
+const PACK = {
+  K:  {dims:[.4,.34,.5], grid:[3,2], bag:mkBag(kCrateGeo(.4,.34,.5),woodMat,{color:true}), colors:()=>colorOf(['#caa070','#b98650','#d8b27a','#a9784a','#c49463'][(rnd()*5)|0],R(1.1,1.4))},
+  P:  {dims:[.6,.28,.5], grid:[2,2], bag:mkBag(pCrateGeo(.6,.28,.5),plasticMat,{color:true}), colors:(p)=>colorOf(p.pcol||'#1f5fa8',R(.8,1.05))},
+  C:  {dims:[.4,.26,.5], grid:[3,2], bag:mkBag(boxOpenGeo(.4,.26,.5),kraftMat,{color:true}), colors:()=>colorOf('#ffffff',R(.82,1.05))},
+  BIN:{dims:[1.1,.78,.9],grid:[1,1], bag:mkBag(boxOpenGeo(1.1,.78,.9,.012),paloxMat,{color:true}), colors:()=>colorOf('#ffffff',R(.88,1))},
+};
+const fillBag = mkBag(new THREE.BoxGeometry(1,1,1),fillMat,{color:true,shadow:false});
+// pallets
+const palletGeo=(()=>{ const g=[]; const b=(W,H,D,x,y,z)=>{ const q=new THREE.BoxGeometry(W,H,D); q.translate(x,y,z); g.push(q); };
+  for(let i=0;i<7;i++) b(1.2,.022,.1,0,.133,-.45+i*.15);
+  for(let i=0;i<3;i++) b(1.2,.022,.1,0,.011,-.45+i*.45);
+  for(const x of [-.5,0,.5]) for(const z of [-.45,0,.45]) b(.1,.1,.1,x,.072,z);
+  return mergeGeometries(g); })();
+const palletBag = mkBag(palletGeo,palletMat,{color:true});
+const PALLET_H=.144;
+const stretchMat=new THREE.MeshStandardMaterial({color:'#e9f2f5',transparent:true,opacity:.1,roughness:.05,metalness:0,depthWrite:false});
+
+/* ========== pallet + caixas + fruta ========== */
+const pickMeshes=[];
+function fruitTop(PM,p,kind,cx,cz,yTop,sx,sz,display){
+  const F=getF(kind); F.used=true;
+  F.bagParts=F.bagParts||F.parts.map(pt=>mkBag(pt.geo,pt.mat,{color:!!pt.pal,shadow:false}));
+  const put=(pos,q,sc=1)=>{ F.parts.forEach((pt,i)=>{ const B=F.bagParts[i]; B.m.push(compose(PM,pos,q,V3(sc,sc,sc))); if(pt.pal) B.c.push(_c.set(pt.pal[(rnd()*pt.pal.length)|0]).multiplyScalar(R(.88,1.08)).clone()); }); };
+  const lay=F.lay;
+  const qOf=()=> lay==='up'?qE(R(-.25,.25),R(0,6.28),R(-.25,.25)) : lay==='lying'?qE(0,R(0,6.28),Math.PI/2+R(-.2,.2)) : lay==='bunch'?qE(R(-.1,.1),Math.round(rnd())*Math.PI/2+R(-.15,.15),R(-.08,.08)) : lay==='tray'?qY(R(-.04,.04)) : qE(R(0,6.28),R(0,6.28),R(0,6.28));
+  if(lay==='bunch'||lay==='tray'||lay==='lying'&&F.w){
+    const w=F.w,d=F.d, cols=Math.max(1,Math.floor((sx-.02)/w)), rows=Math.max(1,Math.floor((sz-.02)/d)), layers=lay==='tray'?(display?2:1):2;
+    for(let l=0;l<layers;l++) for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){
+      if(l>0&&display&&rnd()<.25) continue;
+      const x=cx+(i-(cols-1)/2)*w+R(-.012,.012)+(l%2?.02:0), z=cz+(j-(rows-1)/2)*d+R(-.012,.012);
+      const y=yTop+(F.h||.055)*(l+.55)+(lay==='bunch'?l*.01:0);
+      put(V3(x,y,z),qOf());
+    }
+    return;
+  }
+  const r=F.r, step=2*r*.98, cols=Math.max(1,Math.floor((sx-.03)/step)), rows=Math.max(1,Math.floor((sz-.03)/step));
+  const layers=display?2:1;
+  for(let l=0;l<layers;l++){ const c2=l?cols-1:cols, r2=l?rows-1:rows; for(let i=0;i<c2;i++) for(let j=0;j<r2;j++){
+    if(l&&rnd()<.2) continue;
+    const x=cx+(i-(c2-1)/2)*step+R(-.1,.1)*r, z=cz+(j-(r2-1)/2)*step+R(-.1,.1)*r;
+    const edge=Math.max(Math.abs(i-(c2-1)/2)/Math.max(1,(c2-1)/2),Math.abs(j-(r2-1)/2)/Math.max(1,(r2-1)/2));
+    const y=yTop+r*(.75+l*1.25)+R(0,.12)*r - (l?0:edge*.0) + (display?(1-edge)*r*.4:0);
+    put(V3(x,y,z),qOf(),R(.93,1.06));
+  } }
+}
+function pallet({x,z,ry,y0=0,p,layers=2,display=false,wrap=false,tall=null}){
+  const PM=new THREE.Matrix4().compose(V3(x,y0,z),qY(ry),ONE);
+  palletBag.m.push(PM.clone()); palletBag.c.push(colorOf('#ffffff',R(.75,1.05)));
+  const pk=PACK[p.pack], [cw,ch,cd]=pk.dims, [nx,nz]=pk.grid;
+  let y=PALLET_H;
+  const fruitFor=()=>Array.isArray(p.fruit)?p.fruit[(rnd()*p.fruit.length)|0]:p.fruit;
+  for(let l=0;l<layers;l++){ const top=l===layers-1;
+    for(let i=0;i<nx;i++) for(let j=0;j<nz;j++){
+      const pos=V3((i-(nx-1)/2)*cw+R(-.012,.012),y,(j-(nz-1)/2)*cd+R(-.012,.012));
+      const q=qY(R(-.025,.025));
+      pk.bag.m.push(compose(PM,pos,q)); pk.bag.c.push(pk.colors(p));
+      if(p.empty) continue;
+      const kind=fruitFor(), F=getF(kind), baseCol=F.parts[0].pal?F.parts[0].pal[0]:'#a52a22';
+      const fh=top?ch*.7:ch*.97;
+      fillBag.m.push(compose(PM,V3(pos.x,y+fh/2,pos.z),q,V3(cw-.03,fh,cd-.03)));
+      fillBag.c.push(colorOf(baseCol,.55));
+      if(top&&(display||rnd()<.75)) fruitTop(PM,p,kind,pos.x,pos.z,y+fh,cw-.03,cd-.03,display);
+    }
+    y+=ch;
+  }
+  if(wrap&&!p.empty){ const m=new THREE.Mesh(new THREE.BoxGeometry(1.24,y-PALLET_H-.1,1.04),stretchMat); m.position.set(x,y0+PALLET_H+(y-PALLET_H-.1)/2,z); m.rotation.y=ry; scene.add(m); }
+  return {top:y};
+}
+const handFont='700 "Segoe Print","Comic Sans MS",cursive';
+function boardTex(p){ return ctex(512,256,(g,w,h)=>{
+  g.fillStyle='#f5f3ea'; g.fillRect(0,0,w,h); g.strokeStyle='#d8d4c6'; g.lineWidth=6; g.strokeRect(3,3,w-6,h-6);
+  g.fillStyle=p.box; g.fillRect(0,0,w,26);
+  g.textAlign='center'; g.textBaseline='middle'; g.fillStyle='#b3171d'; g.font=`${handFont.replace('700','800')}`.replace('"Segoe Print"','"Segoe Print"');
+  g.font='800 70px "Segoe Print","Comic Sans MS",cursive'; g.fillText(p.name.toUpperCase(),w/2,84);
+  g.font='700 38px "Segoe Print","Comic Sans MS",cursive'; g.fillStyle='#1d3f9a'; g.fillText(p.var,w/2,134);
+  g.fillStyle='#111'; if(TABELA){ g.font='800 56px "Segoe UI",system-ui'; g.fillText('R$ '+p.price.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2}),w/2,190); } else { g.font='800 40px "Segoe UI",system-ui'; g.fillStyle='#1d3f9a'; g.fillText('valor: consulte',w/2,188); }
+  g.fillStyle='#555'; g.font='700 26px "Segoe UI"'; g.fillText(p.kg?`cx ${String(p.kg).replace('.',',')} kg`:'unidade',w/2,232);
+}); }
+function placeDisplay(p,x,z,s,layers=2){
+  pallet({x,z,ry:Math.PI/2,p,layers,display:true});
+  const topY=PALLET_H+layers*PACK[p.pack].dims[1];
+  const pickH=topY+(p.pack==='BIN'?.45:.22);
+  const pm=new THREE.Mesh(new THREE.BoxGeometry(1.0,pickH,1.22),new THREE.MeshBasicMaterial({visible:false}));
+  pm.position.set(x,pickH/2,z); pm.userData={p,h:pickH}; scene.add(pm); pickMeshes.push(pm);
+  // plaquinha de preço no espeto
+  const sg=new THREE.Mesh(new THREE.PlaneGeometry(.5,.25),new THREE.MeshBasicMaterial({map:boardTex(p),side:THREE.DoubleSide}));
+  const sx=x-s*.56; sg.position.set(sx,topY+.28,z); sg.rotation.set(0,s>0?-Math.PI/2:Math.PI/2,0); sg.rotateX(-.22); scene.add(sg);
+  const st=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,.34,5),M({color:'#7a5a3a'})); st.position.set(sx,topY+.1,z); scene.add(st);
+  col(x-.55,x+.55,z-.65,z+.65);
+}
+
+/* ========== boxes (bancas) ========== */
+const metalDark=M({color:'#2b2f36',metalness:.6,roughness:.45});
+function bannerTex(num,name,color){ return ctex(1024,200,(g,w,h)=>{ g.fillStyle='#14111c'; g.fillRect(0,0,w,h); g.fillStyle=color; g.fillRect(0,0,28,h); g.fillRect(w-28,0,28,h); g.fillStyle='#fff'; g.font='800 120px "Segoe UI",system-ui'; g.textAlign='left'; g.textBaseline='middle'; g.fillText('BOX '+String(num).padStart(2,'0'),56,h/2+4); g.fillStyle=color; g.fillRect(430,28,6,h-56); g.fillStyle='#fff'; g.font='800 72px "Segoe UI"'; g.textAlign='left'; g.fillText(name,470,h/2+4); }); }
+function stall({s,zc,num,name,color,items,xx=null}){
+  // placas e banner
+  const bn=new THREE.Mesh(new THREE.PlaneGeometry(5.6,1.1),new THREE.MeshBasicMaterial({map:bannerTex(num,name,color),side:THREE.DoubleSide}));
+  bn.position.set(s*4.3,4.35,zc); bn.rotation.y=s>0?-Math.PI/2:Math.PI/2; scene.add(bn);
+  for(const dz of [-2.5,2.5]){ const c=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,2.5,6),metalDark); c.position.set(s*4.3,5.6,zc+dz); scene.add(c); }
+  items.forEach((p,i)=>{
+    const z=zc+(i-1)*2.6;
+    placeDisplay(p,s*4.95,z,s,2);
+    // pilhas de fundo (mesmo produto, mais alto)
+    [[6.55,3],[8.2,4],[9.85,5]].forEach(([dx,n],k)=>{
+      if(k>0&&rnd()<.18) return;
+      pallet({x:s*dx,z:z+R(-.04,.04),ry:Math.PI/2+R(-.04,.04),p,layers:p.pack==='BIN'?(k===0?2:1):n+(rnd()<.3?1:0),wrap:p.pack!=='BIN'&&rnd()<.45});
+      col(s*dx-.55,s*dx+.55,z-.65,z+.65);
+    });
+  });
+  // balcão do box (balança, caderno, cadeira)
+  const g=new THREE.Group(); g.position.set(s*13.9,0,zc+.2); g.rotation.y=s>0?-Math.PI/2:Math.PI/2; scene.add(g);
+  addBox(g,2.1,.92,.75,M({map:woodTex('#8a6a45'),roughness:.75}),0,.46,0);
+  addBox(g,2.2,.05,.85,M({color:'#d9d3c4',roughness:.6}),0,.945,0);
+  addBox(g,.5,.07,.4,M({color:'#cfd3d8',metalness:.6,roughness:.35}),-.55,1.0,0);
+  addBox(g,.16,.14,.1,M({color:'#1d1f26'}),-.55,1.12,-.12);
+  addBox(g,.34,.015,.24,M({color:'#f5f0dc'}),.4,.985,.04);
+  const ch=addBox(g,.42,.04,.4,M({color:'#2a5a9a'}),.2,.46,1.0); addBox(g,.42,.4,.04,M({color:'#2a5a9a'}),.2,.7,1.2); for(const [dx,dz] of [[-.17,-.17],[.17,-.17],[-.17,.17],[.17,.17]]) addBox(g,.03,.44,.03,metalDark,.2+dx,.22,1.0+dz);
+  col(s*13.9-1.2,s*13.9+1.2,zc-.7,zc+1.9);
+}
+
+/* ========== caminhão na doca ========== */
+function truck(x,z){
+  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  const white=M({color:'#e9ecef',roughness:.55,metalness:.1}), dark=M({color:'#1a1c20',roughness:.6}), floorW=M({map:woodTex('#a7885b'),roughness:.85});
+  const BW=2.5,BH=2.5,BL=7.2,FY=1.2; // caixa de carga: rabeta aberta em -z
+  addBox(g,BW+.1,.28,BL+3,dark,0,.9,BL/2+.3);       // chassi
+  addBox(g,BW,.06,BL,floorW,0,FY,BL/2);             // assoalho
+  for(const s of [-1,1]) addBox(g,.06,BH,BL,white,s*(BW/2),FY+BH/2,BL/2);
+  addBox(g,BW,BH,.06,white,0,FY+BH/2,BL);           // parede frontal
+  addBox(g,BW+.1,.07,BL+.1,white,0,FY+BH+.03,BL/2); // teto
+  addBox(g,.04,.18,BL,M({color:'#8b5cf6',roughness:.5}),BW/2+.035,FY+BH*.55,BL/2);
+  addBox(g,.04,.18,BL,M({color:'#8b5cf6',roughness:.5}),-BW/2-.035,FY+BH*.55,BL/2);
+  for(const s of [-1,1]){ const lg=new THREE.Mesh(new THREE.PlaneGeometry(4.6,.8),new THREE.MeshBasicMaterial({map:ctex(1024,180,(c,w,h)=>{ c.fillStyle='rgba(0,0,0,0)'; c.clearRect(0,0,w,h); c.fillStyle='#14111c'; c.font='800 104px "Segoe UI",system-ui'; c.textAlign='left'; c.textBaseline='middle'; c.fillText('NEW',20,h/2); c.fillStyle='#8b5cf6'; c.fillText('HORTIFRÚTI',250,h/2); }),transparent:true})); lg.position.set(s*(BW/2+.07),FY+BH*.78,BL/2-.2); lg.rotation.y=s>0?Math.PI/2:-Math.PI/2; g.add(lg); }
+  // cabine
+  addBox(g,BW,1.5,1.9,white,0,FY+.55,BL+1.05);
+  addBox(g,BW-.1,.9,.06,M({color:'#2b3b4a',roughness:.1,metalness:.5,envMapIntensity:1.2}),0,FY+1.1,BL+2.03);
+  addBox(g,BW,.5,.8,white,0,FY-.05,BL+2.1);
+  addBox(g,BW+.05,.18,.12,metalDark,0,FY-.28,BL+2.55);
+  for(const s of [-1,1]){ const hl=new THREE.Mesh(new THREE.BoxGeometry(.3,.14,.04),new THREE.MeshBasicMaterial({color:'#fff6d0'})); hl.position.set(s*.85,FY-.05,BL+2.52); g.add(hl); }
+  // rodas
+  const wg=new THREE.CylinderGeometry(.5,.5,.32,20), wm=M({color:'#1a1a1a',roughness:.8}), hub=new THREE.CylinderGeometry(.22,.22,.34,12), hm=M({color:'#b8bdc4',metalness:.7,roughness:.4});
+  for(const zz of [1.2,BL-1.3,BL+1.4]) for(const s of [-1,1]){ const w=new THREE.Mesh(wg,wm); w.rotation.z=Math.PI/2; w.position.set(s*(BW/2),.5,zz); w.castShadow=true; g.add(w); const h=new THREE.Mesh(hub,hm); h.rotation.z=Math.PI/2; h.position.set(s*(BW/2),.5,zz); g.add(h); }
+  // porta traseira aberta
+  const door=new THREE.Group(); door.position.set(BW/2,FY+BH/2,0); door.rotation.y=-1.75; g.add(door); addBox(door,1.3,BH,.05,white,-.65,0,0);
+  col(x-BW/2-.4,x+BW/2+.4,z+.2,z+BL+2.8);
+  // carga lá dentro e descarregando
+  const PM=[[ -.55,1.2],[.6,1.2],[-.55,3.0],[.6,3.0],[-.55,4.8],[.6,4.8]];
+  const loads=[P.laranja,P.banprata,P.laranja,P.gala,P.laranja,P.banprata];
+  PM.forEach(([dx,dz],i)=>pallet({x:x+dx,z:z+dz,ry:Math.PI/2*(i%2?1:0)+.02,y0:FY+.03,p:loads[i],layers:4,wrap:true}));
+}
+
+/* ========== paleteira, carrinho de madeira, balança ========== */
+function handCart(x,z,ry,p){ // carrinho de carregador: plataforma de madeira, 2 rodas grandes, alça
+  const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry; scene.add(g);
+  const wd=M({map:woodTex('#9c7448'),roughness:.8});
+  addBox(g,1.1,.08,1.9,wd,0,.5,0);
+  for(const dz of [-.8,0,.8]) addBox(g,1.1,.08,.1,wd,0,.43,dz);
+  const wh=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.07,18),M({color:'#222',roughness:.8})); for(const s of [-1,1]){ const w=wh.clone(); w.rotation.z=Math.PI/2; w.position.set(s*.58,.38,.35); w.castShadow=true; g.add(w); }
+  for(const s of [-1,1]){ const h=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,1.0,6),metalDark); h.rotation.x=Math.PI/2-.35; h.position.set(s*.45,.95,-1.25); g.add(h); }
+  addBox(g,1.0,.03,.03,metalDark,0,1.28,-1.45);
+  col(x-1.0,x+1.0,z-1.2,z+1.2);
+  return g;
+}
+function platformScale(x,z){
+  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  addBox(g,1.4,.12,1.4,M({color:'#5a6068',metalness:.5,roughness:.45}),0,.06,0);
+  addBox(g,1.3,.03,1.3,M({color:'#9aa2ab',metalness:.7,roughness:.35}),0,.135,0);
+  addBox(g,.05,1.05,.05,metalDark,.75,.55,-.6);
+  const scr=new THREE.Mesh(new THREE.PlaneGeometry(.34,.18),new THREE.MeshBasicMaterial({map:ctex(256,128,(c,w,h)=>{ c.fillStyle='#10151a'; c.fillRect(0,0,w,h); c.fillStyle='#9cff9c'; c.font='700 62px monospace'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('384.5 kg',w/2,h/2); })}));
+  scr.position.set(.75,1.15,-.54); scr.rotation.set(-.2,0,0); g.add(scr);
+  col(x-.8,x+.8,z-.8,z+.8);
+}
+function binXepa(x,z){ // caçamba de resíduos / xepa
+  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  addBox(g,2.2,1.1,1.3,M({color:'#2f6f3c',roughness:.6,metalness:.3}),0,.55,0);
+  const heap=[]; for(let i=0;i<40;i++){ const kinds=['laranja','banprata','gala','mamao','manga','tanger']; const k=kinds[(rnd()*kinds.length)|0]; const F=getF(k); const PMx=new THREE.Matrix4().makeTranslation(x,0,z); F.bagParts=F.bagParts||F.parts.map(pt=>mkBag(pt.geo,pt.mat,{color:!!pt.pal,shadow:false})); F.parts.forEach((pt,pi)=>{ const B=F.bagParts[pi]; B.m.push(compose(PMx,V3(R(-.9,.9),1.12+R(0,.14),R(-.5,.5)),qE(R(0,6.28),R(0,6.28),R(0,6.28)),V3(1,1,1))); if(pt.pal) B.c.push(_c.set(pt.pal[(rnd()*pt.pal.length)|0]).multiplyScalar(R(.5,.8)).clone()); }); }
+  col(x-1.2,x+1.2,z-.8,z+.8);
+}
+
+/* ========== monta tudo ========== */
+truck(-10.5,12.4);
+handCart(-5.8,14.5,.25,P.banprata); handCart(6.2,13.2,-.35,P.laranja);
+// carga descarregada em frente ao caminhão
+pallet({x:-10.5,z:10.4,ry:0,p:P.laranja,layers:3,wrap:true}); col(-11.2,-9.8,9.7,11.1);
+pallet({x:-9.0,z:10.2,ry:.1,p:P.banprata,layers:3,wrap:true}); col(-9.7,-8.3,9.5,10.9);
+pallet({x:-12.1,z:10.1,ry:-.1,p:P.gala,layers:3,wrap:false}); col(-12.8,-11.4,9.4,10.8);
+platformScale(6.8,16.6);
+pallet({x:11,z:16,ry:0,p:P.kcx,layers:5}); col(10.3,11.7,15.3,16.7);
+pallet({x:13.2,z:16.2,ry:.1,p:P.pcx,layers:5}); col(12.5,13.9,15.5,16.9);
+pallet({x:15.2,z:15.6,ry:-.05,p:P.ccx,layers:6}); col(14.5,15.9,14.9,16.3);
+
+stall({s:-1,zc:6, num:1,name:'BANANAS',          color:'#f2cd2e',items:[P.banprata,P.bannanica,P.banmaca]});
+stall({s:-1,zc:-2,num:2,name:'CITRUS',           color:'#f08a14',items:[P.laranja,P.limao,P.tanger]});
+stall({s:-1,zc:-10,num:3,name:'MAÇÃ E PERA',     color:'#e0394a',items:[P.gala,P.fuji,P.pera]});
+stall({s:-1,zc:-18,num:4,name:'UVAS E FINAS',    color:'#7c4dd6',items:[P.uva,P.morango,P.kiwi]});
+stall({s:1,zc:6,  num:5,name:'MELÃO E MAMÃO',   color:'#4fb35c',items:[P.melancia,P.melao,P.mamao]});
+stall({s:1,zc:-2, num:6,name:'TROPICAIS',        color:'#e3a52f',items:[P.manga,P.abacaxi,P.maracuja]});
+stall({s:1,zc:-10,num:7,name:'COCO E PÊSSEGO',  color:'#e8895a',items:[P.coco,P.pessego,P.goiaba]});
+stall({s:1,zc:-18,num:8,name:'CAIXARIA',         color:'#b98650',items:[P.kcx,P.pcx,P.ccx]});
+// xepa no fundo
+placeDisplay(P.xepa,-3.0+.2,-27.6,-1,2); // usa o mesmo padrão de ficha
+binXepa(5.2,-28.2);
+const xs=new THREE.Mesh(new THREE.PlaneGeometry(3,.7),new THREE.MeshBasicMaterial({map:ctex(512,120,(g,w,h)=>{ g.fillStyle='#14111c'; g.fillRect(0,0,w,h); g.fillStyle='#8b5cf6'; g.fillRect(0,0,w,8); g.fillStyle='#fff'; g.font='800 64px "Segoe UI",system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('XEPA · FIM DO DIA',w/2,h/2+4); })})); xs.position.set(1.1,2.2,-30.7); scene.add(xs);
+finalizeBags();
+
+// contorno da caixa apontada
+const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:'#c4b5fd',transparent:true,opacity:.9,depthTest:false}));
+outline.visible=false; outline.renderOrder=10; scene.add(outline);
+
+/* ========== ficha do produto ========== */
+const pc=$('pc'); let shown=null;
+function showCard(p){
+  if(shown!==p){ shown=p;
+    pc.style.setProperty('--pc',p.box);
+    $('pcbrand').textContent = p.empty?'Caixaria · embalagem vazia':'Frutas · '+PACKNAME[p.pack];
+    $('pcname').innerHTML = p.name+'<small>'+p.var+'</small>';
+    $('pcprice').innerHTML = !TABELA? `<b>Valor no WhatsApp</b> <small>cotação do dia com o ${DONO}</small>` : p.kg? `<b>${brl(p.price)}</b> <small>por caixa · ≈ ${brl(p.perKg)}/kg</small>` : `<b>${brl(p.price)}</b> <small>cada</small>`;
+    $('pcchips').innerHTML = [p.kg?`<span class="hl">${String(p.kg).replace('.',',')} kg${p.pack==='BIN'?' · palox':''}</span>`:'',`<span>${PACKNAME[p.pack]}</span>`,`<span>${p.org}</span>`].join('');
+    $('pcdesc').textContent = p.note;
+  }
+  pc.classList.add('on');
+}
+const hideCard=()=>{ pc.classList.remove('on'); };
+
+/* ========== carrinho por caixa ========== */
+const cart=new Map(), order=[]; let modalOn=false, toastT=0;
+const total=()=>[...cart.values()].reduce((s,i)=>s+i.p.price*i.q,0);
+const totalKg=()=>[...cart.values()].reduce((s,i)=>s+i.p.kg*i.q,0);
+const qtyTot=()=>[...cart.values()].reduce((s,i)=>s+i.q,0);
+const unitLbl=(p,q)=>p.pack==='BIN'?(q>1?'paloxes':'palox'):p.empty?(q>1?'unidades':'unidade'):(q>1?'caixas':'caixa');
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),1600); }
+function renderCart(){
+  const el=$('cart'), items=[...cart.values()];
+  el.innerHTML='<h3>Pedido por caixa</h3>'+(items.length?items.map(i=>`<div class="row"><span>${i.q}× ${i.p.name} ${i.p.var}</span>${TABELA?`<span>${brl(i.p.price*i.q)}</span>`:''}</div>`).join('')+(TABELA?`<div class="tot"><span>Total</span><span>${brl(total())}</span></div><div class="sub">${qtyTot()} vol. · ${Math.round(totalKg())} kg</div><button class="cfin" id="cfin">Fechar pedido <kbd>F</kbd></button>`:`<div class="tot"><span>${qtyTot()} volumes</span><span>≈ ${Math.round(totalKg())} kg</span></div><div class="sub">Valor o ${DONO} passa no WhatsApp</div><button class="cfin" id="cfin">Enviar pedido 📲 <kbd>F</kbd></button>`):'<div class="empty">Aponte pra uma caixa e aperte E</div>');
+  const b=$('cfin'); if(b) b.onclick=openCheckout;
+}
+function add(p,q=1){ const i=cart.get(p.name+p.var)||{p,q:0}; i.q+=q; cart.set(p.name+p.var,i); for(let k=0;k<q;k++) order.push(p.name+p.var); renderCart(); toast(`+1 ${unitLbl(p,1)} · ${p.name} ${p.var}`); }
+function removeLast(){ const id=order.pop(); if(!id) return; const i=cart.get(id); if(--i.q<=0) cart.delete(id); renderCart(); toast('Item removido'); }
+renderCart();
+
+/* ========== checkout ==========
+   Modo 'oculto' (padrão): monta o pedido SEM valores e abre o WhatsApp do dono; ele responde com valor e prazo.
+   Modo 'tabela': mostra preços e fecha com pagamento demo.
+   Pra ligar no ERP: window.onCeasaOrder = async pedido => {...}  (ou escute o evento 'ceasa:order') */
+const MIN_ORDER=150, FREE_ABOVE=1200, DELIVERY_FEE=60;
+const fee=()=>total()>=FREE_ABOVE?0:DELIVERY_FEE;
+const WINDOWS={madrugada:'Madrugada (3h–6h)',manha:'Manhã (6h–10h)',tarde:'Tarde (13h–17h)'};
+const PAY={pix:{n:'PIX',s:'Aprovação na hora'},fat:{n:'Faturado 7 dias',s:'Cliente com cadastro'},boleto:{n:'Boleto',s:'Vence em 3 dias'}};
+let step=1, form={nome:'',empresa:'',doc:'',tel:'',end:'',bairro:'',cidade:'Jundiaí',janela:'manha',obs:''}, pay='pix', placed=null, busy=false;
+const STEPS=TABELA?['Pedido','Entrega','Pagamento','Pronto']:['Pedido','Seus dados','Enviar','Pronto'];
+const kgS=p=>p.kg?String(p.kg).replace('.',',')+' kg':'';
+function waText(extra){
+  if(!cart.size) return 'Olá! Vim pelo NEW CEASA e queria falar sobre frutas.'+(extra==='entrega'?' Queria combinar a entrega.':'');
+  const L=['*Pedido NEW CEASA*'];
+  if(form.nome||form.empresa) L.push(`Cliente: ${form.nome}${form.empresa?' · '+form.empresa:''}${form.doc?' · '+form.doc:''}`);
+  if(form.tel) L.push('WhatsApp: '+form.tel);
+  L.push('','Itens:'); for(const i of cart.values()) L.push(`• ${i.q} ${unitLbl(i.p,i.q)} · ${i.p.name} ${i.p.var} (${PACKNAME[i.p.pack]}${i.p.kg?', '+kgS(i.p):''})${TABELA?' — '+brl(i.p.price*i.q):''}`);
+  L.push('',`≈ ${Math.round(totalKg())} kg no total${TABELA?' · '+brl(total()+fee()):''}`);
+  if(form.end) L.push(`Entrega: ${form.end}, ${form.bairro} · ${form.cidade}`);
+  if(form.obs) L.push('Obs: '+form.obs);
+  L.push('',extra==='lista'?'Estou olhando com calma, depois confirmo.':'Pode me passar o valor e o prazo de entrega? Obrigado!');
+  return L.join('\n');
+}
+const waUrl=t=>(WHATSAPP?`https://wa.me/${WHATSAPP}?text=`:'https://api.whatsapp.com/send?text=')+encodeURIComponent(t);
+function openWA(extra){ window.open(waUrl(waText(extra)),'_blank'); }
+function openCheckout(){ if(!cart.size){ toast('Carrinho vazio'); return; } modalOn=true; step=1; placed=null; try{ document.exitPointerLock(); }catch(e){} $('modal').classList.add('on'); renderCO(); }
+function closeCO(){ modalOn=false; $('modal').classList.remove('on'); if(!free&&!locked) overlay.style.display='flex'; }
+$('coclose').onclick=closeCO;
+function sideHtml(){
+  const rows=[...cart.values()].map(i=>`<div class="sr"><span>${i.q}× ${i.p.name} ${i.p.var}</span>${TABELA?`<span>${brl(i.p.price*i.q)}</span>`:''}</div>`).join('');
+  if(!TABELA) return `<h4>Resumo</h4>`+rows+`<div class="sr tot"><span>${qtyTot()} volumes</span><span>≈ ${Math.round(totalKg())} kg</span></div><span class="sfree">📲 O ${DONO} responde no WhatsApp com <b>valor</b> e <b>prazo de entrega</b>.</span><span class="sfree">🚚 ${ENTREGA_TXT}</span>`;
+  const f=fee(), t=total()+f;
+  return `<h4>Resumo</h4>`+rows+
+   `<div class="sr"><span>Mercadoria</span><span>${brl(total())}</span></div><div class="sr"><span>Entrega (${Math.round(totalKg())} kg)</span><span>${f?brl(f):'grátis'}</span></div><div class="sr tot"><span>Total</span><span>${brl(t)}</span></div>`+
+   (total()>=FREE_ABOVE?`<span class="sfree ok">✓ Frete grátis</span>`:`<span class="sfree">Faltam ${brl(FREE_ABOVE-total())} pra frete grátis</span>`);
+}
+function renderCO(){
+  $('costeps').innerHTML=STEPS.map((s,i)=>`<div class="cos ${i+1===step?'on':i+1<step?'done':''}"><b>${i+1<step?'✓':i+1}</b><span>${s}</span></div>`).join('<i></i>');
+  const main=$('comain'), side=$('coside'), grid=$('cogrid'); grid.classList.toggle('one',step===4);
+  side.style.display=step===4?'none':'block'; if(step!==4) side.innerHTML=sideHtml();
+  const bloqueio=TABELA&&total()<MIN_ORDER;
+  if(step===1){
+    main.innerHTML=`<h2>Seu pedido</h2>`+[...cart.entries()].map(([k,i])=>`<div class="ci"><div><b>${i.p.name} ${i.p.var}</b><small>${PACKNAME[i.p.pack]}${i.p.kg?' · '+kgS(i.p):''}${TABELA?' · '+brl(i.p.price):''}</small></div><div class="qty"><button data-k="${k}" data-d="-1">−</button><span>${i.q}</span><button data-k="${k}" data-d="1">+</button></div>${TABELA?`<b>${brl(i.p.price*i.q)}</b>`:'<span></span>'}</div>`).join('')+
+      `<div class="coact"><button class="btn ghost" id="cvolta">Continuar vendo</button><button class="btn" id="cnext" ${bloqueio?'disabled':''}>${bloqueio?'Pedido mínimo '+brl(MIN_ORDER):'Continuar'}</button></div>`;
+    main.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ const i=cart.get(b.dataset.k), d=+b.dataset.d; i.q=Math.max(0,Math.min(99,i.q+d)); if(!i.q){ cart.delete(b.dataset.k); for(let n=order.length-1;n>=0;n--) if(order[n]===b.dataset.k) order.splice(n,1); } renderCart(); if(!cart.size){ closeCO(); return; } renderCO(); });
+    $('cvolta').onclick=closeCO; $('cnext').onclick=()=>{ step=2; renderCO(); };
+  } else if(step===2){
+    main.innerHTML=`<h2>${TABELA?'Entrega':'Seus dados'}</h2><div class="fg">
+      <label class="w2">Nome de quem recebe<input data-f="nome" value="${form.nome}" placeholder="Nome completo"></label>
+      <label>Empresa<input data-f="empresa" value="${form.empresa}" placeholder="Restaurante, mercado..."></label>
+      <label>CNPJ / CPF<input data-f="doc" value="${form.doc}" placeholder="00.000.000/0001-00"></label>
+      <label>WhatsApp<input data-f="tel" value="${form.tel}" placeholder="(11) 90000-0000" inputmode="tel"></label>
+      ${TABELA?`<label>Janela de entrega<select data-f="janela">${Object.entries(WINDOWS).map(([k,v])=>`<option value="${k}" ${form.janela===k?'selected':''}>${v}</option>`).join('')}</select></label>`:`<label>Cidade<input data-f="cidade" value="${form.cidade}"></label>`}
+      <label class="w2">Endereço de entrega<input data-f="end" value="${form.end}" placeholder="Rua, número"></label>
+      <label>Bairro<input data-f="bairro" value="${form.bairro}"></label>
+      ${TABELA?`<label>Cidade<input data-f="cidade" value="${form.cidade}"></label>`:`<label>Frequência<input data-f="obs" value="${form.obs}" placeholder="Ex: compro toda semana"></label>`}</div>
+      <div class="coact"><button class="btn ghost" id="cback">Voltar</button><button class="btn" id="cnext">Continuar</button></div>`;
+    main.querySelectorAll('[data-f]').forEach(i=>i.oninput=()=>{ form[i.dataset.f]=i.value; i.classList.remove('bad'); });
+    $('cback').onclick=()=>{ step=1; renderCO(); };
+    $('cnext').onclick=()=>{ let ok=true; for(const k of ['nome','tel','end','bairro','cidade']){ const el=main.querySelector(`[data-f="${k}"]`); if(el&&!form[k].trim()){ el.classList.add('bad'); ok=false; } } if(ok){ step=3; renderCO(); } else toast('Preencha os campos em vermelho'); };
+  } else if(step===3){
+    if(TABELA){
+      main.innerHTML=`<h2>Pagamento</h2><div class="opts">${Object.entries(PAY).map(([k,v])=>`<button class="opt ${pay===k?'on':''}" data-p="${k}"><b>${v.n}</b><small>${v.s}</small></button>`).join('')}</div>
+        <div class="demo">DEMO · nenhum pagamento real é processado.</div>
+        <div class="coact"><button class="btn ghost" id="cback">Voltar</button><button class="btn" id="cnext" ${busy?'disabled':''}>${busy?'Enviando...':'Confirmar pedido · '+brl(total()+fee())}</button></div>`;
+      main.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{ pay=b.dataset.p; renderCO(); });
+    } else {
+      main.innerHTML=`<h2>Enviar pro ${DONO}</h2>
+        <div class="info"><b>${form.nome}${form.empresa?' · '+form.empresa:''}</b><br>${form.end}, ${form.bairro} · ${form.cidade}<br>${form.tel}${form.obs?'<br>'+form.obs:''}</div>
+        <div class="info" style="margin-top:10px">📲 Ao enviar, abre o <b>WhatsApp</b> com o pedido pronto. O ${DONO} confere o estoque e te responde com o <b>valor</b> (cotação do dia, com condição pra volume) e o <b>prazo</b>.<br>🚚 ${ENTREGA_TXT}<br>💳 Nada é cobrado agora. Pagamento combinado no WhatsApp.</div>
+        <div class="coact"><button class="btn ghost" id="cback">Voltar</button><button class="btn" id="cnext" ${busy?'disabled':''}>${busy?'Abrindo...':'📲 Enviar pelo WhatsApp'}</button></div>`;
+    }
+    $('cback').onclick=()=>{ step=2; renderCO(); }; $('cnext').onclick=finishOrder;
+  } else {
+    main.innerHTML=TABELA?`<div class="done"><div class="check">✓</div><h2>Pedido ${placed.id} recebido!</h2><p style="opacity:.8">Entrega: ${WINDOWS[placed.cliente.janela]} · ${placed.cliente.cidade}</p>
+      <div class="info"><b>${placed.itens.length} produto(s) · ${Math.round(placed.kg)} kg</b><br>Total ${brl(placed.total)} · ${PAY[placed.pagamento].n}<br>${placed.cliente.nome}${placed.cliente.empresa?' · '+placed.cliente.empresa:''}<br>${placed.cliente.end}, ${placed.cliente.bairro}</div>
+      <div class="coact"><button class="btn" id="cfim">Voltar pro pavilhão</button></div><div class="demo">DEMO · pedido simulado.</div></div>`
+    :`<div class="done"><div class="check">📲</div><h2>Pedido ${placed.id} pronto!</h2><p style="opacity:.85">Mandei pro WhatsApp do ${DONO}. Ele te responde com valor e prazo de entrega.</p>
+      <div class="info"><b>${placed.itens.length} produto(s) · ≈ ${Math.round(placed.kg)} kg</b><br>${placed.cliente.nome}${placed.cliente.empresa?' · '+placed.cliente.empresa:''}<br>${placed.cliente.end}, ${placed.cliente.bairro}<br>🚚 ${ENTREGA_TXT}</div>
+      <div class="coact"><button class="btn ghost" id="cwa">Abrir o WhatsApp de novo</button><button class="btn" id="cfim">Voltar pro pavilhão</button></div></div>`;
+    $('cfim').onclick=closeCO; if($('cwa')) $('cwa').onclick=()=>window.open(waUrl(placed.whatsappTexto),'_blank');
+  }
+}
+async function finishOrder(){
+  if(busy) return; busy=true; renderCO();
+  const texto=waText();
+  const win=TABELA?null:window.open('about:blank','_blank'); // abre já no clique (evita bloqueio de pop-up)
+  const pedido={ id:'CE'+Date.now().toString(36).toUpperCase().slice(-6), criadoEm:new Date().toISOString(), modo:PRICE_MODE, cliente:{...form}, pagamento:TABELA?pay:null,
+    itens:[...cart.values()].map(i=>({produto:i.p.name+' '+i.p.var,embalagem:PACKNAME[i.p.pack],kgPorCaixa:i.p.kg,qtd:i.q,...(TABELA?{precoCaixa:i.p.price,subtotal:i.p.price*i.q}:{})})),
+    kg:totalKg(), ...(TABELA?{mercadoria:total(),frete:fee(),total:total()+fee()}:{}), whatsappTexto:texto };
+  try{ if(typeof window.onCeasaOrder==='function') await window.onCeasaOrder(pedido); window.dispatchEvent(new CustomEvent('ceasa:order',{detail:pedido})); }catch(e){ if(win) win.close(); busy=false; toast('Falha ao enviar o pedido'); renderCO(); return; }
+  if(win){ win.location.href=waUrl(texto); }
+  await new Promise(r=>setTimeout(r,500));
+  placed=pedido; busy=false; cart.clear(); order.length=0; renderCart(); step=4; renderCO();
+}
+
+/* ========== Beto, o vendedor (molde em ../shared/vendedor.js) ========== */
+const PKEY=new Map(Object.entries(P).map(([k,p])=>[p,k]));
+// conhecimento do consultor por produto (valores médios, conferir com o distribuidor)
+const KB={
+  banprata:{al:['prata','banana prata'],g:'banana',cat:'banana',shelf:'Chega verde-maduro e dura de 4 a 6 dias na bancada.',tip:'A banana que mais gira: mercado, sacolão e restaurante pedem toda semana.',pair:['laranja','mamao'],seg:{mercado:'Tem que ter sempre, é a campeã de giro.',restaurante:'Serve de sobremesa e de acompanhamento.',suco:'Boa pra vitamina.'}},
+  bannanica:{tag:'oferta',al:['nanica'],g:'banana',cat:'banana',shelf:'Amadurece mais rápido: 3 a 5 dias.',tip:'Mais doce e macia, boa pra vitamina, bolo e padaria.',pair:['banprata','laranja'],seg:{suco:'A melhor pra vitamina e shake.',mercado:'Boa pra quem faz padaria.'}},
+  banmaca:{al:['banana maca','maca banana'],g:'banana',cat:'banana',shelf:'Dura uns 3 a 5 dias.',tip:'Pequena e adocicada. Preço maior por kg, mas valoriza o prato.',pair:['banprata'],seg:{restaurante:'Valoriza sobremesa e lanche.',evento:'Fica bonita em mesa de frutas.'}},
+  laranja:{tag:'oferta',al:['laranja pera','pera de suco'],cat:'citrus',shelf:'Aguenta 7 a 10 dias em lugar fresco.',tip:'Laranja pera é a de suco e de mesa: uma caixa de 20 kg rende em média uns 8 a 9 litros de suco.',pair:['limao','maracuja'],seg:{suco:'É a base do suco natural. Quem vende suco leva várias caixas por semana.',restaurante:'Suco do almoço e sobremesa.',mercado:'Giro alto, quase todo mundo leva.'}},
+  limao:{al:['tahiti','limao tahiti','limao'],cat:'citrus',shelf:'Dura de 10 a 14 dias em lugar fresco.',tip:'O preço oscila muito na semana. Compre pro consumo da semana, não estoque.',pair:['laranja','maracuja'],seg:{restaurante:'Tempero, caipirinha e molho. Rende bastante.',suco:'Limonada e caipirinha.',mercado:'Item de reposição rápida.'}},
+  tanger:{al:['ponkan','mexerica','tangerina','bergamota'],cat:'citrus',shelf:'Dura uns 7 dias.',tip:'Descasca fácil e agrada muito. É sazonal: forte no outono e inverno.',pair:['laranja'],seg:{mercado:'Boa de impulso na entrada do hortifrúti.'}},
+  gala:{al:['maca gala','gala'],g:'maca',cat:'maca',shelf:'Tem boa durabilidade, uns 10 a 15 dias refrigerada.',tip:'Calibre 110/120, categoria 1. Doce e de giro constante.',pair:['fuji','pera'],seg:{mercado:'Alto giro e boa margem.',restaurante:'Sobremesa e salada.'}},
+  fuji:{tag:'oferta',al:['maca fuji','fuji'],g:'maca',cat:'maca',shelf:'Guarda bem, uns 15 dias refrigerada.',tip:'Mais crocante e doce que a gala, e um pouco mais em conta por caixa.',pair:['gala','pera'],seg:{mercado:'Ótima custo-benefício pra quem quer maçã o ano todo.'}},
+  pera:{al:['pera williams','williams'],cat:'maca',shelf:'Dura uns 7 dias. Compre madura de vez.',tip:'Importada, ticket alto. Vende bem em cesta e hortifrúti de bairro nobre, não pra volume.',pair:['gala','uva'],seg:{evento:'Boa pra mesa de frutas.'}},
+  uva:{al:['uva italia','italia'],cat:'finas',shelf:'Perecível: vende em 5 a 7 dias refrigerada.',tip:'Cacho em saco, caixa de 8,2 kg.',pair:['morango','kiwi'],seg:{evento:'Clássica de mesa de frios e buffet.',mercado:'Boa pra impulso, vende rápido.'}},
+  morango:{tag:'novidade',al:['morango'],cat:'finas',shelf:'Muito perecível: 2 a 4 dias refrigerado. Só pra quem gira rápido.',tip:'12 bandejas de 300 g. Fresquinho, entrega no dia.',pair:['uva','kiwi'],seg:{suco:'Pra suco e sobremesa especial.',evento:'Decoração de bolo e sobremesa.'}},
+  kiwi:{tag:'novidade',al:['kiwi'],cat:'finas',shelf:'Dura de 7 a 10 dias.',tip:'Volume pequeno e ticket alto. Bom pra decorar sobremesa.',pair:['morango','uva'],seg:{evento:'Dá cor na mesa de frutas.'}},
+  melancia:{al:['melancia'],cat:'tropical',shelf:'Inteira dura de 7 a 10 dias em lugar fresco.',tip:'Vem em palox de cerca de 60 unidades. Pra quem tem giro alto ou evento: precisa de espaço e paleteira.',pair:['melao'],seg:{mercado:'Só compensa com giro alto ou espaço pra estocar.',evento:'Pra evento grande, já resolve tudo de uma vez.'}},
+  melao:{tag:'oferta',al:['melao','melao amarelo'],cat:'tropical',shelf:'Dura de 7 a 10 dias fechado.',tip:'Caixa com 6 a 8 melões. Doce e de fácil giro.',pair:['mamao','melancia'],seg:{restaurante:'Ótimo pra sobremesa de self-service.',suco:'Fica bom em suco e salada de frutas.'}},
+  mamao:{al:['mamao','papaya'],cat:'tropical',shelf:'Compre maduro só pro dia. Dura 2 a 3 dias maduro.',tip:'Papaya, 6 a 8 frutos por caixa de 12 kg. Café da manhã tem que ter.',pair:['melao','banprata'],seg:{restaurante:'Item fixo de café da manhã e self-service.',mercado:'Gira bem, mas cuide da maturação.'}},
+  manga:{al:['manga','manga palmer','palmer'],cat:'tropical',shelf:'Dura uns 4 a 6 dias no ponto.',tip:'Palmer: graúda, doce, pouca fibra. Forte no verão.',pair:['abacaxi','maracuja'],seg:{suco:'Suco e polpa de manga vende muito.',restaurante:'Sobremesa e molho.'}},
+  abacaxi:{al:['abacaxi','perola'],cat:'tropical',shelf:'Dura de 5 a 7 dias.',tip:'Pérola, de 8 a 12 frutos por caixa, ideal pra suco e doce.',pair:['limao','manga'],seg:{suco:'Suco de abacaxi com hortelã é campeão.',restaurante:'Sobremesa e acompanhamento de prato.'}},
+  maracuja:{al:['maracuja','maracuja azedo'],cat:'tropical',shelf:'Dura de 7 a 10 dias. Enrugado é bom: tá docinho.',tip:'Azedo, pra suco, mousse e molho. O preço sobe forte na entressafra.',pair:['laranja','limao'],seg:{suco:'Suco e caipirinha, o preço pesa mas rende.',restaurante:'Mousse e molho.'}},
+  coco:{al:['coco','coco verde','agua de coco'],cat:'coco',shelf:'Aguenta uns 7 dias em lugar fresco.',tip:'Palox com cerca de 60 cocos. Pra quem vende água de coco em quiosque, praça ou feira.',pair:['abacaxi'],seg:{suco:'Água de coco gelada vende muito no calor.'}},
+  pessego:{tag:'novidade',al:['pessego'],cat:'coco',shelf:'Dura 3 a 5 dias maduro.',tip:'Caixa de 8 kg com bandejas alveoladas. É sazonal, forte no fim do ano.',pair:['uva','kiwi'],seg:{evento:'Entra bem em buffet e mesa de sobremesa.'}},
+  goiaba:{tag:'novidade',al:['goiaba','goiaba vermelha'],cat:'coco',shelf:'Dura 3 a 5 dias no ponto.',tip:'Vermelha, boa pra doce, suco e sobremesa.',pair:['maracuja'],seg:{restaurante:'Sobremesa e doce.',suco:'Suco e vitamina.'}},
+  kcx:{al:['caixa k','caixa de madeira','caixa de eucalipto'],cat:'caixaria',tip:'Caixa de madeira padrão do hortifrúti. Retornável.',shelf:''},
+  pcx:{al:['caixa plastica','caixa plastica vazada'],cat:'caixaria',tip:'Caixa de colheita e transporte, lavável e empilhável.',shelf:''},
+  ccx:{al:['caixa de papelao','papelao'],cat:'caixaria',tip:'Papelão autoexpositivo: dá pra expor a fruta dentro da própria caixa.',shelf:''},
+  xepa:{al:['xepa','sobras'],cat:'caixaria',tip:'Fruta passada ou machucada, vendida barata no fim do expediente.',shelf:''},
+};
+/* foto 3D de cada produto (caixa real com a fruta), renderizada com o próprio three.js */
+const TS=320, thumbRT=new THREE.WebGLRenderTarget(TS,TS,{samples:4}); thumbRT.texture.colorSpace=THREE.SRGBColorSpace;
+const thumbScene=new THREE.Scene(); thumbScene.environment=scene.environment;
+thumbScene.add(new THREE.HemisphereLight('#ffffff','#8d8a82',1.5));
+{ const k=new THREE.DirectionalLight('#fff3e0',2.6); k.position.set(2,3.5,3); thumbScene.add(k); const r=new THREE.DirectionalLight('#a98bff',1.2); r.position.set(-3,2,-3); thumbScene.add(r); }
+const thumbCam=new THREE.PerspectiveCamera(30,1,.05,20), thumbCache={};
+function fotoOf(id){
+  if(thumbCache[id]) return thumbCache[id];
+  const p=P[id], pk=PACK[p.pack], [cw,ch,cd]=pk.dims, g=new THREE.Group();
+  const shellMat=pk.bag.mat.clone(); if(p.pack==='P') shellMat.color.set(p.pcol||'#1f5fa8');
+  g.add(new THREE.Mesh(pk.bag.geo,shellMat));
+  if(!p.empty){
+    const kind=Array.isArray(p.fruit)?p.fruit[0]:p.fruit, F=getF(kind), pal=F.parts[0].pal||['#a52a22'];
+    const fh=ch*.72, fill=new THREE.Mesh(new THREE.BoxGeometry(cw-.03,fh,cd-.03),new THREE.MeshStandardMaterial({color:new THREE.Color(pal[0]).multiplyScalar(.55),roughness:.7})); fill.position.y=fh/2; g.add(fill);
+    const sx=cw-.03, sz=cd-.03, wx=F.w||2*F.r*.98, wz=F.d||2*F.r*.98, cols=Math.max(1,Math.floor(sx/wx)), rows=Math.max(1,Math.floor(sz/wz)), layers=F.lay==='tray'?2:2;
+    for(let l=0;l<layers;l++) for(let i=0;i<cols;i++) for(let j=0;j<rows;j++){
+      if(l&&rnd()<.25) continue;
+      const fg=new THREE.Group(); F.parts.forEach(pt=>{ const m=pt.mat.clone(); if(pt.pal) m.color.set(pt.pal[(rnd()*pt.pal.length)|0]).multiplyScalar(R(.9,1.08)); fg.add(new THREE.Mesh(pt.geo,m)); });
+      fg.position.set((i-(cols-1)/2)*wx+(l?wx*.25:0),fh+(F.h||F.r*1.5)*(l+.55)*(F.lay==='tray'||F.lay==='bunch'?1:.9),(j-(rows-1)/2)*wz);
+      fg.rotation.set(F.lay==='rand'?R(0,6):0,R(0,6.28),F.lay==='rand'?R(0,6):F.lay==='lying'?Math.PI/2:0); g.add(fg);
+    }
+  }
+  g.rotation.y=-.5; thumbScene.add(g); g.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(g), c=box.getCenter(V3(0,0,0)), rad=box.getSize(V3(0,0,0)).length()/2;
+  thumbCam.position.set(c.x+rad*.55*1.8,c.y+rad*1.1,c.z+rad*1.9); thumbCam.lookAt(c);
+  const prevT=renderer.getRenderTarget(), prevA=renderer.getClearAlpha(), prevC=renderer.getClearColor(new THREE.Color());
+  renderer.setRenderTarget(thumbRT); renderer.setClearColor(0x000000,0); renderer.clear(); renderer.render(thumbScene,thumbCam);
+  const buf=new Uint8Array(TS*TS*4); renderer.readRenderTargetPixels(thumbRT,0,0,TS,TS,buf);
+  renderer.setRenderTarget(prevT); renderer.setClearColor(prevC,prevA);
+  const cv=document.createElement('canvas'); cv.width=cv.height=TS; const cx=cv.getContext('2d'), img=cx.createImageData(TS,TS);
+  for(let y=0;y<TS;y++) img.data.set(buf.subarray((TS-1-y)*TS*4,(TS-y)*TS*4),y*TS*4);
+  cx.putImageData(img,0,0); thumbScene.remove(g);
+  return thumbCache[id]=cv.toDataURL();
+}
+const CATALOGO=Object.entries(P).map(([id,p])=>({id,cor:p.box,tag:KB[id].tag,nome:p.name,variante:p.var,preco:p.price,kg:p.kg,embalagem:PACKNAME[p.pack],aliases:KB[id].al,grupo:KB[id].g,cat:KB[id].cat,shelf:KB[id].shelf,tip:KB[id].tip,pair:KB[id].pair,seg:KB[id].seg}));
+let camAnim=null, flashT=0, flashM=null, follow=null;
+// Beto leva o cliente até a bancada: ele anda pelo corredor, a câmera vai atrás e no fim para olhando pro pallet
+function showPallet(id,api,done){
+  const m=pickMeshes.find(x=>x.userData.p===P[id]); if(!m){ done&&done(); return; }
+  const s=Math.abs(m.position.x)>3.8?Math.sign(m.position.x):0;
+  const tx=s?s*2.3:m.position.x, tz=s?m.position.z:m.position.z+3.2;
+  const ty=s?-s*Math.PI/2:0;
+  const arrive=()=>{ follow=null; let d=ty-yaw; d=Math.atan2(Math.sin(d),Math.cos(d)); camAnim={t:0,dur:1.1,fx:camera.position.x,fz:camera.position.z,tx,tz,fy:yaw,ty:yaw+d,fp:pitch,tp:-.32}; flashM=m; flashT=8; setTimeout(()=>done&&done(),1200); };
+  const bp=api&&api.pos&&api.pos();
+  if(!bp){ arrive(); return; }
+  const stop=s?[s*3.0,m.position.z+s*1.35]:[m.position.x+1.3,m.position.z+1.9];
+  const path=[[0,bp.z],[0,stop[1]],stop];
+  follow={api}; flashM=null;
+  api.walkTo(path,arrive);
+}
+const mkVend=window.NewVendedor?NewVendedor.create:()=>({frame(){},tip(){},open(){},isOpen:()=>false}); // sem o molde a loja segue funcionando
+const vend=mkVend({
+  id:'ceasa-beto',nome:'Beto',cargo:'Consultor de frutas',loja:'NEW CEASA',cor:'#8b5cf6',
+  catalogo:CATALOGO,
+  categorias:[
+    {id:'banana',rotulo:'Bananas',emoji:'🍌',palavras:['bananas','banana','bananas'],itens:['banprata','bannanica','banmaca']},
+    {id:'citrus',rotulo:'Citrus',emoji:'🍊',palavras:['citrus','citricos','cítricos','citrica'],itens:['laranja','limao','tanger']},
+    {id:'maca',rotulo:'Maçã e pera',emoji:'🍎',palavras:['maca e pera','macas'],itens:['gala','fuji','pera']},
+    {id:'finas',rotulo:'Uvas e finas',emoji:'🍇',palavras:['uvas e finas','finas','frutas finas','vermelhas'],itens:['uva','morango','kiwi']},
+    {id:'tropical',rotulo:'Melão, mamão e tropicais',emoji:'🥭',palavras:['tropicais','tropical','melao e mamao'],itens:['melancia','melao','mamao','manga','abacaxi','maracuja']},
+    {id:'coco',rotulo:'Coco e pêssego',emoji:'🥥',palavras:['coco e pessego','pessego e coco'],itens:['coco','pessego','goiaba']},
+    {id:'caixaria',rotulo:'Caixaria',emoji:'📦',palavras:['caixaria','caixas vazias','embalagens'],itens:['kcx','pcx','ccx','xepa']},
+  ],
+  segmentos:[
+    {id:'restaurante',destaques:['laranja','limao','mamao','melao','banprata'],rotulo:'Restaurante',emoji:'🍽️',palavras:['restaurante','self service','self-service','marmitaria','marmita','buffet de almoco','almoco','hotel','pousada'],intro:'Restaurante é comigo! O que mais sai é suco, sobremesa e tempero, e o segredo é fruta no ponto certo.'},
+    {id:'mercado',destaques:['banprata','laranja','gala','mamao','manga'],rotulo:'Mercado / sacolão',emoji:'🛒',palavras:['mercado','mercadinho','sacolao','hortifruti','quitanda','feira','varejo','revenda','revender'],intro:'Mercado e sacolão é meu forte. Giro rápido, fruta bonita na bancada e pouca perda.'},
+    {id:'suco',destaques:['laranja','limao','maracuja','abacaxi','morango'],rotulo:'Suco / lanchonete',emoji:'🥤',palavras:['suco','sucos','lanchonete','padaria','acai','cafeteria','vitamina'],intro:'Suco e lanchonete! Aí a fruta rende por litro. Eu te ajudo a montar sem sobrar nem faltar.'},
+    {id:'evento',destaques:['uva','melao','morango','kiwi','abacaxi'],rotulo:'Evento / buffet',emoji:'🎉',palavras:['evento','eventos','buffet','festa','casamento','formatura'],intro:'Evento é diferente: tem que ter variedade e fruta bonita. Eu te ajudo a fechar a lista.'},
+    {id:'casa',destaques:['banprata','laranja','gala'],rotulo:'Casa / outro',emoji:'🏠',palavras:['casa','pessoal','particular','familia','consumo proprio','pra mim'],intro:'Aqui é atacado, a gente vende por caixa. Mas dá pra dividir com vizinho ou levar as que rendem mais.'},
+  ],
+  bundles:{
+    restaurante:[['laranja',2],['limao',1],['mamao',1],['melao',1],['banprata',1]],
+    mercado:[['banprata',3],['laranja',3],['limao',1],['gala',2],['mamao',1],['manga',1]],
+    suco:[['laranja',4],['limao',1],['maracuja',1],['abacaxi',2],['morango',1]],
+    evento:[['uva',2],['melao',1],['morango',1],['kiwi',1],['abacaxi',1],['gala',1]],
+    casa:[['banprata',1],['laranja',1],['gala',1]],
+  },
+  modoPreco:PRICE_MODE, dono:DONO,
+  regras:{min:TABELA?MIN_ORDER:0,freteGratis:TABELA?FREE_ABOVE:0,frete:DELIVERY_FEE,
+    entrega:ENTREGA_TXT,
+    entregaWa:`Pra combinar certinho o dia e a sua região, chama o ${DONO} no WhatsApp.`,
+    pagamento:`Valor e forma de pagamento o ${DONO} combina com você no WhatsApp: PIX, boleto ou prazo pra cliente cadastrado.`},
+  unidade:(it,q)=>it.embalagem.startsWith('Palox')?(q>1?'paloxes':'palox'):it.preco<40&&!it.kg?(q>1?'unidades':'unidade'):(q>1?'caixas':'caixa'),
+  ganchos:{
+    carrinho:()=>[...cart.values()].map(i=>({id:PKEY.get(i.p),q:i.q})),
+    adicionar:(id,q)=>add(P[id],q),
+    remover:id=>{ const k=P[id].name+P[id].var; cart.delete(k); for(let n=order.length-1;n>=0;n--) if(order[n]===k) order.splice(n,1); renderCart(); },
+    whatsapp:extra=>openWA(extra), foto:fotoOf, mostrar:(id,api,done)=>showPallet(id,api,done), fechar:()=>openCheckout(), total:()=>total(),
+  },
+  avatar:{shirt:'#8b5cf6',cap:'#2a1f3d',apronText:'NEW'},
+  three:{THREE,scene,pos:[2.1,0,13.8],pickMeshes,col},
+  onOpen:()=>{ chatOn=true; try{ document.exitPointerLock(); }catch(e){} },
+  onClose:()=>{ chatOn=false; if(!free&&!locked) overlay.style.display='flex'; },
+});
+
+/* ========== controles ========== */
+let chatOn=false;
+let locked=false, free=false, drag=0, yaw=0, pitch=-.04, mx=0, my=0;
+const keys={}, overlay=$('overlay');
+function enterFree(){ free=true; locked=true; overlay.style.display='none'; }
+function enter(){
+  free=false;
+  try{ const p=renderer.domElement.requestPointerLock(); if(p&&p.catch) p.catch(()=>{ if(!locked) enterFree(); }); }catch(e){ enterFree(); return; }
+  setTimeout(()=>{ if(!locked) enterFree(); },500);
+}
+overlay.addEventListener('click',enter);
+document.addEventListener('pointerlockchange',()=>{ if(free) return; locked=document.pointerLockElement===renderer.domElement; overlay.style.display=(locked||modalOn||chatOn)?'none':'flex'; });
+document.addEventListener('mousemove',e=>{
+  const onUi=e.target.closest&&e.target.closest('#cart,#pc');
+  mx=onUi?0:e.clientX/innerWidth*2-1; my=onUi?0:e.clientY/innerHeight*2-1;
+  if(!locked||modalOn||chatOn) return;
+  if(free){ if(!(e.buttons&1)) return; drag+=Math.abs(e.movementX)+Math.abs(e.movementY); }
+  yaw-=e.movementX*.0022; pitch=Math.max(-1.35,Math.min(1.35,pitch-e.movementY*.0022));
+});
+addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(modalOn){ if(e.code==='Escape') closeCO(); return; }
+  if(FROM_RUA&&e.code==='KeyV'){ location.href=RUA_URL; return; }
+  if(free&&e.code==='Escape'){ free=false; locked=false; overlay.style.display='flex'; }
+  if(!locked) return;
+  if(chatOn) return;
+  if(e.code==='KeyE') act();
+  if(e.code==='KeyQ') removeLast();
+  if(e.code==='KeyF') openCheckout();
+});
+const act=()=>{ if(!hov||chatOn||modalOn) return; if(hov.userData.vendor) vend.open(); else add(hov.userData.p,1); };
+addEventListener('mousedown',e=>{ if(e.target.closest&&e.target.closest('#cart,#pc,#modal,#voltar')) return; if(free) drag=0; else if(locked) act(); });
+addEventListener('mouseup',e=>{ if(free&&locked&&drag<6&&!(e.target.closest&&e.target.closest('#cart,#pc,#modal,#voltar'))) act(); });
+addEventListener('keyup',e=>keys[e.code]=false);
+const hit=(x,z)=>{ const r=.32; return x<ROOM.x0+r||x>ROOM.x1-r||z<ROOM.z0+r||z>ROOM.z1-r||colliders.some(c=>x>c.x0-r&&x<c.x1+r&&z>c.z0-r&&z<c.z1+r); };
+
+/* ========== loop ========== */
+const clock=new THREE.Clock(), fwd=new THREE.Vector3(), rgt=new THREE.Vector3(), ray=new THREE.Raycaster(); ray.far=7;
+let bob=0, rc=0, hov=null;
+function frame(){
+  requestAnimationFrame(frame);
+  const dt=Math.min(clock.getDelta(),.05);
+  if(follow){ const bp=follow.api.pos(), hd=follow.api.heading(); if(bp){ const k=Math.min(1,dt*2.6); const tx=bp.x-hd.x*2.5-hd.z*.55, tz=bp.z-hd.z*2.5+hd.x*.55; camera.position.x+=(tx-camera.position.x)*k; camera.position.z+=(tz-camera.position.z)*k;
+    const lx=bp.x+hd.x*1.6, lz=bp.z+hd.z*1.6; const ty=Math.atan2(-(lx-camera.position.x),-(lz-camera.position.z)); let d=ty-yaw; d=Math.atan2(Math.sin(d),Math.cos(d)); yaw+=d*Math.min(1,dt*3); pitch+=(-.12-pitch)*Math.min(1,dt*3); } }
+  if(camAnim){ const a=camAnim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<.5?2*a.t*a.t:1-Math.pow(-2*a.t+2,2)/2; camera.position.x=a.fx+(a.tx-a.fx)*e; camera.position.z=a.fz+(a.tz-a.fz)*e; yaw=a.fy+(a.ty-a.fy)*e; pitch=a.fp+(a.tp-a.fp)*e; if(a.t>=1) camAnim=null; }
+  if(free&&locked&&!modalOn&&!chatOn&&!camAnim&&!follow){ const dz=v=>Math.abs(v)<.12?0:(v-Math.sign(v)*.12)/.88; yaw-=dz(mx)*dt*2.4; pitch=Math.max(-1.35,Math.min(1.35,pitch-dz(my)*dt*1.6)); }
+  let moving=false;
+  if(locked&&!modalOn&&!chatOn&&!camAnim&&!follow){
+    const sp=(keys.ShiftLeft||keys.ShiftRight?5.5:3.2)*dt;
+    const f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0), r=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);
+    fwd.set(-Math.sin(yaw),0,-Math.cos(yaw)); rgt.set(Math.cos(yaw),0,-Math.sin(yaw));
+    const dx=(fwd.x*f+rgt.x*r)*sp, dzz=(fwd.z*f+rgt.z*r)*sp;
+    if(dx||dzz){ moving=true; bob+=dt*(keys.ShiftLeft?11:8); }
+    if(!hit(camera.position.x+dx,camera.position.z)) camera.position.x+=dx;
+    if(!hit(camera.position.x,camera.position.z+dzz)) camera.position.z+=dzz;
+  }
+  camera.position.y=1.65+(moving?Math.sin(bob)*.016:0);
+  camera.rotation.set(pitch,yaw,0);
+  vend.frame(dt,camera.position);
+  if(flashT>0){ flashT-=dt; if(chatOn&&flashM){ outline.visible=true; outline.position.copy(flashM.position); outline.quaternion.copy(flashM.quaternion); outline.scale.set(1.04,flashM.userData.h+.02,1.26); outline.position.y=flashM.userData.h/2; } }
+  if(modalOn||chatOn){ hideCard(); vend.tip(false); if(!(chatOn&&flashT>0)) outline.visible=false; hov=null; }
+  else if(locked&&(rc++&1)===0){
+    ray.setFromCamera({x:0,y:0},camera);
+    const h=ray.intersectObjects(pickMeshes,false)[0];
+    hov=h?h.object:null;
+    if(hov&&hov.userData.vendor){ hideCard(); vend.tip(true); $('cross').classList.add('hot'); outline.visible=false; }
+    else if(hov){ vend.tip(false); showCard(hov.userData.p); $('cross').classList.add('hot'); outline.visible=true; outline.position.copy(hov.position); outline.quaternion.copy(hov.quaternion); outline.scale.set(1.04,hov.userData.h+.02,1.26); outline.position.y=hov.userData.h/2; }
+    else { hideCard(); vend.tip(false); $('cross').classList.remove('hot'); outline.visible=false; }
+  }
+  renderer.render(scene,camera);
+}
+frame();
+window.__dbg={ add:(id,q=1)=>add(P[id],q), open:()=>openCheckout(), go:(x,z,y,p)=>{ camera.position.x=x; camera.position.z=z; yaw=y; pitch=p; locked=true; free=false; overlay.style.display='none'; }, info:()=>({calls:renderer.info.render.calls,tris:renderer.info.render.triangles,pick:pickMeshes.length,bags:bags.reduce((a,b)=>a+b.m.length,0)}), pose:()=>({x:camera.position.x,z:camera.position.z,yaw,pitch}) };
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+
+if(window.NewPerf) NewPerf.attach(renderer,scene);
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Ignore all directories and files by default
+/*
+
+# Whitelist 3D World Ecosystem (Mundo NEW / NEX)
+!/mundo/
+!/roupas-3d/
+!/mercado-3d/
+!/ceasa-3d/
+!/pet-3d/
+!/sede-3d/
+!/nex-3d/
+!/criador-3d/
+!/loja-cliente/
+!/shared/
+!/abrir-lojas.bat
+!/index.html
+!/README.md
+!/.gitignore
+
+# Ignore backups, logs and temporary files
+*.backup.html
+*.tmp
+*.log
+*.ps1
+scratch/
+.DS_Store
+Thumbs.db

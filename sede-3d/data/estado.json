@@ -1,0 +1,90 @@
+{
+ "v": 1793303219267,
+ "pausa": false,
+ "meta": {
+  "reunioesDia": 3,
+  "criadoEm": 1793286567343,
+  "dias": 7
+ },
+ "alvo": {
+  "nicho": "advogados",
+  "cidade": "Jundiaí",
+  "canal": "whatsapp"
+ },
+ "reunioes": [],
+ "tarefas": [
+  {
+   "id": "T1kd2q",
+   "titulo": "Garimpar advogados de Jundiaí no Google Maps",
+   "detalhe": "Pelo Chrome, ritmo humano.",
+   "dono": "prospeccao",
+   "tipo": "ler",
+   "status": "feita",
+   "criadoEm": 1793282967343,
+   "feitoEm": 1793286567343,
+   "resultado": "2 buscas no Maps: 14 escritórios (lista em data/leads-advogados-jundiai.txt). Todos já têm site, então a oferta mudou."
+  },
+  {
+   "id": "T2pswd",
+   "titulo": "Preparar abordagens (Análise gratuita + Instagram/IA)",
+   "detalhe": "Oferta nova para advogados, sem site na pauta.",
+   "dono": "vendas",
+   "tipo": "preparar",
+   "status": "feita",
+   "criadoEm": 1793282967343,
+   "feitoEm": 1793286567343,
+   "resultado": "8 abordagens em data/rascunhos/abordagens-advogados-jundiai.md (rascunho, nada enviado)."
+  },
+  {
+   "id": "T3ph4d",
+   "titulo": "Escrever 3 ideias de post/Reels para o Instagram da NEX",
+   "detalhe": "Educativo, sem promessa, dentro das regras da OAB quando falar com advogados.",
+   "dono": "conteudo",
+   "tipo": "preparar",
+   "status": "feita",
+   "criadoEm": 1793282967343,
+   "feitoEm": 1793286567343,
+   "resultado": "3 ideias em data/rascunhos/conteudo-advogados.md."
+  },
+  {
+   "id": "T44a6w",
+   "titulo": "Enviar o lote de 8 abordagens (WhatsApp)",
+   "detalhe": "Enviar 2 a 3 por vez, com intervalo, começando pelos menores. Texto em data/rascunhos/abordagens-advogados-jundiai.md. Só depois do OK do chefe.",
+   "dono": "vendas",
+   "tipo": "enviar",
+   "status": "pendente",
+   "criadoEm": 1793282967343,
+   "feitoEm": null,
+   "resultado": ""
+  },
+  {
+   "id": "T57vli",
+   "titulo": "Ver respostas e atualizar quem respondeu",
+   "detalhe": "Depois do envio: marcar quem respondeu, quem pediu análise e quem descartou.",
+   "dono": "vendas",
+   "tipo": "ler",
+   "status": "aprovada",
+   "criadoEm": 1793282967343,
+   "feitoEm": null,
+   "resultado": ""
+  }
+ ],
+ "log": [
+  {
+   "t": 1793283067343,
+   "txt": "Chefe mudou a oferta para advogados: Análise Estratégica gratuita + Instagram/IA (em vez de site)"
+  },
+  {
+   "t": 1793283567343,
+   "txt": "Executor (Claude): garimpo concluído, 14 escritórios"
+  },
+  {
+   "t": 1793284567343,
+   "txt": "Executor (Claude): 8 abordagens preparadas (rascunho)"
+  },
+  {
+   "t": 1793285567343,
+   "txt": "Executor (Claude): 3 ideias de conteúdo preparadas (rascunho)"
+  }
+ ]
+}

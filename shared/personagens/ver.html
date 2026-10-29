@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><title>Ver modelo</title>
+<style>html,body{margin:0;height:100%;background:#2a2140;overflow:hidden}#i{position:fixed;left:10px;top:10px;color:#fff;font:13px system-ui}</style>
+<div id="i">carregando…</div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+const q=new URLSearchParams(location.search), file=q.get('f')||'ravi-rosto.glb';
+const r=new THREE.WebGLRenderer({antialias:true}); r.setSize(innerWidth,innerHeight); r.setPixelRatio(Math.min(devicePixelRatio,2)); document.body.append(r.domElement);
+const s=new THREE.Scene(); s.background=new THREE.Color('#2a2140'); s.environment=new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(),.04).texture;
+const c=new THREE.PerspectiveCamera(35,innerWidth/innerHeight,.05,100); c.position.set(0,1.2,5); if(q.get('side')) c.position.set(5,1.1,0);
+const o=new OrbitControls(c,r.domElement); o.target.set(0,.95,0); o.update();
+s.add(new THREE.HemisphereLight('#fff','#887',1.2));
+new GLTFLoader().load(file,g=>{ const m=g.scene; const b=new THREE.Box3().setFromObject(m), sz=b.getSize(new THREE.Vector3()); if(!/rig/.test(file)){ const k=1.8/sz.y; m.scale.setScalar(k); b.setFromObject(m); m.position.y-=b.min.y; m.position.x-=(b.min.x+b.max.x)/2; } s.add(m); let tris=0,bones=0; m.traverse(n=>{ if(n.isMesh) tris+=(n.geometry.index?n.geometry.index.count:n.geometry.attributes.position.count)/3; if(n.isBone) bones++; }); document.getElementById('i').textContent=file+' · '+Math.round(tris)+' tris · '+bones+' bones · anims '+g.animations.length; window.__m=m; window.__ok=true; if(g.animations.length){ window.__mx=new THREE.AnimationMixer(m); window.__acts={}; g.animations.forEach(a=>window.__acts[a.name]=window.__mx.clipAction(a)); const an=q.get('a')||g.animations[0].name; (window.__acts[an]||Object.values(window.__acts)[0]).play(); document.getElementById('i').textContent+=' · '+g.animations.map(a=>a.name).join(',')+' · tocando '+an; } },undefined,e=>document.getElementById('i').textContent='erro '+e);
+const clk=new THREE.Clock(); (function loop(){ requestAnimationFrame(loop); if(window.__mx) window.__mx.update(clk.getDelta()); r.render(s,c); })();
+</script>
