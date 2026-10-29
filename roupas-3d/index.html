@@ -3,390 +3,420 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NEW WEAR · Flagship Store (Nike & Genuine Leather)</title>
+<title>NEW WEAR · Virtual Store 2026 (Nike & Genuine Leather)</title>
 <style>
   :root {
-    --bg: #07060b;
-    --fg: #f5f5f7;
-    --acc-gold: #c9b27a;
-    --acc-gold-light: #dfca93;
-    --acc-nike: #ff4600;
-    --acc-purple: #a78bfa;
-    --glass: rgba(14, 12, 22, 0.78);
-    --glass-border: rgba(255, 255, 255, 0.09);
+    --bg-gallery: #f3f1ec;
+    --wall-col: #f0ece3;
+    --floor-col: #e3dfd5;
+    --text-primary: #111111;
+    --text-muted: #71717a;
+    --accent-gold: #c9b27a;
+    --accent-green: #16a34a;
+    --pill-bg: rgba(255, 255, 255, 0.85);
+    --pill-border: rgba(0, 0, 0, 0.08);
+    --card-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.12);
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; overflow: hidden; }
-  canvas { display: block; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--bg-gallery); color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    user-select: none; -webkit-user-select: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; outline: none; }
 
-  /* Glassmorphism Profundo (Padrão Rafael) */
-  .glass {
-    background: var(--glass);
-    backdrop-filter: blur(28px) saturate(1.9);
-    -webkit-backdrop-filter: blur(28px) saturate(1.9);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(201, 178, 122, 0.06);
+  /* ========== HEADER MINIMALISTA ESTILO NIKE SHOWROOM ========== */
+  #header {
+    position: fixed; top: 22px; left: 24px; right: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    pointer-events: none; z-index: 20;
   }
-
-  /* Mira Central */
-  #cross {
-    position: fixed; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px;
-    border-radius: 50%; background: rgba(255, 255, 255, 0.85);
-    pointer-events: none; transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s ease;
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6); z-index: 5;
+  .brand-area {
+    display: flex; align-items: center; gap: 14px; pointer-events: auto;
   }
-  #cross.hot {
-    background: var(--acc-gold);
-    transform: scale(2.4);
-    box-shadow: 0 0 20px var(--acc-gold);
+  .brand-logo-text {
+    display: flex; flex-direction: column;
   }
-
-  /* Header Superior com Marca e Status */
-  #topbar {
-    position: fixed; left: 24px; top: 24px; display: flex; align-items: center; gap: 16px;
-    padding: 12px 22px; z-index: 6; pointer-events: auto;
+  .brand-title {
+    font-size: 19px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px; color: #111;
   }
-  .brand-logo {
-    display: flex; align-items: center; gap: 10px; font-weight: 900; letter-spacing: 0.14em;
-    font-size: 15px; text-transform: uppercase; color: #ffffff;
-  }
-  .brand-logo span { color: var(--acc-gold); }
-  .brand-pill {
-    font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 99px;
-    background: rgba(201, 178, 122, 0.16); color: var(--acc-gold); border: 1px solid rgba(201, 178, 122, 0.35);
-    letter-spacing: 0.1em; text-transform: uppercase;
+  .brand-title svg { height: 14px; fill: #111; }
+  .brand-sub {
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+    color: #71717a; margin-top: 1px;
   }
 
-  /* Botão Voltar para Rua */
-  #voltar {
-    position: fixed; left: 24px; bottom: 24px; padding: 12px 22px; font-size: 13px;
-    font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center;
-    gap: 10px; z-index: 6; transition: transform 0.18s, border-color 0.18s;
+  .header-actions {
+    display: flex; align-items: center; gap: 10px; pointer-events: auto;
   }
-  #voltar:hover { transform: translateY(-2px); border-color: rgba(201, 178, 122, 0.4); }
-  #voltar kbd {
-    background: rgba(255, 255, 255, 0.12); padding: 3px 8px; border-radius: 6px;
-    font-size: 11px; font-family: monospace; color: var(--acc-gold);
+  .btn-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 99px;
+    background: var(--pill-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--pill-border); color: #111;
+    font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), background 0.18s, box-shadow 0.18s;
   }
-
-  /* Carrinho HUD de Alta Tecnologia */
-  #cart {
-    position: fixed; right: 24px; top: 24px; width: 310px; padding: 20px 22px;
-    font-size: 13.5px; z-index: 6; pointer-events: none;
+  .btn-pill:hover {
+    transform: translateY(-2px); background: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
-  #cart h3 {
-    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--acc-gold); margin-bottom: 14px; font-weight: 800;
-    display: flex; align-items: center; gap: 8px;
-  }
-  #cart h3::before {
-    content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: #22c55e; box-shadow: 0 0 12px #22c55e;
-  }
-  #cart .items-list { max-height: 220px; overflow-y: auto; pointer-events: auto; }
-  .cart-row {
-    display: flex; align-items: center; gap: 10px; padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 13px;
-  }
-  .cart-row img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; background: #000; }
-  .cart-row .info { flex: 1; }
-  .cart-row .title { font-weight: 700; font-size: 12.5px; line-height: 1.25; color: #fff; }
-  .cart-row .sub { font-size: 11px; opacity: 0.65; margin-top: 2px; }
-  .cart-row .price { font-weight: 800; font-size: 13px; color: var(--acc-gold); }
-  #cart .tot {
-    border-top: 1px solid rgba(255, 255, 255, 0.14); margin-top: 12px; padding-top: 12px;
-    font-weight: 900; font-size: 16px; display: flex; justify-content: space-between; color: #fff;
-  }
-  #cart .btn-checkout {
-    margin-top: 14px; width: 100%; padding: 13px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--acc-gold), var(--acc-gold-light));
-    border: 0; color: #0c0b11; font-weight: 900; font-size: 13px; letter-spacing: 0.08em;
-    text-transform: uppercase; cursor: pointer; pointer-events: auto;
-    box-shadow: 0 0 24px rgba(201, 178, 122, 0.35); transition: transform 0.15s, filter 0.15s;
-  }
-  #cart .btn-checkout:hover { transform: scale(1.02); filter: brightness(1.1); }
-
-  /* Instruções de Navegação Inferiores */
-  #hints {
-    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
-    padding: 10px 22px; font-size: 12px; letter-spacing: 0.04em; pointer-events: none; z-index: 5;
-    opacity: 0.85; display: flex; align-items: center; gap: 12px;
-  }
-  #hints kbd {
-    background: rgba(255, 255, 255, 0.12); padding: 3px 8px; border-radius: 6px;
-    font-size: 11px; font-family: monospace; color: #fff; border: 1px solid rgba(255, 255, 255, 0.15);
+  .btn-pill .badge {
+    background: #111; color: #fff; font-size: 10px; font-weight: 800;
+    padding: 2px 7px; border-radius: 99px;
   }
 
-  /* Toast Notification */
-  #toast {
-    position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 12px);
-    padding: 12px 26px; opacity: 0; transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none; font-size: 13.5px; font-weight: 700; z-index: 12;
-    border-color: rgba(201, 178, 122, 0.35); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+  /* ========== BARRA DE NAVEGAÇÃO INFERIOR POR ABAS (EXATA DO VÍDEO) ========== */
+  #nav-bar {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 4px; padding: 5px;
+    background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 0, 0, 0.07); border-radius: 99px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    z-index: 20; pointer-events: auto; transition: opacity 0.25s, transform 0.25s;
   }
-  #toast.on { opacity: 1; transform: translate(-50%, 0); }
+  #nav-bar.hidden {
+    opacity: 0; pointer-events: none; transform: translate(-50%, 15px);
+  }
+  .nav-tab {
+    padding: 8px 18px; border-radius: 99px; font-size: 13px; font-weight: 700;
+    color: #52525b; border: 0; background: transparent; cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .nav-tab:hover { color: #111; background: rgba(0, 0, 0, 0.04); }
+  .nav-tab.active {
+    background: #111111; color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  }
+  .nav-tab.info-tab {
+    width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 12px; font-family: serif; font-weight: 900;
+  }
 
-  /* Overlay de Entrada Cinematográfico (Padrão Rafael) */
-  #overlay {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: #07060b; cursor: pointer; z-index: 20; transition: opacity 0.4s ease;
+  /* Dica Flutuante de Rotação 360 no Modo Foco */
+  #rotate-hint {
+    position: fixed; left: 50px; bottom: 34px;
+    display: flex; align-items: center; gap: 9px;
+    font-size: 12px; font-weight: 600; color: #71717a;
+    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px);
+    padding: 7px 15px; border-radius: 99px; border: 1px solid rgba(0, 0, 0, 0.06);
+    pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 15;
   }
-  .halo-glow {
-    position: absolute; width: 620px; height: 620px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(201, 178, 122, 0.22) 0%, rgba(255, 70, 0, 0.12) 40%, transparent 70%);
-    filter: blur(85px); pointer-events: none; animation: pulseHalo 5s ease-in-out infinite alternate;
-  }
-  @keyframes pulseHalo {
-    0% { transform: scale(0.92); opacity: 0.65; }
-    100% { transform: scale(1.15); opacity: 0.95; }
-  }
-  #overlay .box {
-    position: relative; text-align: center; padding: 54px 64px; max-width: 560px;
-    border-radius: 32px;
-  }
-  .tag-badge {
-    display: inline-block; padding: 6px 16px; border-radius: 99px;
-    background: rgba(201, 178, 122, 0.15); border: 1px solid rgba(201, 178, 122, 0.35);
-    color: var(--acc-gold); font-size: 11px; font-weight: 800; letter-spacing: 0.16em;
-    text-transform: uppercase; margin-bottom: 20px;
-  }
-  #overlay h1 {
-    font-size: 44px; font-weight: 900; margin-bottom: 12px; letter-spacing: 0.04em; color: #ffffff;
-  }
-  #overlay h1 span { color: var(--acc-gold); }
-  #overlay p { opacity: 0.85; margin: 12px 0 28px; font-size: 15px; line-height: 1.6; }
-  .btn-rafael {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    padding: 16px 40px; border-radius: 99px; background: linear-gradient(135deg, var(--acc-gold), var(--acc-gold-light));
-    color: #0c0b11; font-weight: 900; font-size: 14.5px; letter-spacing: 0.08em;
-    text-transform: uppercase; border: 0; cursor: pointer;
-    box-shadow: 0 0 40px rgba(201, 178, 122, 0.45); transition: transform 0.18s, filter 0.18s;
-  }
-  .btn-rafael:hover { transform: scale(1.04); filter: brightness(1.12); }
+  #rotate-hint.on { opacity: 1; }
+  #rotate-hint svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 
-  /* Ficha de Produto Disruptiva (#pc) - Foto Real de Estúdio */
-  #pc {
-    position: fixed; left: 24px; bottom: 84px; width: 440px; max-height: calc(100vh - 120px);
-    overflow-y: auto; padding: 0; display: none; z-index: 10; pointer-events: none;
-    transition: opacity 0.2s, transform 0.2s;
+  /* Tooltip Flutuante no Hover da Peça */
+  #item-tag {
+    position: fixed; pointer-events: none; z-index: 18; opacity: 0;
+    transform: translate(-50%, -100%) translateY(-14px);
+    padding: 6px 14px; border-radius: 99px;
+    background: rgba(17, 17, 17, 0.92); color: #ffffff;
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    white-space: nowrap;
   }
-  #pc.on { display: block; pointer-events: auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .pc-hero {
-    position: relative; width: 100%; height: 260px; border-radius: 20px 20px 0 0;
-    overflow: hidden; background: #000000;
-  }
-  .pc-hero img {
-    width: 100%; height: 100%; object-fit: cover; object-position: center;
-    transition: transform 0.4s ease;
-  }
-  #pc:hover .pc-hero img { transform: scale(1.05); }
-  .pc-badge {
-    position: absolute; top: 16px; left: 16px; padding: 5px 12px; border-radius: 99px;
-    background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15); color: var(--acc-gold);
-    font-size: 10.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
-  }
-  .pc-close {
-    position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(0, 0, 0, 0.65); border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s, transform 0.15s;
-  }
-  .pc-close:hover { background: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
-  .pc-content { padding: 22px 24px; }
-  .pc-brand { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--acc-gold); }
-  .pc-title { font-size: 20px; font-weight: 800; color: #fff; margin: 4px 0 8px; line-height: 1.3; }
-  .pc-price { font-size: 24px; font-weight: 900; color: #facc15; margin-bottom: 12px; }
-  .pc-desc { font-size: 13px; line-height: 1.6; opacity: 0.82; margin-bottom: 16px; }
-  .pc-specs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
-  .pc-specs span {
-    font-size: 11px; padding: 4px 10px; border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);
-    opacity: 0.9;
-  }
-  .pc-sizes-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-bottom: 8px; }
-  .pc-sizes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-  .pc-size-btn {
-    min-width: 42px; height: 38px; padding: 0 10px; border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s;
-  }
-  .pc-size-btn:hover { border-color: var(--acc-gold); background: rgba(201, 178, 122, 0.15); }
-  .pc-size-btn.active {
-    background: var(--acc-gold); color: #000; border-color: var(--acc-gold);
-    box-shadow: 0 0 16px rgba(201, 178, 122, 0.4);
-  }
-  .pc-actions { display: flex; gap: 12px; align-items: center; }
-  .pc-qty {
-    display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px; background: rgba(0, 0, 0, 0.3); height: 44px;
-  }
-  .pc-qty button {
-    width: 38px; height: 100%; border: 0; background: transparent; color: #fff;
-    font-size: 16px; cursor: pointer; font-weight: 700;
-  }
-  .pc-qty span { min-width: 28px; text-align: center; font-weight: 800; font-size: 14px; }
-  .btn-add {
-    flex: 1; height: 44px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--acc-gold), var(--acc-gold-light));
-    border: 0; color: #0c0b11; font-weight: 900; font-size: 13.5px; letter-spacing: 0.06em;
-    text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    gap: 8px; box-shadow: 0 0 24px rgba(201, 178, 122, 0.3); transition: transform 0.15s;
-  }
-  .btn-add:hover { transform: scale(1.02); }
+  #item-tag.on { opacity: 1; transform: translate(-50%, -100%) translateY(-18px); }
 
-  /* Modal de Checkout */
-  #modal {
-    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-    background: rgba(4, 3, 7, 0.82); backdrop-filter: blur(20px); z-index: 30;
+  /* ========== HERO PRODUCT CARD FLUTUANTE (EXATO DO VÍDEO - SEC 20) ========== */
+  #hero-card {
+    position: fixed; right: 42px; top: 50%; transform: translateY(-50%) translateX(40px);
+    width: 370px; background: #ffffff; border-radius: 28px;
+    padding: 32px 30px; box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0, 0, 0, 0.06); z-index: 25;
+    opacity: 0; pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  #modal.on { display: flex; }
-  .co-dialog {
-    width: 90%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 36px 40px;
-    position: relative;
+  #hero-card.on {
+    opacity: 1; pointer-events: auto;
+    transform: translateY(-50%) translateX(0);
   }
-  .co-close {
-    position: absolute; top: 22px; right: 24px; width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  .card-top {
+    display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px;
   }
-  .co-dialog h2 { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 24px; }
-  .co-dialog h2 span { color: var(--acc-gold); }
-  .form-group { margin-bottom: 18px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; margin-bottom: 6px; }
+  .card-category {
+    font-size: 12px; font-weight: 700; color: #a1a1aa; text-transform: capitalize; letter-spacing: 0.02em;
+  }
+  .btn-close-card {
+    width: 30px; height: 30px; border-radius: 50%; border: 0; background: #f4f4f5;
+    color: #71717a; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-close-card:hover { background: #e4e4e7; color: #111; }
+
+  .card-title {
+    font-size: 21px; font-weight: 800; color: #111; line-height: 1.25; margin-bottom: 8px;
+  }
+  .card-price {
+    font-size: 17px; font-weight: 800; color: #111; margin-bottom: 3px;
+  }
+  .card-colorway {
+    font-size: 12px; color: #71717a; margin-bottom: 24px;
+  }
+
+  .size-section-title {
+    font-size: 12.5px; font-weight: 700; color: #111; margin-bottom: 10px;
+  }
+  .size-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px;
+  }
+  .size-btn {
+    height: 42px; border-radius: 12px; border: 1px solid #e4e4e7; background: #ffffff;
+    font-size: 13px; font-weight: 700; color: #111; cursor: pointer;
+    transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .size-btn:hover { border-color: #111; background: #fafafa; }
+  .size-btn.active {
+    background: #111111; color: #ffffff; border-color: #111111;
+  }
+
+  /* Botão Primário "Add to Cart" -> "Added to cart ✓" */
+  .btn-add-cart {
+    width: 100%; height: 50px; border-radius: 99px; border: 0;
+    background: #111111; color: #ffffff; font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+  .btn-add-cart:hover {
+    transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  }
+  .btn-add-cart.added {
+    background: var(--accent-green); color: #ffffff;
+    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.35);
+  }
+
+  .link-view-cart {
+    display: block; text-align: center; margin-top: 14px;
+    font-size: 12.5px; font-weight: 600; color: #71717a; text-decoration: none; cursor: pointer;
+    transition: color 0.15s;
+  }
+  .link-view-cart:hover { color: #111; }
+
+  /* ========== GAVETA LATERAL DO CARRINHO (DRAWER) ========== */
+  #cart-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 90vw;
+    background: #ffffff; box-shadow: -20px 0 60px rgba(0, 0, 0, 0.15);
+    z-index: 35; display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #cart-drawer.open { transform: translateX(0); }
+  .cart-header {
+    padding: 24px 28px; border-bottom: 1px solid #f4f4f5;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-header h3 { font-size: 18px; font-weight: 800; color: #111; }
+  .cart-items-body {
+    flex: 1; overflow-y: auto; padding: 20px 28px;
+  }
+  .cart-empty {
+    text-align: center; padding: 60px 0; color: #a1a1aa; font-size: 14px;
+  }
+  .cart-item-row {
+    display: flex; gap: 16px; padding: 16px 0; border-bottom: 1px solid #f4f4f5;
+    align-items: center;
+  }
+  .cart-item-thumb {
+    width: 64px; height: 64px; border-radius: 12px; object-fit: cover; background: #f4f4f5;
+  }
+  .cart-item-info { flex: 1; }
+  .cart-item-title { font-size: 13.5px; font-weight: 700; color: #111; line-height: 1.3; }
+  .cart-item-meta { font-size: 11.5px; color: #71717a; margin-top: 3px; }
+  .cart-item-price { font-size: 13.5px; font-weight: 800; color: #111; margin-top: 5px; }
+  .cart-item-del {
+    background: transparent; border: 0; color: #a1a1aa; cursor: pointer; padding: 6px; font-size: 16px;
+  }
+  .cart-item-del:hover { color: #dc2626; }
+
+  .cart-footer {
+    padding: 24px 28px; border-top: 1px solid #f4f4f5; background: #fafafa;
+  }
+  .cart-total-row {
+    display: flex; justify-content: space-between; font-size: 17px; font-weight: 800;
+    color: #111; margin-bottom: 18px;
+  }
+  .btn-checkout-final {
+    width: 100%; height: 50px; border-radius: 99px; border: 0;
+    background: #111; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); transition: transform 0.16s, background 0.16s;
+  }
+  .btn-checkout-final:hover { transform: scale(1.02); background: #000; }
+
+  /* Modal de Checkout / Pix */
+  #checkout-modal {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px);
+    z-index: 50; display: none; align-items: center; justify-content: center;
+  }
+  #checkout-modal.open { display: flex; }
+  .modal-box {
+    width: 90%; max-width: 480px; background: #fff; border-radius: 28px; padding: 36px;
+    box-shadow: var(--card-shadow);
+  }
+  .modal-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+  .modal-box p { font-size: 13.5px; color: #71717a; margin-bottom: 22px; }
+  .form-field { margin-bottom: 14px; text-align: left; }
+  .form-field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #71717a; margin-bottom: 5px; }
   .form-input {
-    width: 100%; height: 48px; border-radius: 10px; background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.14); padding: 0 16px; color: #fff; font-size: 14px;
-    outline: none; transition: border-color 0.15s;
+    width: 100%; height: 46px; padding: 0 16px; border-radius: 12px; border: 1px solid #e4e4e7;
+    font-size: 14px; outline: none; transition: border-color 0.15s;
   }
-  .form-input:focus { border-color: var(--acc-gold); }
-  .pay-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
-  .pay-btn {
-    padding: 14px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; cursor: pointer;
-    font-size: 13px; font-weight: 700; text-align: center; transition: all 0.15s;
+  .form-input:focus { border-color: #111; }
+
+  /* Backdrop blur para fechar Drawer */
+  #drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(4px);
+    z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.3s;
   }
-  .pay-btn:hover { border-color: var(--acc-gold); }
-  .pay-btn.active {
-    background: rgba(201, 178, 122, 0.15); border-color: var(--acc-gold); color: var(--acc-gold);
+  #drawer-backdrop.on { opacity: 1; pointer-events: auto; }
+
+  /* Toast de Notificação Minimalista */
+  #toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: #111111; color: #ffffff; padding: 10px 22px; border-radius: 99px;
+    font-size: 12.5px; font-weight: 700; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    opacity: 0; pointer-events: none; z-index: 40; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .btn-confirm {
-    width: 100%; height: 50px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--acc-gold), var(--acc-gold-light));
-    border: 0; color: #0c0b11; font-weight: 900; font-size: 15px; letter-spacing: 0.08em;
-    text-transform: uppercase; cursor: pointer; box-shadow: 0 0 30px rgba(201, 178, 122, 0.4);
+  #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Overlay de Informações (ℹ) */
+  #info-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center; z-index: 50;
   }
+  #info-modal.open { display: flex; }
 </style>
 </head>
 <body>
 
-<div id="cross"></div>
+<!-- Header Superior -->
+<header id="header">
+  <div class="brand-area">
+    <div class="brand-logo-text">
+      <div class="brand-title">
+        <span>NEW WEAR</span>
+        <svg viewBox="0 0 24 24"><path d="M21.707 5.293a1 1 0 0 0-1.414 0L9 16.586l-4.293-4.293a1 1 0 0 0-1.414 1.414l5 5a1 1 0 0 0 1.414 0l12-12a1 1 0 0 0 0-1.414z" style="display:none"/><path d="M21.71 7.29c-.39-.39-1.02-.39-1.41 0L9 18.59l-4.29-4.3a.996.996 0 1 0-1.41 1.41l5 5c.39.39 1.02.39 1.41 0L21.71 8.7a.996.996 0 0 0 0-1.41z" style="display:none"/><path d="M21.9 8.2c-.3-.4-1.2-1.2-3.4-.8-2.6.5-6.8 2.8-10.4 6-2.5 2.2-4.5 4.7-5.7 6.4-.3.4-.1 1 .4 1.1.2 0 .4 0 .6-.1 3.5-1.7 8.7-4.8 13.5-9.1 2.3-2.1 4.7-2.9 5-3.5z"/></svg>
+      </div>
+      <div class="brand-sub">VIRTUAL SHOWROOM 2026</div>
+    </div>
+  </div>
 
-<!-- Topbar com Logo e Tag -->
-<div id="topbar" class="glass">
-  <div class="brand-logo">NEW <span>WEAR</span></div>
-  <div class="brand-pill">Nike · Jordan · Leather Flagship</div>
+  <div class="header-actions">
+    <a href="../mundo/index.html?rua=1" class="btn-pill" id="btn-voltar">
+      <span>← Rua NEW</span>
+    </a>
+    <button class="btn-pill" id="btn-open-cart">
+      <span>Sacola</span>
+      <span class="badge" id="cart-badge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- Tooltip do Hover -->
+<div id="item-tag">Nike Tech Fleece</div>
+
+<!-- Dica de Rotação 360 -->
+<div id="rotate-hint">
+  <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8M21 3v5h-5"/></svg>
+  <span>Arraste para girar 360°</span>
 </div>
 
-<!-- Botão Voltar para Rua -->
-<a id="voltar" class="glass" href="../mundo/index.html?rua=1">← Voltar pra avenida <kbd>V</kbd></a>
+<!-- Hero Product Card (Exato do Vídeo) -->
+<div id="hero-card">
+  <div class="card-top">
+    <div class="card-category" id="card-cat">Clothing</div>
+    <button class="btn-close-card" id="btn-close-card">✕</button>
+  </div>
+  <h2 class="card-title" id="card-title">Nike Tech Fleece Windrunner Full-Zip Jacket</h2>
+  <div class="card-price" id="card-price">R$ 649,90</div>
+  <div class="card-colorway" id="card-colorway">Tough Red / Black / Black</div>
 
-<!-- Carrinho HUD -->
-<div id="cart" class="glass">
-  <h3>Sacola de Compras</h3>
-  <div class="items-list" id="cart-list">
-    <div style="opacity:0.5;text-align:center;padding:12px 0;">Sua sacola está vazia</div>
+  <div class="size-section-title">Selecione o tamanho</div>
+  <div class="size-grid" id="card-sizes">
+    <!-- Gerado dinamicamente -->
   </div>
-  <div class="tot">
-    <span>Total</span>
-    <span id="cart-total">R$ 0,00</span>
-  </div>
-  <button class="btn-checkout" id="btn-checkout">Finalizar Pedido</button>
+
+  <button class="btn-add-cart" id="btn-add-card">
+    <span id="btn-add-text">Adicionar à Sacola</span>
+  </button>
+  <a class="link-view-cart" id="link-view-cart">Ver sacola (<span id="link-cart-count">0</span>)</a>
 </div>
 
-<!-- Dicas de Controle -->
-<div id="hints" class="glass">
-  <span><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Mover</span>
-  <span><kbd>Shift</kbd> Correr</span>
-  <span><kbd>Mouse</kbd> Olhar</span>
-  <span><kbd>Clique</kbd> Inspecionar Peça</span>
-  <span><kbd>V</kbd> Voltar à Rua</span>
+<!-- Barra Inferior de Navegação por Categorias (Exata do Vídeo) -->
+<nav id="nav-bar">
+  <button class="nav-tab" data-cat="store">Store</button>
+  <button class="nav-tab active" data-cat="clothing">Clothing</button>
+  <button class="nav-tab" data-cat="caps">Caps</button>
+  <button class="nav-tab" data-cat="bags">Bags</button>
+  <button class="nav-tab" data-cat="shoes">Shoes</button>
+  <button class="nav-tab info-tab" id="btn-info" title="Informações">i</button>
+</nav>
+
+<!-- Backdrop do Carrinho -->
+<div id="drawer-backdrop"></div>
+
+<!-- Gaveta Lateral do Carrinho (Slide-in Drawer) -->
+<div id="cart-drawer">
+  <div class="cart-header">
+    <h3>Sacola de Compras (<span id="drawer-count">0</span>)</h3>
+    <button class="btn-close-card" id="btn-close-drawer">✕</button>
+  </div>
+  <div class="cart-items-body" id="drawer-items">
+    <div class="cart-empty">Sua sacola está vazia</div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total-row">
+      <span>Total</span>
+      <span id="drawer-total">R$ 0,00</span>
+    </div>
+    <button class="btn-checkout-final" id="btn-finalizar">Finalizar Pedido</button>
+  </div>
+</div>
+
+<!-- Modal Checkout Rápido -->
+<div id="checkout-modal">
+  <div class="modal-box">
+    <h2>Finalizar Pedido</h2>
+    <p>Preencha para despacho imediato da Flagship Store.</p>
+    <div class="form-field">
+      <label>Nome Completo</label>
+      <input type="text" class="form-input" id="co-name" placeholder="Ex: Rafael Andrade">
+    </div>
+    <div class="form-field">
+      <label>WhatsApp / Celular</label>
+      <input type="tel" class="form-input" id="co-phone" placeholder="(11) 99999-9999">
+    </div>
+    <div class="form-field">
+      <label>Endereço de Entrega</label>
+      <input type="text" class="form-input" id="co-address" placeholder="Rua, número, bairro">
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 0;">
+      <span style="font-weight:700;">Total a pagar:</span>
+      <span id="modal-total" style="font-size:20px; font-weight:900; color:var(--accent-green);">R$ 0,00</span>
+    </div>
+    <button class="btn-checkout-final" id="btn-confirm-buy" style="margin-bottom:10px;">Confirmar e Enviar via WhatsApp</button>
+    <button class="size-btn" id="btn-cancel-modal" style="width:100%;">Voltar à Loja</button>
+  </div>
+</div>
+
+<!-- Modal Informativo (ℹ) -->
+<div id="info-modal">
+  <div class="modal-box" style="text-align:center;">
+    <h2 style="margin-bottom:12px;">NEW WEAR · Flagship 2026</h2>
+    <p style="line-height:1.6; color:#52525b; margin-bottom:24px;">
+      Experiência imersiva de e-commerce 3D inspirada nos mais avançados conceitos de design espacial. Navegue pelas categorias na barra inferior, clique nas peças suspensas para inspecionar em 360° e adicione produtos reais diretamente à sacola.
+    </p>
+    <button class="btn-checkout-final" id="btn-close-info">Entendido</button>
+  </div>
 </div>
 
 <!-- Toast -->
-<div id="toast" class="glass"></div>
+<div id="toast"></div>
 
-<!-- Overlay de Entrada -->
-<div id="overlay">
-  <div class="halo-glow"></div>
-  <div class="box glass">
-    <div class="tag-badge">Flagship Store · Universo NEW</div>
-    <h1>NEW <span>WEAR</span></h1>
-    <p>Experimente o design autêntico de streetwear e couro legítimo. Peças originais <b>Nike</b>, <b>Jordan</b> e <b>Jaquetas de Couro Legítimo</b> em um ambiente 3D de padrão internacional.</p>
-    <button class="btn-rafael" id="btn-enter">Entrar na Flagship</button>
-  </div>
-</div>
-
-<!-- Ficha de Produto Disruptiva com FOTO REAL DE ESTÚDIO -->
-<div id="pc" class="glass">
-  <div class="pc-hero">
-    <img id="pc-img" src="" alt="Produto Real">
-    <div class="pc-badge" id="pc-tag">ORIGINAL</div>
-    <button class="pc-close" id="pc-close">✕</button>
-  </div>
-  <div class="pc-content">
-    <div class="pc-brand" id="pc-brand">NIKE SPORTSWEAR</div>
-    <div class="pc-title" id="pc-title">Nome do Produto</div>
-    <div class="pc-price" id="pc-price">R$ 0,00</div>
-    <div class="pc-desc" id="pc-desc">Descrição completa do produto.</div>
-    <div class="pc-specs" id="pc-specs"></div>
-    <div class="pc-sizes-label">Selecione o Tamanho</div>
-    <div class="pc-sizes" id="pc-sizes"></div>
-    <div class="pc-actions">
-      <div class="pc-qty">
-        <button id="qty-minus">−</button>
-        <span id="qty-val">1</span>
-        <button id="qty-plus">+</button>
-      </div>
-      <button class="btn-add" id="btn-add-cart">Adicionar à Sacola</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de Checkout -->
-<div id="modal">
-  <div class="co-dialog glass">
-    <button class="co-close" id="modal-close">✕</button>
-    <h2>Finalizar <span>Compra</span></h2>
-    <div class="form-group">
-      <label>Seu Nome Completo</label>
-      <input type="text" class="form-input" id="co-name" placeholder="Ex: Rafael Andrade">
-    </div>
-    <div class="form-group">
-      <label>Endereço de Entrega</label>
-      <input type="text" class="form-input" id="co-address" placeholder="Rua, número, complemento e bairro">
-    </div>
-    <div class="form-group">
-      <label>Forma de Pagamento</label>
-      <div class="pay-options">
-        <div class="pay-btn active" data-pay="pix">⚡ Pix Imediato</div>
-        <div class="pay-btn" data-pay="card">💳 Cartão de Crédito</div>
-        <div class="pay-btn" data-pay="cash">💵 Na Entrega</div>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;margin-bottom:20px;">
-      <span>Total a Pagar:</span>
-      <span id="modal-total" style="color:var(--acc-gold);">R$ 0,00</span>
-    </div>
-    <button class="btn-confirm" id="btn-confirm-order">Confirmar e Enviar Pedido</button>
-  </div>
-</div>
-
+<!-- Scripts -->
 <script src="real-products.js"></script>
 <script src="../shared/music.js"></script>
 <script>if(window.NewMusic) NewMusic.init('roupas');</script>
@@ -400,972 +430,1130 @@
 }
 </script>
 
-<script src="../shared/perf.js"></script>
 <script type="module">
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-window.__mercadoOk = true;
-
-const WHATSAPP = '';
-const brl = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const $ = id => document.getElementById(id);
-
+const brl = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const PRODUCTS = window.REAL_CLOTHES || [];
 const PROD_MAP = new Map(PRODUCTS.map(p => [p.id, p]));
 
-/* ========== SISTEMA DE RENDERER & CENA THREE.JS ========== */
+/* ========== SISTEMA DE RENDERER & CENA STUDIO (LIGHT AESTHETIC) ========== */
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
+renderer.toneMappingExposure = 1.08;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#08070d');
-scene.fog = new THREE.FogExp2('#0e0b17', 0.018);
-scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.background = new THREE.Color('#f0ece3'); // Fundo clean da galeria
+scene.fog = new THREE.FogExp2('#f0ece3', 0.014);
 
-const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.08, 140);
-camera.position.set(0, 1.65, 10.6);
-camera.rotation.order = 'YXZ';
+const camera = new THREE.PerspectiveCamera(54, innerWidth / innerHeight, 0.1, 100);
+// Posição inicial: Clothing Rack reto
+camera.position.set(0, 1.72, 3.8);
+camera.lookAt(0, 1.65, 0);
 
-// Iluminação Arquitetural de Alto Padrão
-scene.add(new THREE.HemisphereLight('#fdebd0', '#181224', 1.05));
+// Iluminação Studio Arquitetural (Sombras Suaves e Difusas)
+const hemi = new THREE.HemisphereLight('#ffffff', '#d6cebd', 1.15);
+scene.add(hemi);
 
-const sun = new THREE.DirectionalLight('#fff4e0', 1.8);
-sun.position.set(4, 18, 14);
-sun.target.position.set(0, 0, 0);
-sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.bias = -0.0001;
-scene.add(sun); scene.add(sun.target);
+const keyLight = new THREE.DirectionalLight('#fff8f0', 1.85);
+keyLight.position.set(3, 8, 7);
+keyLight.target.position.set(0, 1.6, 0);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.bias = -0.00015;
+keyLight.shadow.radius = 3;
+scene.add(keyLight);
+scene.add(keyLight.target);
 
-/* Spotlights Focais de Vitrine */
-function addSpot(x, y, z, tx, ty, tz, col = '#fff2db', intensity = 3.2, angle = 0.52) {
-  const s = new THREE.SpotLight(col, intensity, 22, angle, 0.42, 1.2);
-  s.position.set(x, y, z); s.target.position.set(tx, ty, tz);
-  s.castShadow = true; s.shadow.mapSize.set(1024, 1024);
-  scene.add(s); scene.add(s.target);
-  return s;
-}
+const fillLight = new THREE.DirectionalLight('#e6edf5', 0.95);
+fillLight.position.set(-6, 5, 5);
+scene.add(fillLight);
 
-/* ========== UTILIDADES MATEMÁTICAS & MATERIAIS ========== */
-const rnd = (() => { let a = 20261028; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; })();
-const R = (a, b) => a + (b - a) * rnd();
-const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
-const GOLD = '#c9b27a';
-
-function ctex(w, h, fn, rep) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-  if(rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); }
+/* ========== TEXTURAS PROCEDURAIS PARA DETALHES ========== */
+function makeCanvasTex(w, h, drawFn) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  drawFn(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
 
-const M = o => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.5, metalness: 0.1, envMapIntensity: 0.9 }, o));
-const PhysM = o => new THREE.MeshPhysicalMaterial(Object.assign({ roughness: 0.35, metalness: 0.08, envMapIntensity: 1.2, clearcoat: 0.4, clearcoatRoughness: 0.2 }, o));
-
-// Textura de Mármore Negro Imperial Nero Marquina
-const marbleTex = ctex(1024, 1024, (g, w, h) => {
-  g.fillStyle = '#0f0e13'; g.fillRect(0, 0, w, h);
-  for(let v = 0; v < 16; v++) {
-    g.strokeStyle = v % 3 === 0 ? 'rgba(201, 178, 122, 0.22)' : 'rgba(255, 255, 255, 0.14)';
-    g.lineWidth = 1 + rnd() * 2.8; g.beginPath();
-    let x = rnd() * w, y = 0; g.moveTo(x, y);
-    while(y < h) { x += (rnd() - 0.5) * 50; y += 15 + rnd() * 30; g.lineTo(x, y); }
-    g.stroke();
-  }
-}, [4, 6]);
-
-// Textura de Nogueira Americana
-const walnutTex = ctex(512, 256, (g, w, h) => {
-  g.fillStyle = '#3a2517'; g.fillRect(0, 0, w, h);
-  for(let i = 0; i < 180; i++) {
-    g.strokeStyle = `rgba(${25 + rnd() * 35 | 0},${12 + rnd() * 18 | 0},5,${0.06 + rnd() * 0.16})`;
-    g.lineWidth = 0.5 + rnd() * 2; g.beginPath();
-    const y = rnd() * h; g.moveTo(0, y);
-    g.bezierCurveTo(w * 0.3, y + R(-3, 3), w * 0.6, y + R(-3, 3), w, y + R(-4, 4));
-    g.stroke();
-  }
+// Piso Monolítico de Microcimento Quente
+const floorMat = new THREE.MeshStandardMaterial({
+  color: '#e5e1d7',
+  roughness: 0.35,
+  metalness: 0.05
 });
 
-// Materiais Mestres
-const walnut = M({ map: walnutTex, roughness: 0.52 });
-const metalG = M({ color: GOLD, metalness: 0.92, roughness: 0.22, envMapIntensity: 1.4 });
-const metalChrome = M({ color: '#e2e8f0', metalness: 0.95, roughness: 0.15, envMapIntensity: 1.6 });
-const metalDark = M({ color: '#1a1922', metalness: 0.85, roughness: 0.35 });
-const marbleCream = M({ color: '#f3efe6', roughness: 0.25, metalness: 0.05 });
-const warmLed = new THREE.MeshBasicMaterial({ color: '#ffeaad', toneMapped: false });
-const redAccent = M({ color: '#dc2626', roughness: 0.5 });
+// Parede Gallery Off-White
+const wallMat = new THREE.MeshStandardMaterial({
+  color: '#f0ece3',
+  roughness: 0.92,
+  metalness: 0.02
+});
 
-/* ========== ENGENHARIA ORGÂNICA DAS PEÇAS 3D (NÃO-QUADRADAS) ========== */
-function buildItem(p) {
-  const parts = [];
+// Madeira Nogueira / Carvalho Nobre para Cabides e Nichos
+const woodMat = new THREE.MeshStandardMaterial({
+  color: '#5c3a21',
+  roughness: 0.45,
+  metalness: 0.05
+});
 
-  // Cabide anatômico curvo de madeira nobre com gancho de latão
-  function buildHanger(w = 0.42) {
-    const hangerBody = new RoundedBoxGeometry(w, 0.024, 0.016, 2, 0.006);
-    const hook = new THREE.TorusGeometry(0.028, 0.005, 6, 16, Math.PI * 1.35);
-    hook.translate(0, 0.042, 0);
-    return [
-      { geo: hangerBody, mat: walnut },
-      { geo: hook, mat: metalG }
-    ];
+// Pegboard de Carvalho Claro
+const pegboardMat = new THREE.MeshStandardMaterial({
+  color: '#d4b996',
+  roughness: 0.55,
+  metalness: 0.05
+});
+
+// Metais: Preto Acetinado e Latão Escovado
+const blackSteel = new THREE.MeshStandardMaterial({ color: '#18181b', metalness: 0.88, roughness: 0.28 });
+const brassGold = new THREE.MeshStandardMaterial({ color: '#c9b27a', metalness: 0.92, roughness: 0.22 });
+const chromeMat = new THREE.MeshStandardMaterial({ color: '#e4e4e7', metalness: 0.95, roughness: 0.15 });
+
+/* ========== ARQUITETURA DA SALA (SHOWROOM) ========== */
+const showroomGroup = new THREE.Group();
+scene.add(showroomGroup);
+
+// 1. Piso da Galeria
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(28, 24), floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(0, 0, 0);
+floor.receiveShadow = true;
+showroomGroup.add(floor);
+
+// 2. Parede Principal dos Fundos (Onde fica a arara e os nichos)
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(28, 7), wallMat);
+backWall.position.set(0, 3.5, -0.6);
+backWall.receiveShadow = true;
+showroomGroup.add(backWall);
+
+// Rodapé fino contemporâneo
+const baseboard = new THREE.Mesh(new THREE.BoxGeometry(28, 0.08, 0.02), blackSteel);
+baseboard.position.set(0, 0.04, -0.59);
+showroomGroup.add(baseboard);
+
+// 3. Logotipo da Marca na Parede Central (NIKE VIRTUAL STORE)
+const brandLogoMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(2.4, 0.65),
+  new THREE.MeshBasicMaterial({
+    map: makeCanvasTex(512, 140, (ctx, w, h) => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#111111';
+      ctx.font = '900 52px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('NIKE', w / 2 - 20, 60);
+
+      // Swoosh estilizado ao lado
+      ctx.beginPath();
+      ctx.moveTo(w / 2 + 35, 38);
+      ctx.bezierCurveTo(w / 2 + 55, 38, w / 2 + 90, 52, w / 2 + 115, 68);
+      ctx.bezierCurveTo(w / 2 + 85, 62, w / 2 + 65, 58, w / 2 + 45, 58);
+      ctx.bezierCurveTo(w / 2 + 35, 58, w / 2 + 25, 52, w / 2 + 35, 38);
+      ctx.fill();
+
+      // Subtítulo
+      ctx.fillStyle = '#71717a';
+      ctx.font = '800 16px -apple-system, sans-serif';
+      ctx.letterSpacing = '6px';
+      ctx.fillText('VIRTUAL STORE', w / 2, 102);
+    }),
+    transparent: true,
+    toneMapped: false
+  })
+);
+brandLogoMesh.position.set(0, 3.12, -0.58);
+showroomGroup.add(brandLogoMesh);
+
+// 4. Placa Direcional Suspensa no Teto [ SHOES ] e [ BAGS ]
+function makeHangingSign(text, x, y, z) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.2, 0.35),
+    new THREE.MeshBasicMaterial({
+      map: makeCanvasTex(320, 90, (ctx, w, h) => {
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 32px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, w / 2, 58);
+      }),
+      toneMapped: false
+    })
+  );
+  mesh.castShadow = true;
+  g.add(mesh);
+
+  // Cabos de sustentação
+  for(const sx of [-0.45, 0.45]) {
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.002, 1.2, 8), blackSteel);
+    wire.position.set(sx, 0.6, 0);
+    g.add(wire);
   }
+  showroomGroup.add(g);
+  return g;
+}
+makeHangingSign('SHOES', -4.2, 3.6, -0.3);
+makeHangingSign('CAPS', -2.5, 3.6, -0.3);
+makeHangingSign('BAGS', 4.2, 3.6, -0.3);
 
-  let w = 0.42, d = 0.24, h = 0.72, cy = -0.32;
+// 5. Quadro Decorativo Framed Art "JUST DO IT" com Vidro
+const posterGroup = new THREE.Group();
+posterGroup.position.set(4.5, 2.1, -0.56);
+const posterFrame = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.7, 0.04), blackSteel);
+posterGroup.add(posterFrame);
+const posterArt = new THREE.Mesh(
+  new THREE.PlaneGeometry(1.18, 1.58),
+  new THREE.MeshBasicMaterial({
+    map: makeCanvasTex(400, 540, (ctx, w, h) => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#111111';
+      ctx.font = '900 64px -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('JUST', w / 2, 210);
+      ctx.fillText('DO IT.', w / 2, 280);
+
+      // Swoosh central
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 70, 340);
+      ctx.bezierCurveTo(w / 2, 340, w / 2 + 50, 370, w / 2 + 90, 410);
+      ctx.bezierCurveTo(w / 2 + 40, 395, w / 2 - 10, 385, w / 2 - 50, 385);
+      ctx.fill();
+    }),
+    toneMapped: false
+  })
+);
+posterArt.position.z = 0.022;
+posterGroup.add(posterArt);
+showroomGroup.add(posterGroup);
+
+/* ========== SEÇÃO 1: A ARARA PRINCIPAL (CLOTHES RAIL) ========== */
+const clothesRailGroup = new THREE.Group();
+showroomGroup.add(clothesRailGroup);
+
+const RAIL_Y = 2.30;
+const RAIL_LENGTH = 5.2;
+
+// Barra cilíndrica de aço preta suspensa
+const railBar = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.016, 0.016, RAIL_LENGTH, 24),
+  blackSteel
+);
+railBar.rotation.z = Math.PI / 2;
+railBar.position.set(0, RAIL_Y, 0);
+railBar.castShadow = true;
+clothesRailGroup.add(railBar);
+
+// Suportes laterais ancorados na parede
+for(const sx of [-RAIL_LENGTH / 2, RAIL_LENGTH / 2]) {
+  const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.58, 16), blackSteel);
+  mount.rotation.x = Math.PI / 2;
+  mount.position.set(sx, RAIL_Y, -0.29);
+  clothesRailGroup.add(mount);
+}
+
+// Cabos verticais discretos de sustentação ao teto
+for(const sx of [-1.8, 1.8]) {
+  const dropCable = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 2.5, 8), blackSteel);
+  dropCable.position.set(sx, RAIL_Y + 1.25, 0);
+  clothesRailGroup.add(dropCable);
+}
+
+/* ========== CONSTRUÇÃO ANATÔMICA DAS PEÇAS DE ROUPA ========== */
+function createHanger() {
+  const g = new THREE.Group();
+  // Corpo de madeira arqueado
+  const body = new RoundedBoxGeometry(0.42, 0.022, 0.014, 2, 0.005);
+  const bodyMesh = new THREE.Mesh(body, woodMat);
+  bodyMesh.castShadow = true;
+  g.add(bodyMesh);
+
+  // Gancho de latão
+  const hookGeo = new THREE.TorusGeometry(0.028, 0.0045, 8, 20, Math.PI * 1.35);
+  const hookMesh = new THREE.Mesh(hookGeo, brassGold);
+  hookMesh.position.set(0, 0.04, 0);
+  g.add(hookMesh);
+  return g;
+}
+
+// Cria modelos 3D realistas de cada tipo de roupa
+function buildGarmentMesh(p) {
+  const g = new THREE.Group();
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: p.color,
+    roughness: p.kind === 'jacket' && p.subkind === 'biker_men' ? 0.32 : 0.78,
+    metalness: p.kind === 'jacket' && p.subkind === 'biker_men' ? 0.15 : 0.02
+  });
+  const accentMat = new THREE.MeshStandardMaterial({ color: p.accent || '#111', roughness: 0.75 });
+  const zipperMat = chromeMat;
+
+  // Cabide no topo
+  const hanger = createHanger();
+  hanger.position.y = 0;
+  g.add(hanger);
 
   switch(p.kind) {
-    case 'sneaker': {
-      // 1. TÊNIS ANATÔMICO ESCULPIDO (Jordan 1 / Air Force 1 / Dunk)
-      const isJordan = p.subkind === 'jordan';
-      const isBoot = p.subkind === 'boot';
+    case 'windrunner': {
+      // Jaqueta Corta-Vento / Tech Fleece em 2 Blocos com Chevron
+      const upperTorso = new RoundedBoxGeometry(0.40, 0.22, 0.22, 3, 0.04);
+      const upperMesh = new THREE.Mesh(upperTorso, baseMat);
+      upperMesh.position.set(0, -0.12, 0);
+      upperMesh.castShadow = true;
+      g.add(upperMesh);
 
-      // Sola de borracha com curvatura frontal (toe rocker)
-      const sole = new RoundedBoxGeometry(0.32, 0.038, 0.125, 3, 0.016);
-      sole.translate(0, 0.019, 0);
-      parts.push({ geo: sole, mat: M({ color: p.trim || '#ffffff', roughness: 0.7 }) });
+      const lowerTorso = new RoundedBoxGeometry(0.41, 0.38, 0.23, 3, 0.04);
+      const lowerMesh = new THREE.Mesh(lowerTorso, accentMat);
+      lowerMesh.position.set(0, -0.38, 0);
+      lowerMesh.castShadow = true;
+      g.add(lowerMesh);
 
-      // Entressola chanfrada
-      const mid = new RoundedBoxGeometry(0.305, 0.028, 0.118, 2, 0.012);
-      mid.translate(0, 0.046, 0);
-      parts.push({ geo: mid, mat: M({ color: isJordan ? '#fef3c7' : '#ffffff', roughness: 0.45 }) });
+      // Zíper Frontal Metálico
+      const zip = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.58, 0.01), zipperMat);
+      zip.position.set(0, -0.27, 0.12);
+      g.add(zip);
 
-      // Cabedal esculpido com curvatura anatômica
-      const upperH = isJordan ? 0.16 : (isBoot ? 0.18 : 0.095);
-      const upperY = 0.05 + upperH / 2;
-      const upperMat = (isBoot || p.category === 'couro')
-        ? PhysM({ color: p.color, roughness: 0.32, clearcoat: 0.45 })
-        : M({ color: p.color, roughness: 0.55 });
-      
-      const upper = new RoundedBoxGeometry(0.29, upperH, 0.11, 3, 0.028);
-      upper.translate(-0.01, upperY, 0);
-      parts.push({ geo: upper, mat: upperMat, pick: 1 });
-
-      // Biqueira anatômica em couro sobreposto
-      const toeCap = new RoundedBoxGeometry(0.12, 0.065, 0.104, 2, 0.02);
-      toeCap.translate(0.08, 0.08, 0);
-      parts.push({ geo: toeCap, mat: M({ color: p.accent || p.color, roughness: 0.55 }) });
-
-      // O Icônico Swoosh da Nike em relevo 3D nas laterais externas e internas
-      if(!isBoot) {
-        for(const s of [-1, 1]) {
-          const swooshArc = new THREE.TorusGeometry(0.065, 0.007, 6, 16, Math.PI * 0.75);
-          swooshArc.rotateZ(s * -0.25);
-          swooshArc.translate(s * 0.02, 0.11, s * 0.058);
-          parts.push({ geo: swooshArc, mat: M({ color: p.trim || '#111111', roughness: 0.35 }) });
-        }
-      }
-
-      // Língua acolchoada e cadarços
-      const tongue = new RoundedBoxGeometry(0.085, 0.035, 0.075, 2, 0.01);
-      tongue.rotateZ(-0.35);
-      tongue.translate(-0.01, upperY + upperH / 2 - 0.01, 0);
-      parts.push({ geo: tongue, mat: M({ color: '#ffffff', roughness: 0.8 }) });
-
-      w = 0.33; d = 0.13; h = upperH + 0.06; cy = h / 2;
-      break;
-    }
-
-    case 'jacket': {
-      // 2. JAQUETA BIKER DE COURO LEGÍTIMO (100% Couro Bovino / Pelica com Zíperes)
-      const leatherM = PhysM({ color: p.color, roughness: 0.32, clearcoat: 0.5, clearcoatRoughness: 0.22 });
-
-      // Torso anatômico curvado
-      const torso = new RoundedBoxGeometry(0.42, 0.60, 0.25, 3, 0.06);
-      torso.translate(0, -0.30, 0);
-      parts.push({ geo: torso, mat: leatherM, pick: 1 });
-
-      // Mangas tubulares de couro em ângulo natural
+      // Mangas
       for(const s of [-1, 1]) {
-        const sleeve = new THREE.CylinderGeometry(0.085, 0.068, 0.34, 14);
-        sleeve.rotateZ(s * 0.36);
-        sleeve.translate(s * 0.27, -0.21, 0);
-        parts.push({ geo: sleeve, mat: leatherM });
-
-        // Zíperes de punho prateados
-        const cuffZip = new THREE.BoxGeometry(0.008, 0.09, 0.012);
-        cuffZip.rotateZ(s * 0.36);
-        cuffZip.translate(s * 0.32, -0.34, 0.03);
-        parts.push({ geo: cuffZip, mat: metalChrome });
+        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.062, 0.44, 14), baseMat);
+        sleeve.rotation.z = s * 0.24;
+        sleeve.position.set(s * 0.24, -0.24, 0);
+        sleeve.castShadow = true;
+        g.add(sleeve);
       }
 
-      // Lapelas chanfradas clássicas de Biker (Notched Lapels)
-      for(const s of [-1, 1]) {
-        const lapel = new RoundedBoxGeometry(0.085, 0.14, 0.02, 2, 0.004);
-        lapel.rotateZ(s * -0.42);
-        lapel.translate(s * 0.08, -0.12, 0.128);
-        parts.push({ geo: lapel, mat: leatherM });
-
-        // Botões de pressão prateados de metal naval
-        const stud = new THREE.CylinderGeometry(0.01, 0.01, 0.008, 10);
-        stud.rotateX(Math.PI / 2);
-        stud.translate(s * 0.095, -0.15, 0.138);
-        parts.push({ geo: stud, mat: metalChrome });
-      }
-
-      // Zíper diagonal assimétrico YKK em relevo
-      const diagZip = new THREE.BoxGeometry(0.016, 0.44, 0.012);
-      diagZip.rotateZ(0.18);
-      diagZip.translate(0.04, -0.30, 0.13);
-      parts.push({ geo: diagZip, mat: metalChrome });
-
-      // Cinto inferior com fivela prateada
-      const belt = new THREE.BoxGeometry(0.43, 0.042, 0.26);
-      belt.translate(0, -0.58, 0);
-      parts.push({ geo: belt, mat: leatherM });
-      const buckle = new THREE.BoxGeometry(0.05, 0.046, 0.018);
-      buckle.translate(0, -0.58, 0.138);
-      parts.push({ geo: buckle, mat: metalChrome });
-
-      buildHanger(0.44).forEach(pt => parts.push(pt));
-      h = 0.74; w = 0.54; d = 0.30; cy = -0.32;
+      // Capuz dobrado nas costas
+      const hood = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.05, 8, 16, Math.PI * 1.3), baseMat);
+      hood.rotation.x = Math.PI / 2.2;
+      hood.position.set(0, -0.02, -0.06);
+      g.add(hood);
       break;
     }
 
     case 'hoodie': {
-      // 3. MOLETOM NIKE SPORTSWEAR CLUB FLEECE COM CAPUZ
-      const fleeceM = M({ color: p.color, roughness: 0.88 });
+      // Moletom com Capuz Volumoso e Bolso Canguru
+      const torso = new THREE.Mesh(new RoundedBoxGeometry(0.43, 0.60, 0.26, 3, 0.06), baseMat);
+      torso.position.set(0, -0.31, 0);
+      torso.castShadow = true;
+      g.add(torso);
 
-      // Torso suave e acolhedor
-      const torso = new RoundedBoxGeometry(0.44, 0.62, 0.28, 3, 0.07);
-      torso.translate(0, -0.32, 0);
-      parts.push({ geo: torso, mat: fleeceM, pick: 1 });
+      // Bolso Canguru
+      const pock = new THREE.Mesh(new RoundedBoxGeometry(0.26, 0.16, 0.06, 2, 0.02), baseMat);
+      pock.position.set(0, -0.40, 0.14);
+      pock.castShadow = true;
+      g.add(pock);
 
+      // Mangas
       for(const s of [-1, 1]) {
-        const sleeve = new THREE.CylinderGeometry(0.088, 0.072, 0.34, 14);
-        sleeve.rotateZ(s * 0.35);
-        sleeve.translate(s * 0.28, -0.21, 0);
-        parts.push({ geo: sleeve, mat: fleeceM });
-
-        // Punhos canelados
-        const cuff = new THREE.CylinderGeometry(0.074, 0.074, 0.045, 14);
-        cuff.rotateZ(s * 0.35);
-        cuff.translate(s * 0.34, -0.35, 0);
-        parts.push({ geo: cuff, mat: fleeceM });
+        const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.082, 0.068, 0.46, 14), baseMat);
+        sl.rotation.z = s * 0.22;
+        sl.position.set(s * 0.26, -0.25, 0);
+        sl.castShadow = true;
+        g.add(sl);
       }
 
-      // Bolso Canguru Frontal Espaçoso
-      const pock = new RoundedBoxGeometry(0.28, 0.16, 0.065, 3, 0.024);
-      pock.translate(0, -0.39, 0.145);
-      parts.push({ geo: pock, mat: fleeceM });
-
-      // Capuz Tridimensional Volumoso drapeado nos ombros
-      const hood = new THREE.TorusGeometry(0.145, 0.062, 8, 20, Math.PI * 1.4);
-      hood.rotateX(Math.PI / 2.15);
-      hood.translate(0, -0.04, -0.06);
-      parts.push({ geo: hood, mat: fleeceM });
-
-      // Logotipo Nike Futura bordado no peito esquerdo em alta definição
-      const nikeLogo = new THREE.TorusGeometry(0.028, 0.005, 6, 14, Math.PI * 0.85);
-      nikeLogo.rotateZ(-0.25);
-      nikeLogo.translate(-0.09, -0.16, 0.145);
-      parts.push({ geo: nikeLogo, mat: M({ color: p.accent || '#ffffff', roughness: 0.4 }) });
-
-      buildHanger(0.44).forEach(pt => parts.push(pt));
-      h = 0.78; w = 0.56; d = 0.32; cy = -0.34;
+      // Capuz
+      const hood = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.065, 8, 18, Math.PI * 1.35), baseMat);
+      hood.rotation.x = Math.PI / 2.2;
+      hood.position.set(0, -0.02, -0.06);
+      g.add(hood);
       break;
     }
 
-    case 'shirt': {
-      // 4. CAMISETA NIKE SPORTSWEAR CLUB TEE
-      const cottonM = M({ color: p.color, roughness: 0.82 });
+    case 'coach': {
+      // Jaqueta de Treinador em Veludo Cotelê
+      const torso = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.62, 0.24, 3, 0.05), baseMat);
+      torso.position.set(0, -0.32, 0);
+      torso.castShadow = true;
+      g.add(torso);
 
-      const torso = new RoundedBoxGeometry(0.40, 0.58, 0.22, 3, 0.05);
-      torso.translate(0, -0.30, 0);
-      parts.push({ geo: torso, mat: cottonM, pick: 1 });
-
+      // Colarinho dobrado
       for(const s of [-1, 1]) {
-        const sleeve = new THREE.CylinderGeometry(0.072, 0.062, 0.22, 12);
-        sleeve.rotateZ(s * 0.38);
-        sleeve.translate(s * 0.24, -0.16, 0);
-        parts.push({ geo: sleeve, mat: cottonM });
+        const col = new THREE.Mesh(new RoundedBoxGeometry(0.09, 0.08, 0.02, 2, 0.005), baseMat);
+        col.rotation.z = s * -0.3;
+        col.position.set(s * 0.09, -0.04, 0.12);
+        g.add(col);
       }
 
-      // Gola careca canelada
-      const collarRing = new THREE.TorusGeometry(0.078, 0.016, 8, 22);
-      collarRing.rotateX(Math.PI / 2 + 0.1);
-      collarRing.translate(0, -0.03, 0.01);
-      parts.push({ geo: collarRing, mat: cottonM });
+      // Botões de Pressão Esmaltados
+      for(let b = 0; b < 5; b++) {
+        const snap = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.008, 12), brassGold);
+        snap.rotation.x = Math.PI / 2;
+        snap.position.set(0, -0.12 - b * 0.10, 0.125);
+        g.add(snap);
+      }
 
-      // Swoosh no peito
-      const swoosh = new THREE.TorusGeometry(0.024, 0.004, 6, 12, Math.PI * 0.8);
-      swoosh.rotateZ(-0.2);
-      swoosh.translate(-0.08, -0.15, 0.115);
-      parts.push({ geo: swoosh, mat: M({ color: p.accent || '#000000', roughness: 0.4 }) });
+      // Mangas
+      for(const s of [-1, 1]) {
+        const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.078, 0.066, 0.45, 14), baseMat);
+        sl.rotation.z = s * 0.22;
+        sl.position.set(s * 0.25, -0.24, 0);
+        sl.castShadow = true;
+        g.add(sl);
+      }
+      break;
+    }
 
-      buildHanger(0.42).forEach(pt => parts.push(pt));
-      h = 0.72; w = 0.50; d = 0.24; cy = -0.30;
+    case 'puffer': {
+      // Jaqueta Puffer Acolchoada com Gomos Horizontais
+      for(let gomo = 0; gomo < 4; gomo++) {
+        const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.19, 0.14, 20), baseMat);
+        seg.position.set(0, -0.12 - gomo * 0.13, 0);
+        seg.castShadow = true;
+        g.add(seg);
+      }
+      // Gola alta acolchoada
+      const puffCollar = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.04, 8, 16), baseMat);
+      puffCollar.rotation.x = Math.PI / 2;
+      puffCollar.position.set(0, 0.01, 0);
+      g.add(puffCollar);
+
+      // Mangas gomos
+      for(const s of [-1, 1]) {
+        for(let ms = 0; ms < 3; ms++) {
+          const sl = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), baseMat);
+          sl.position.set(s * (0.20 + ms * 0.06), -0.14 - ms * 0.12, 0);
+          sl.castShadow = true;
+          g.add(sl);
+        }
+      }
+      break;
+    }
+
+    case 'crewneck':
+    case 'shirt': {
+      // Camiseta ou Moletom Careca
+      const torso = new THREE.Mesh(new RoundedBoxGeometry(0.39, 0.58, 0.21, 3, 0.04), baseMat);
+      torso.position.set(0, -0.30, 0);
+      torso.castShadow = true;
+      g.add(torso);
+
+      // Gola redonda
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.014, 8, 20), baseMat);
+      rib.rotation.x = Math.PI / 2;
+      rib.position.set(0, -0.02, 0.01);
+      g.add(rib);
+
+      // Mangas
+      const len = p.kind === 'shirt' ? 0.22 : 0.44;
+      for(const s of [-1, 1]) {
+        const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.062, len, 14), baseMat);
+        sl.rotation.z = s * 0.26;
+        sl.position.set(s * 0.23, -0.16 - (len - 0.22) * 0.35, 0);
+        sl.castShadow = true;
+        g.add(sl);
+      }
+      break;
+    }
+
+    case 'jacket': {
+      // Jaqueta de Couro Biker
+      const torso = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.60, 0.24, 3, 0.05), baseMat);
+      torso.position.set(0, -0.31, 0);
+      torso.castShadow = true;
+      g.add(torso);
+
+      // Lapelas chanfradas
+      for(const s of [-1, 1]) {
+        const lapel = new THREE.Mesh(new RoundedBoxGeometry(0.08, 0.13, 0.015, 2, 0.004), baseMat);
+        lapel.rotation.z = s * -0.4;
+        lapel.position.set(s * 0.08, -0.12, 0.125);
+        g.add(lapel);
+      }
+
+      // Zíper diagonal assimétrico
+      const diagZip = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.46, 0.01), chromeMat);
+      diagZip.rotation.z = 0.16;
+      diagZip.position.set(0.04, -0.30, 0.128);
+      g.add(diagZip);
+
+      // Mangas
+      for(const s of [-1, 1]) {
+        const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.066, 0.45, 14), baseMat);
+        sl.rotation.z = s * 0.24;
+        sl.position.set(s * 0.25, -0.24, 0);
+        sl.castShadow = true;
+        g.add(sl);
+      }
       break;
     }
 
     case 'pants': {
-      // 5. CALÇA LEVI'S 501 DENIM & NIKE JOGGER
-      const isJeans = p.subkind === 'jeans';
-      const fabricM = M({ color: p.color, roughness: 0.85 });
-
-      // Cós estruturado
-      const waistband = new RoundedBoxGeometry(0.36, 0.07, 0.22, 2, 0.02);
-      waistband.translate(0, -0.06, 0);
-      parts.push({ geo: waistband, mat: fabricM, pick: 1 });
-
-      // Botão de metal / Red Tab
-      const button = new THREE.CylinderGeometry(0.01, 0.01, 0.008, 10);
-      button.rotateX(Math.PI / 2);
-      button.translate(0, -0.06, 0.112);
-      parts.push({ geo: button, mat: isJeans ? metalG : metalChrome });
-
-      // Pernas tubulares com caimento
-      for(const s of [-1, 1]) {
-        const leg = new THREE.CylinderGeometry(0.084, 0.066, 0.78, 16);
-        leg.translate(s * 0.095, -0.47, 0);
-        parts.push({ geo: leg, mat: fabricM, pick: 1 });
-
-        if(!isJeans) {
-          // Punhos canelados de jogger
-          const cuff = new THREE.CylinderGeometry(0.068, 0.068, 0.05, 14);
-          cuff.translate(s * 0.095, -0.87, 0);
-          parts.push({ geo: cuff, mat: fabricM });
-        }
-      }
-
-      // Haste do cabide
-      const barH = new THREE.BoxGeometry(0.34, 0.018, 0.018);
-      parts.push({ geo: barH, mat: walnut });
-      const hookH = new THREE.TorusGeometry(0.026, 0.005, 6, 16, Math.PI * 1.35);
-      hookH.translate(0, 0.04, 0);
-      parts.push({ geo: hookH, mat: metalChrome });
-
-      h = 0.94; w = 0.38; d = 0.24; cy = -0.46;
-      break;
-    }
-
-    case 'dress': {
-      // 6. VESTIDO DE SEDA PURA (SLIP DRESS COM FENDA)
-      const silkM = PhysM({ color: p.color, roughness: 0.25, clearcoat: 0.65, clearcoatRoughness: 0.15 });
-
-      const bodice = new RoundedBoxGeometry(0.34, 0.46, 0.20, 3, 0.05);
-      bodice.translate(0, -0.22, 0);
-      parts.push({ geo: bodice, mat: silkM, pick: 1 });
-
-      // Saia fluida longa com caimento elegante
-      const skirt = new THREE.CylinderGeometry(0.16, 0.38, 0.70, 24, 1, true);
-      skirt.translate(0, -0.68, 0);
-      parts.push({ geo: skirt, mat: silkM, pick: 1 });
-
-      buildHanger(0.38).forEach(pt => parts.push(pt));
-      h = 1.05; w = 0.42; d = 0.40; cy = -0.52;
-      break;
-    }
-
-    case 'bag': {
-      // 7. BOLSA DE COURO COM FERRAGENS BANHADAS A OURO
-      const leatherBagM = PhysM({ color: p.color, roughness: 0.34, clearcoat: 0.5 });
-
-      const body = new RoundedBoxGeometry(0.32, 0.23, 0.13, 3, 0.024);
-      body.translate(0, 0.115, 0);
-      parts.push({ geo: body, mat: leatherBagM, pick: 1 });
-
-      const flap = new RoundedBoxGeometry(0.324, 0.12, 0.136, 2, 0.016);
-      flap.translate(0, 0.17, 0.003);
-      parts.push({ geo: flap, mat: leatherBagM });
-
-      const lock = new RoundedBoxGeometry(0.045, 0.035, 0.018, 2, 0.005);
-      lock.translate(0, 0.12, 0.072);
-      parts.push({ geo: lock, mat: metalG });
-
-      const handle = new THREE.TorusGeometry(0.095, 0.012, 8, 20, Math.PI);
-      handle.translate(0, 0.23, 0);
-      parts.push({ geo: handle, mat: leatherBagM });
+      // Calça Jeans ou Jogger
+      const waist = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.06, 0.20, 2, 0.015), baseMat);
+      waist.position.set(0, -0.06, 0);
+      waist.castShadow = true;
+      g.add(waist);
 
       for(const s of [-1, 1]) {
-        const ring = new THREE.TorusGeometry(0.018, 0.004, 6, 14);
-        ring.translate(s * 0.09, 0.23, 0);
-        parts.push({ geo: ring, mat: metalG });
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.078, 0.062, 0.72, 16), baseMat);
+        leg.position.set(s * 0.09, -0.44, 0);
+        leg.castShadow = true;
+        g.add(leg);
       }
-
-      w = 0.34; d = 0.15; h = 0.35; cy = 0.16;
-      break;
-    }
-
-    case 'cap': {
-      // 8. BONÉ NIKE HERITAGE86 ABA CURVA
-      const capM = M({ color: p.color, roughness: 0.8 });
-
-      const dome = new THREE.SphereGeometry(0.094, 20, 14, 0, Math.PI * 2, 0, Math.PI / 2);
-      dome.scale(1, 0.85, 1.05);
-      parts.push({ geo: dome, mat: capM, pick: 1 });
-
-      const buttonTop = new THREE.SphereGeometry(0.012, 10, 8);
-      buttonTop.translate(0, 0.082, 0);
-      parts.push({ geo: buttonTop, mat: capM });
-
-      const brim = new THREE.CylinderGeometry(0.11, 0.11, 0.008, 22, 1, false, 0, Math.PI);
-      brim.rotateY(-Math.PI / 2);
-      brim.scale(1, 1, 1.35);
-      brim.translate(0, 0.004, 0.035);
-      parts.push({ geo: brim, mat: capM });
-
-      w = 0.22; d = 0.25; h = 0.11; cy = 0.04;
       break;
     }
   }
 
-  return { parts, w, d, h, r: Math.max(w, d) / 2, cy };
+  // Hitbox invisível para clique e hover perfeito
+  const hitBox = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.85, 0.32),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  hitBox.position.set(0, -0.35, 0);
+  hitBox.userData.product = p;
+  g.add(hitBox);
+
+  return { group: g, hitBox };
 }
 
-/* ========== SISTEMA DE INSTÂNCIAS (PERFORMANCE 60 FPS) ========== */
-const types = new Map(), pickMeshes = [];
-const ONE = new THREE.Vector3(1, 1, 1);
+/* ========== SEÇÃO 2: NICHO DE SNEAKERS (SNEAKER WALL) ========== */
+const shoesGroup = new THREE.Group();
+shoesGroup.position.set(-4.5, 0, -0.2);
+showroomGroup.add(shoesGroup);
 
-function getType(p) {
-  let t = types.get(p.id);
-  if(!t) { t = { p, def: buildItem(p), mats: [], meshes: [] }; types.set(p.id, t); }
-  return t;
-}
+// Painel de fundo em nogueira ripada
+const shoeAlcove = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 0.1), woodMat);
+shoeAlcove.position.set(0, 1.8, -0.4);
+shoeAlcove.receiveShadow = true;
+shoesGroup.add(shoeAlcove);
 
-function place(p, parent, pos, quat) {
-  const m = new THREE.Matrix4().compose(pos, quat, ONE);
-  if(parent) m.premultiply(parent);
-  getType(p).mats.push(m);
-}
+// 4 Prateleiras Flutuantes Iluminadas
+const SHOE_PRODUCTS = PRODUCTS.filter(p => p.category === 'shoes');
+const shoeHitboxes = [];
 
-function finalize() {
-  for(const t of types.values()) {
-    const n = t.mats.length; if(!n) continue;
-    for(const part of t.def.parts) {
-      const im = new THREE.InstancedMesh(part.geo, part.mat, n);
-      im.castShadow = true; im.receiveShadow = true;
-      t.mats.forEach((m, i) => im.setMatrixAt(i, m));
-      im.userData.type = t;
-      t.meshes.push(im);
-      scene.add(im);
-      if(part.pick) pickMeshes.push(im);
-    }
+function buildSneaker3D(p) {
+  const g = new THREE.Group();
+  const soleMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.5 });
+  const upperMat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.45 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: p.trim || '#111', roughness: 0.4 });
+
+  // Sola
+  const sole = new THREE.Mesh(new RoundedBoxGeometry(0.32, 0.038, 0.12, 3, 0.014), soleMat);
+  sole.position.y = 0.019;
+  sole.castShadow = true;
+  g.add(sole);
+
+  // Cabedal
+  const upper = new THREE.Mesh(new RoundedBoxGeometry(0.29, 0.12, 0.11, 3, 0.024), upperMat);
+  upper.position.set(-0.01, 0.09, 0);
+  upper.castShadow = true;
+  g.add(upper);
+
+  // Swoosh lateral
+  for(const s of [-1, 1]) {
+    const swoosh = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.007, 6, 14, Math.PI * 0.75), trimMat);
+    swoosh.rotation.z = s * -0.2;
+    swoosh.position.set(s * 0.02, 0.09, s * 0.058);
+    g.add(swoosh);
   }
+
+  // Hitbox
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.18), new THREE.MeshBasicMaterial({ visible: false }));
+  hit.position.y = 0.1;
+  hit.userData.product = p;
+  g.add(hit);
+
+  return { group: g, hitBox: hit };
 }
 
-const _s = new THREE.Matrix4();
-function setHover(t, i, on) {
-  for(const im of t.meshes) {
-    if(on) { _s.makeScale(1.08, 1.08, 1.08); im.setMatrixAt(i, t.mats[i].clone().multiply(_s)); }
-    else im.setMatrixAt(i, t.mats[i]);
-    im.instanceMatrix.needsUpdate = true;
-  }
-}
+SHOE_PRODUCTS.forEach((snk, i) => {
+  const col = i % 2;
+  const row = Math.floor(i / 2);
+  const px = (col === 0 ? -0.55 : 0.55);
+  const py = 2.1 - row * 0.85;
 
-/* ========== CENOGRAFIA ARQUITETURAL DA FLAGSHIP BOUTIQUE ========== */
-const ROOM = { w: 18, h: 4.8, d: 29 };
-const colliders = [];
+  // Prateleira branca flutuante
+  const shelf = new THREE.Mesh(new RoundedBoxGeometry(0.85, 0.028, 0.38, 2, 0.005), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.2 }));
+  shelf.position.set(px, py, -0.15);
+  shelf.castShadow = true;
+  shelf.receiveShadow = true;
+  shoesGroup.add(shelf);
 
-function addBox(g, w, h, d, mat, x, y, z, cast = true) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-  m.position.set(x, y, z);
-  m.castShadow = cast; m.receiveShadow = true;
-  g.add(m);
-  return m;
-}
+  // Fita LED sob a prateleira
+  const led = new THREE.Mesh(new THREE.BoxGeometry(0.80, 0.008, 0.01), new THREE.MeshBasicMaterial({ color: '#fffae8', toneMapped: false }));
+  led.position.set(px, py - 0.015, 0.03);
+  shoesGroup.add(led);
 
-// 1. Piso Monolítico de Mármore Negro Nero Marquina
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 29), M({ map: marbleTex, roughness: 0.18, metalness: 0.08, envMapIntensity: 1.2 }));
-floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, -2.5); floor.receiveShadow = true; scene.add(floor);
-
-// Tapetes Geométricos Aveludados nas Zonas de Circulação
-for(const rx of [-4.5, 4.5]) {
-  const rug = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 18), M({ color: '#14121d', roughness: 0.95 }));
-  rug.rotation.x = -Math.PI / 2; rug.position.set(rx, 0.005, -7.0); rug.receiveShadow = true; scene.add(rug);
-}
-
-// 2. Teto Acústico e Painel Translúcido Central Barrisol
-const ceil = new THREE.Mesh(new THREE.PlaneGeometry(18, 29), M({ color: '#0d0c13', roughness: 0.8 }));
-ceil.rotation.x = Math.PI / 2; ceil.position.set(0, ROOM.h, -2.5); scene.add(ceil);
-
-const barrisol = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 18), new THREE.MeshBasicMaterial({ color: '#fff6e0', toneMapped: false }));
-barrisol.rotation.x = Math.PI / 2; barrisol.position.set(0, ROOM.h - 0.02, -2.5); scene.add(barrisol);
-
-// 3. Paredes em Ripado Vertical de Nogueira com Iluminação Oculta
-for(const [x, ry] of [[-9, Math.PI / 2], [9, -Math.PI / 2]]) {
-  const w = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.d, ROOM.h), walnut);
-  w.position.set(x, ROOM.h / 2, -2.5); w.rotation.y = ry; w.receiveShadow = true; scene.add(w);
-
-  const sk = new THREE.Mesh(new THREE.BoxGeometry(ROOM.d, 0.16, 0.03), metalDark);
-  sk.position.set(x * 0.9985, 0.08, -2.5); sk.rotation.y = ry; scene.add(sk);
-
-  const led = new THREE.Mesh(new THREE.BoxGeometry(ROOM.d, 0.02, 0.015), warmLed);
-  led.position.set(x * 0.994, ROOM.h - 0.1, -2.5); scene.add(led);
-}
-
-// Parede dos Fundos em Granito Acetinado e Ripas
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(18, ROOM.h), M({ color: '#121118', roughness: 0.7 }));
-backWall.position.set(0, ROOM.h / 2, -17); backWall.receiveShadow = true; scene.add(backWall);
-
-const slatCount = 140;
-const slats = new THREE.InstancedMesh(new THREE.BoxGeometry(0.04, ROOM.h - 0.4, 0.03), walnut, slatCount);
-const c = new THREE.Color(walnut.color);
-for(let i = 0; i < slatCount; i++) {
-  slats.setMatrixAt(i, new THREE.Matrix4().makeTranslation(-8.94 + i * 0.12, ROOM.h / 2, -16.96));
-  slats.setColorAt(i, c.clone().multiplyScalar(R(0.7, 1.0)));
-}
-scene.add(slats);
-
-// Letreiro Luminoso da Marca nos Fundos
-const brandSign = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 0.8), new THREE.MeshBasicMaterial({
-  map: ctex(1024, 256, (g, w, h) => {
-    g.fillStyle = '#08070d'; g.fillRect(0, 0, w, h);
-    g.strokeStyle = GOLD; g.lineWidth = 3; g.strokeRect(8, 8, w - 16, h - 16);
-    g.fillStyle = '#ffffff'; g.font = '900 68px -apple-system, sans-serif'; g.textAlign = 'center';
-    g.fillText('NEW WEAR', w / 2, 105);
-    g.fillStyle = GOLD; g.font = '800 24px -apple-system, sans-serif';
-    g.fillText('NIKE · JORDAN · GENUINE LEATHER', w / 2, 165);
-  }),
-  toneMapped: false
-}));
-brandSign.position.set(0, 3.2, -16.88); scene.add(brandSign);
-
-// 4. Fachada Panorâmica em Vidro com Vista para a Rua NEW
-for(const sx of [-1, 1]) {
-  const gl = new THREE.Mesh(new THREE.PlaneGeometry(7.8, 3.4), new THREE.MeshPhysicalMaterial({
-    roughness: 0.05, transmission: 0.95, thickness: 0.04, transparent: true, opacity: 0.35, ior: 1.52
-  }));
-  gl.position.set(sx * 5.1, 2.2, 11.95); scene.add(gl);
-}
-
-/* ========== SNEAKER WALL MONUMENTAL (PAREDE DOS FUNDOS) ========== */
-// Pedestais flutuantes dedicados para Nike Air Jordan 1, Air Force 1, Dunk Panda e Bota Chelsea
-const SNEAKERS = [
-  PROD_MAP.get('jordan_1_chicago'),
-  PROD_MAP.get('nike_air_force_1'),
-  PROD_MAP.get('nike_dunk_panda'),
-  PROD_MAP.get('chelsea_leather_boots')
-].filter(Boolean);
-
-const sneakerGroup = new THREE.Group();
-sneakerGroup.position.set(0, 0, -16.2);
-scene.add(sneakerGroup);
-
-SNEAKERS.forEach((snk, i) => {
-  const px = -4.5 + i * 3.0;
-  // Painel de Acrílico Negro Flutuante
-  const panel = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.6, 0.05), M({ color: '#14121b', roughness: 0.2 }));
-  panel.position.set(px, 1.8, 0); sneakerGroup.add(panel);
-
-  // Pedestal Iluminado em Vidro e Ouro
-  const pedestal = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.5), metalG);
-  pedestal.position.set(px, 1.1, 0.28); sneakerGroup.add(pedestal);
-
-  // Fita de LED sob o pedestal
-  const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.015, 0.02), warmLed);
-  ledStrip.position.set(px, 1.06, 0.51); sneakerGroup.add(ledStrip);
-
-  // Placa Metálica com Nome Oficial e Preço
-  const plaque = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshBasicMaterial({
-    map: ctex(512, 128, (g, w, h) => {
-      g.fillStyle = '#0a0910'; g.fillRect(0, 0, w, h);
-      g.strokeStyle = GOLD; g.lineWidth = 2; g.strokeRect(4, 4, w - 8, h - 8);
-      g.fillStyle = GOLD; g.font = '800 24px -apple-system, sans-serif'; g.textAlign = 'center';
-      g.fillText(snk.brand.toUpperCase(), w / 2, 38);
-      g.fillStyle = '#ffffff'; g.font = '900 28px -apple-system, sans-serif';
-      g.fillText(snk.name.substring(0, 22), w / 2, 78);
-      g.fillStyle = '#facc15'; g.font = '800 24px -apple-system, sans-serif';
-      g.fillText(brl(snk.price), w / 2, 112);
-    }),
-    toneMapped: false
-  }));
-  plaque.position.set(px, 0.72, 0.3); plaque.rotation.x = -0.3; sneakerGroup.add(plaque);
-
-  // Colocar o Tênis em destaque sobre o pedestal
-  place(snk, sneakerGroup.matrixWorld, V3(px, 1.13, 0.28), new THREE.Quaternion().setFromAxisAngle(V3(0, 1, 0), Math.PI / 4));
+  // Sneaker em ângulo
+  const snkObj = buildSneaker3D(snk);
+  snkObj.group.position.set(px, py + 0.02, -0.15);
+  snkObj.group.rotation.y = col === 0 ? 0.35 : -0.35;
+  shoesGroup.add(snkObj.group);
+  shoeHitboxes.push(snkObj.hitBox);
 });
 
-colliders.push({ x0: -6.5, x1: 6.5, z0: -16.8, z1: -15.5 });
+/* ========== SEÇÃO 3: PAREDE DE BONÉS EM PEGBOARD (CAPS) ========== */
+const capsGroup = new THREE.Group();
+capsGroup.position.set(-2.5, 0, -0.2);
+showroomGroup.add(capsGroup);
 
-/* ========== PASSARELA CENTRAL MONUMENTAL ("LOOK DO DIA") ========== */
-{
-  // Pódio oval elevado em mármore
-  const stageBase = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 0.18, 48), metalDark);
-  stageBase.position.set(0, 0.09, 5.2); stageBase.receiveShadow = true; scene.add(stageBase);
+// Pegboard perfurado de madeira
+const pegboard = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 0.04), pegboardMat);
+pegboard.position.set(0, 1.8, -0.45);
+pegboard.receiveShadow = true;
+capsGroup.add(pegboard);
 
-  const stageTop = new THREE.Mesh(new THREE.CylinderGeometry(2.14, 2.14, 0.02, 48), marbleCream);
-  stageTop.position.set(0, 0.19, 5.2); stageTop.receiveShadow = true; scene.add(stageTop);
+const CAP_PRODUCTS = PRODUCTS.filter(p => p.category === 'caps');
+const capHitboxes = [];
 
-  const stageRim = new THREE.Mesh(new THREE.TorusGeometry(2.18, 0.016, 8, 64), metalG);
-  stageRim.rotation.x = Math.PI / 2; stageRim.position.set(0, 0.18, 5.2); scene.add(stageRim);
+function buildCap3D(p) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.85 });
 
-  colliders.push({ x0: -2.3, x1: 2.3, z0: 3.0, z1: 7.4 });
+  // Coroa em meia-esfera
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2), mat);
+  dome.scale.set(1, 0.82, 1.05);
+  dome.castShadow = true;
+  g.add(dome);
 
-  // Manequins de Alta Costura em Fibra Fosca (Estilo Milão)
-  const bodyM = M({ color: '#f3efe6', roughness: 0.35, envMapIntensity: 0.6 });
+  // Aba curvada
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.008, 18, 1, false, 0, Math.PI), mat);
+  brim.rotation.y = -Math.PI / 2;
+  brim.scale.set(1, 1, 1.3);
+  brim.position.set(0, 0.004, 0.03);
+  brim.castShadow = true;
+  g.add(brim);
 
-  const mannequin = (x, z, ry, p) => {
-    const g = new THREE.Group(); g.position.set(x, 0.2, z); g.rotation.y = ry; scene.add(g);
+  // Botão superior
+  const btn = new THREE.Mesh(new THREE.SphereGeometry(0.01, 8, 8), mat);
+  btn.position.y = 0.075;
+  g.add(btn);
 
-    // Base circular de latão escovado
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.025, 24), metalG);
-    b.position.y = 0.0125; g.add(b);
+  // Hitbox
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.18, 0.24), new THREE.MeshBasicMaterial({ visible: false }));
+  hit.position.y = 0.04;
+  hit.userData.product = p;
+  g.add(hit);
 
-    // Haste de sustentação
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.96, 8), metalDark);
-    pole.position.y = 0.5; g.add(pole);
-
-    // Torso anatômico esculpido
-    const torso = new THREE.Mesh(new THREE.LatheGeometry([
-      new THREE.Vector2(0.001, 0),
-      new THREE.Vector2(0.11, 0),
-      new THREE.Vector2(0.12, 0.12),
-      new THREE.Vector2(0.145, 0.24),
-      new THREE.Vector2(0.18, 0.36),
-      new THREE.Vector2(0.185, 0.46),
-      new THREE.Vector2(0.13, 0.54),
-      new THREE.Vector2(0.048, 0.58),
-      new THREE.Vector2(0.001, 0.60)
-    ], 24), bodyM);
-    torso.position.y = 0.95; torso.castShadow = true; g.add(torso);
-
-    // Cabeça estilizada
-    const hd = new THREE.Mesh(new THREE.SphereGeometry(0.09, 18, 14), bodyM);
-    hd.scale.set(0.85, 1.15, 0.9); hd.position.y = 1.70; hd.castShadow = true; g.add(hd);
-
-    g.updateMatrixWorld(true);
-    // Vestir o manequim com a peça real
-    place(p, g.matrixWorld, V3(0, 1.55, 0), new THREE.Quaternion());
-  };
-
-  // Manequim 1: Jaqueta Biker Couro Legítimo Masculina
-  mannequin(-1.1, 5.0, 0.22, PROD_MAP.get('leather_jacket_biker_men'));
-  // Manequim 2: Moletom Nike Sportswear Club Fleece com Capuz
-  mannequin(0, 5.5, 0, PROD_MAP.get('nike_club_fleece_hoodie'));
-  // Manequim 3: Vestido Slip Dress em Seda Pura com Fenda
-  mannequin(1.1, 5.0, -0.22, PROD_MAP.get('silk_slip_dress_midi'));
-
-  // Placa de Destaque "LOOK DO DIA · NIKE & LEATHER"
-  const stageSign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.36), new THREE.MeshBasicMaterial({
-    map: ctex(512, 128, (g, w, h) => {
-      g.fillStyle = '#121118'; g.fillRect(0, 0, w, h);
-      g.strokeStyle = GOLD; g.lineWidth = 3; g.strokeRect(6, 6, w - 12, h - 12);
-      g.fillStyle = GOLD; g.font = '800 28px -apple-system, sans-serif'; g.textAlign = 'center';
-      g.fillText('LOOK DO DIA', w / 2, 46);
-      g.fillStyle = '#ffffff'; g.font = '800 24px -apple-system, sans-serif';
-      g.fillText('NIKE & GENUINE LEATHER', w / 2, 90);
-    }),
-    toneMapped: false
-  }));
-  stageSign.rotation.x = -0.35;
-  stageSign.position.set(0, 0.32, 7.25);
-  scene.add(stageSign);
+  return { group: g, hitBox: hit };
 }
 
-/* ========== ARARAS SUSPENSAS LATERAIS (NIKE, COURO & LEVI'S) ========== */
-function hangRail({ x, z, ry = 0, len = 10, items }) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
-  const railY = 2.15;
+CAP_PRODUCTS.forEach((cap, i) => {
+  const col = i % 2;
+  const row = Math.floor(i / 2);
+  const px = (col === 0 ? -0.38 : 0.38);
+  const py = 2.1 - row * 0.65;
 
-  // Barra de latão escovado
-  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, len, 16), metalG);
-  bar.rotation.x = Math.PI / 2; bar.position.set(0, railY, 0); bar.castShadow = true; g.add(bar);
+  // Pino de madeira no pegboard
+  const peg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.14, 12), woodMat);
+  peg.rotation.x = Math.PI / 2;
+  peg.position.set(px, py, -0.38);
+  peg.castShadow = true;
+  capsGroup.add(peg);
 
-  // Cabos de aço suspensos do teto
-  for(const e of [-1, 1]) {
-    const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, ROOM.h - railY, 8), metalDark);
-    cable.position.set(0, railY + (ROOM.h - railY) / 2, e * (len / 2 - 0.3));
-    g.add(cable);
-  }
-
-  g.updateMatrixWorld(true);
-  const PM = g.matrixWorld;
-
-  let cursor = -len / 2 + 0.3, k = 0;
-  while(cursor < len / 2 - 0.25) {
-    const p = items[k++ % items.length];
-    const cnt = 2 + (k % 2);
-    for(let c = 0; c < cnt && cursor < len / 2 - 0.25; c++) {
-      place(p, PM, V3(0, railY - 0.055, cursor), new THREE.Quaternion().setFromAxisAngle(V3(0, 1, 0), 1.05));
-      cursor += 0.16;
-    }
-    cursor += 0.12;
-  }
-}
-
-// Arara Esquerda: Moda Feminina (Couro Pelica, Vestidos Seda, Bolsas e Bonés)
-hangRail({
-  x: -8.4, z: -7, len: 11,
-  items: [
-    PROD_MAP.get('leather_jacket_biker_women'),
-    PROD_MAP.get('silk_slip_dress_midi'),
-    PROD_MAP.get('leather_crossbody_bag'),
-    PROD_MAP.get('nike_club_tee'),
-    PROD_MAP.get('nike_heritage_cap')
-  ].filter(Boolean)
+  // Boné encaixado no pino
+  const capObj = buildCap3D(cap);
+  capObj.group.position.set(px, py - 0.03, -0.28);
+  capObj.group.rotation.x = 0.25;
+  capsGroup.add(capObj.group);
+  capHitboxes.push(capObj.hitBox);
 });
 
-// Arara Direita: Streetwear Masculino (Jaqueta Biker Couro, Moletom Nike, Levi's 501, Jogger)
-hangRail({
-  x: 8.4, z: -7, ry: Math.PI, len: 11,
-  items: [
-    PROD_MAP.get('leather_jacket_biker_men'),
-    PROD_MAP.get('nike_club_fleece_hoodie'),
-    PROD_MAP.get('levis_501_original'),
-    PROD_MAP.get('nike_club_jogger'),
-    PROD_MAP.get('nike_club_tee')
-  ].filter(Boolean)
+/* ========== SEÇÃO 4: EXPOSITOR DE BOLSAS (BAGS PODIUM) ========== */
+const bagsGroup = new THREE.Group();
+bagsGroup.position.set(3.2, 0, 0);
+showroomGroup.add(bagsGroup);
+
+// Pódio flutuante cilíndrico
+const bagPedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.9, 32), new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.25 }));
+bagPedestal.position.set(0, 0.45, 0);
+bagPedestal.castShadow = true;
+bagPedestal.receiveShadow = true;
+bagsGroup.add(bagPedestal);
+
+const BAG_PRODUCTS = PRODUCTS.filter(p => p.category === 'bags');
+const bagHitboxes = [];
+
+BAG_PRODUCTS.forEach(bag => {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: bag.color, roughness: 0.35, metalness: 0.1 });
+
+  // Corpo da bolsa
+  const b = new THREE.Mesh(new RoundedBoxGeometry(0.30, 0.22, 0.12, 3, 0.02), mat);
+  b.position.y = 0.11;
+  b.castShadow = true;
+  g.add(b);
+
+  // Fecho dourado
+  const lock = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.015), brassGold);
+  lock.position.set(0, 0.11, 0.065);
+  g.add(lock);
+
+  // Alça corrente metálica
+  const strap = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.01, 8, 20, Math.PI), brassGold);
+  strap.position.set(0, 0.22, 0);
+  g.add(strap);
+
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.32, 0.18), new THREE.MeshBasicMaterial({ visible: false }));
+  hit.position.y = 0.15;
+  hit.userData.product = bag;
+  g.add(hit);
+
+  g.position.set(0, 0.9, 0);
+  bagsGroup.add(g);
+  bagHitboxes.push(hit);
 });
 
-colliders.push(
-  { x0: -9, x1: -7.5, z0: -13, z1: -1 },
-  { x0: 7.5, x1: 9, z0: -13, z1: -1 }
-);
+/* ========== INSTALAÇÃO DOS PRODUTOS NA ARARA CENTRAL ========== */
+const CLOTHING_PRODUCTS = PRODUCTS.filter(p => p.category === 'clothing');
+const garmentItems = [];
+const allHitBoxes = [];
 
-/* Placas Elegantes de Identificação dos Setores */
-function addSign(text, sub, x, y, z, ry) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.7), new THREE.MeshBasicMaterial({
-    map: ctex(512, 128, (g, w, h) => {
-      g.fillStyle = '#14121b'; g.fillRect(0, 0, w, h);
-      g.strokeStyle = GOLD; g.lineWidth = 2; g.strokeRect(4, 4, w - 8, h - 8);
-      g.fillStyle = GOLD; g.font = '800 24px -apple-system, sans-serif'; g.textAlign = 'center';
-      g.fillText(text, w / 2, 42);
-      g.fillStyle = '#ffffff'; g.font = '700 20px -apple-system, sans-serif';
-      g.fillText(sub, w / 2, 84);
-    }),
-    toneMapped: false
-  }));
-  m.position.set(x, y, z); m.rotation.y = ry; scene.add(m);
-}
+const rackStart = -RAIL_LENGTH / 2 + 0.55;
+const rackStep = (RAIL_LENGTH - 1.1) / (CLOTHING_PRODUCTS.length - 1);
 
-addSign('COURO LEGÍTIMO & LUXO', 'jaquetas pelica · vestidos · bolsas', -8.96, 3.4, -7, Math.PI / 2);
-addSign('NIKE STREETWEAR & DENIM', 'hoodies · jogger · levi\'s 501', 8.96, 3.4, -7, -Math.PI / 2);
+CLOTHING_PRODUCTS.forEach((prod, i) => {
+  const item = buildGarmentMesh(prod);
+  const posX = rackStart + i * rackStep;
+  item.group.position.set(posX, RAIL_Y - 0.04, 0);
 
-/* Finalizar instâncias e montar na cena */
-finalize();
+  // Pequena variação orgânica natural
+  item.group.rotation.y = (Math.random() - 0.5) * 0.08;
 
-/* ========== SISTEMA DE INTERAÇÃO, INSPEÇÃO E COMPRA ========== */
-let activeProd = null, activeQty = 1, activeSize = null;
-const cart = new Map();
+  clothesRailGroup.add(item.group);
+  garmentItems.push({ prod, group: item.group, originY: RAIL_Y - 0.04, hitBox: item.hitBox });
+  allHitBoxes.push(item.hitBox);
+});
 
-function toast(msg) {
-  const t = $('toast'); t.textContent = msg; t.classList.add('on');
-  clearTimeout(t._to); t._to = setTimeout(() => t.classList.remove('on'), 2600);
-}
+// Adicionar hitboxes das outras seções na lista geral
+allHitBoxes.push(...shoeHitboxes, ...capHitboxes, ...bagHitboxes);
 
-function openProductCard(p) {
-  activeProd = p; activeQty = 1;
-  activeSize = p.sizes ? p.sizes[0] : null;
+/* ========== SEÇÃO DE HERO PRODUCT (INSPEÇÃO 360) ========== */
+const heroGroup = new THREE.Group();
+heroGroup.position.set(-0.8, 1.62, 2.0); // Posição de destaque na tela à esquerda
+scene.add(heroGroup);
 
-  $('pc-img').src = p.img;
-  $('pc-tag').textContent = p.tag || p.brand.toUpperCase();
-  $('pc-brand').textContent = p.brand;
-  $('pc-title').textContent = p.name;
-  $('pc-price').textContent = brl(p.price);
-  $('pc-desc').textContent = p.desc;
-  $('qty-val').textContent = activeQty;
+let currentHeroMesh = null;
+let isFocusMode = false;
+let isDragging360 = false;
+let prevMouseX = 0;
+let heroRotationY = 0;
 
-  // Especificações
-  const specsBox = $('pc-specs'); specsBox.innerHTML = '';
-  if(p.specs) {
-    p.specs.forEach(s => {
-      const span = document.createElement('span'); span.textContent = s; specsBox.appendChild(span);
-    });
+function spawnHero3D(p) {
+  if(currentHeroMesh) {
+    heroGroup.remove(currentHeroMesh);
   }
 
-  // Seletor de Tamanhos Reais
-  const sizesBox = $('pc-sizes'); sizesBox.innerHTML = '';
-  if(p.sizes && p.sizes.length) {
-    p.sizes.forEach((sz, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'pc-size-btn' + (idx === 0 ? ' active' : '');
-      btn.textContent = sz;
-      btn.onclick = () => {
-        sizesBox.querySelectorAll('.pc-size-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active'); activeSize = sz;
-      };
-      sizesBox.appendChild(btn);
-    });
+  const holder = new THREE.Group();
+  let obj3D;
+  if(p.category === 'shoes') obj3D = buildSneaker3D(p);
+  else if(p.category === 'caps') obj3D = buildCap3D(p);
+  else if(p.category === 'bags') {
+    obj3D = { group: bagsGroup.children[bagsGroup.children.length - 1].clone() };
+    obj3D.group.position.set(0, 0, 0);
+  } else {
+    obj3D = buildGarmentMesh(p);
   }
 
-  $('pc').classList.add('on');
+  // Centralizar
+  obj3D.group.position.set(0, 0.15, 0);
+  obj3D.group.scale.set(1.45, 1.45, 1.45);
+  holder.add(obj3D.group);
+
+  // Sombra de contato no chão/parede virtual
+  const shadowPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.2, 1.2),
+    new THREE.MeshBasicMaterial({
+      map: makeCanvasTex(128, 128, ctx => {
+        const grd = ctx.createRadialGradient(64, 64, 10, 64, 64, 60);
+        grd.addColorStop(0, 'rgba(0,0,0,0.28)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, 128, 128);
+      }),
+      transparent: true,
+      depthWrite: false
+    })
+  );
+  shadowPlane.rotation.x = -Math.PI / 2;
+  shadowPlane.position.set(0, -0.65, 0);
+  holder.add(shadowPlane);
+
+  currentHeroMesh = holder;
+  heroGroup.add(currentHeroMesh);
+  heroRotationY = 0;
+  heroGroup.visible = true;
 }
 
-function closeProductCard() {
-  $('pc').classList.remove('on');
-  activeProd = null;
-}
-
-$('pc-close').onclick = closeProductCard;
-$('qty-minus').onclick = () => { activeQty = Math.max(1, activeQty - 1); $('qty-val').textContent = activeQty; };
-$('qty-plus').onclick = () => { activeQty = Math.min(20, activeQty + 1); $('qty-val').textContent = activeQty; };
-
-// Adicionar à Sacola
-$('btn-add-cart').onclick = () => {
-  if(!activeProd) return;
-  const key = activeProd.id + (activeSize ? '_' + activeSize : '');
-  const item = cart.get(key) || { prod: activeProd, size: activeSize, qty: 0 };
-  item.qty += activeQty;
-  cart.set(key, item);
-  renderCart();
-  toast(`${activeQty}x ${activeProd.name} adicionado à sacola!`);
-  closeProductCard();
+/* ========== TRANSIÇÕES DE CÂMERA SUAVE (CAMERA FLIGHT) ========== */
+const CAM_PRESETS = {
+  store: { pos: new THREE.Vector3(0, 1.85, 4.8), target: new THREE.Vector3(0, 1.60, 0) },
+  clothing: { pos: new THREE.Vector3(0, 1.70, 3.5), target: new THREE.Vector3(0, 1.65, 0) },
+  shoes: { pos: new THREE.Vector3(-4.5, 1.65, 2.0), target: new THREE.Vector3(-4.5, 1.65, -0.2) },
+  caps: { pos: new THREE.Vector3(-2.5, 1.70, 1.8), target: new THREE.Vector3(-2.5, 1.70, -0.2) },
+  bags: { pos: new THREE.Vector3(3.2, 1.35, 2.2), target: new THREE.Vector3(3.2, 1.10, 0) },
+  focus: { pos: new THREE.Vector3(0.3, 1.62, 3.4), target: new THREE.Vector3(-0.35, 1.62, 2.0) }
 };
 
-function renderCart() {
-  const list = $('cart-list'); list.innerHTML = '';
+let currentCamTarget = CAM_PRESETS.clothing.target.clone();
+let targetCamPos = CAM_PRESETS.clothing.pos.clone();
+let targetLookAt = CAM_PRESETS.clothing.target.clone();
+
+function goToPreset(name) {
+  const p = CAM_PRESETS[name];
+  if(!p) return;
+  targetCamPos.copy(p.pos);
+  targetLookAt.copy(p.target);
+}
+
+// Navegação pelas abas inferiores
+document.querySelectorAll('.nav-tab[data-cat]').forEach(btn => {
+  btn.onclick = () => {
+    if(isFocusMode) closeHeroProduct();
+    document.querySelectorAll('.nav-tab[data-cat]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    goToPreset(btn.dataset.cat);
+  };
+});
+
+/* ========== INTERAÇÃO DO HERO CARD & COMPRA ========== */
+let activeProduct = null;
+let activeSize = null;
+const cart = new Map();
+
+function openHeroProduct(prod) {
+  isFocusMode = true;
+  activeProduct = prod;
+  activeSize = prod.sizes ? prod.sizes[0] : 'Único';
+
+  // Ocultar barra inferior e mostrar card
+  $('nav-bar').classList.add('hidden');
+  $('rotate-hint').classList.add('on');
+
+  $('card-cat').textContent = prod.category.toUpperCase();
+  $('card-title').textContent = prod.name;
+  $('card-price').textContent = brl(prod.price);
+  $('card-colorway').textContent = prod.colorway || prod.brand;
+
+  // Grade de Tamanhos
+  const sizeGrid = $('card-sizes');
+  sizeGrid.innerHTML = '';
+  if(prod.sizes && prod.sizes.length) {
+    prod.sizes.forEach((sz, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'size-btn' + (idx === 0 ? ' active' : '');
+      btn.textContent = sz;
+      btn.onclick = () => {
+        sizeGrid.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeSize = sz;
+      };
+      sizeGrid.appendChild(btn);
+    });
+  }
+
+  // Reset do botão Adicionar
+  const addBtn = $('btn-add-card');
+  addBtn.classList.remove('added');
+  $('btn-add-text').textContent = 'Adicionar à Sacola';
+
+  spawnHero3D(prod);
+  goToPreset('focus');
+
+  setTimeout(() => {
+    $('hero-card').classList.add('on');
+  }, 100);
+}
+
+function closeHeroProduct() {
+  if(!isFocusMode) return;
+  isFocusMode = false;
+  $('hero-card').classList.remove('on');
+  $('rotate-hint').classList.remove('on');
+  $('nav-bar').classList.remove('hidden');
+
+  if(currentHeroMesh) {
+    heroGroup.remove(currentHeroMesh);
+    currentHeroMesh = null;
+  }
+
+  // Volta para a categoria ativa na barra
+  const activeTab = document.querySelector('.nav-tab.active');
+  const cat = activeTab ? activeTab.dataset.cat : 'clothing';
+  goToPreset(cat);
+}
+
+$('btn-close-card').onclick = closeHeroProduct;
+
+// Adicionar à Sacola com Animação do Vídeo
+$('btn-add-card').onclick = () => {
+  if(!activeProduct) return;
+  const key = `${activeProduct.id}_${activeSize}`;
+  const item = cart.get(key) || { prod: activeProduct, size: activeSize, qty: 0 };
+  item.qty += 1;
+  cart.set(key, item);
+
+  // Micro-interação: vira verde "Added to cart ✓"
+  const btn = $('btn-add-card');
+  btn.classList.add('added');
+  $('btn-add-text').textContent = 'Adicionado à Sacola ✓';
+
+  updateCartBadges();
+  showToast(`1x ${activeProduct.name} adicionado!`);
+
+  setTimeout(() => {
+    if(btn.classList.contains('added')) {
+      $('btn-add-text').textContent = 'Adicionar Mais 1';
+    }
+  }, 1800);
+};
+
+$('link-view-cart').onclick = () => {
+  openCartDrawer();
+};
+
+/* ========== GAVETA LATERAL DO CARRINHO (DRAWER) ========== */
+function updateCartBadges() {
+  let count = 0;
+  cart.forEach(it => count += it.qty);
+  $('cart-badge').textContent = count;
+  $('drawer-count').textContent = count;
+  $('link-cart-count').textContent = count;
+}
+
+function openCartDrawer() {
+  renderCartDrawer();
+  $('cart-drawer').classList.add('open');
+  $('drawer-backdrop').classList.add('on');
+}
+
+function closeCartDrawer() {
+  $('cart-drawer').classList.remove('open');
+  $('drawer-backdrop').classList.remove('on');
+}
+
+$('btn-open-cart').onclick = openCartDrawer;
+$('btn-close-drawer').onclick = closeCartDrawer;
+$('drawer-backdrop').onclick = closeCartDrawer;
+
+function renderCartDrawer() {
+  const container = $('drawer-items');
+  container.innerHTML = '';
   let total = 0;
 
   if(!cart.size) {
-    list.innerHTML = '<div style="opacity:0.5;text-align:center;padding:12px 0;">Sua sacola está vazia</div>';
+    container.innerHTML = '<div class="cart-empty">Sua sacola está vazia</div>';
   } else {
-    cart.forEach(it => {
+    cart.forEach((it, key) => {
       const p = it.prod;
-      const subtotal = p.price * it.qty;
-      total += subtotal;
+      const sub = p.price * it.qty;
+      total += sub;
 
-      const row = document.createElement('div'); row.className = 'cart-row';
+      const row = document.createElement('div');
+      row.className = 'cart-item-row';
       row.innerHTML = `
-        <img src="${p.img}" alt="${p.name}">
-        <div class="info">
-          <div class="title">${p.name}</div>
-          <div class="sub">Tam: ${it.size || 'Único'} · Qtd: ${it.qty}</div>
+        <img src="${p.img}" class="cart-item-thumb" alt="${p.name}">
+        <div class="cart-item-info">
+          <div class="cart-item-title">${p.name}</div>
+          <div class="cart-item-meta">Tamanho: <b>${it.size}</b> · Qtd: ${it.qty}</div>
+          <div class="cart-item-price">${brl(sub)}</div>
         </div>
-        <div class="price">${brl(subtotal)}</div>
+        <button class="cart-item-del" data-del="${key}" title="Remover">✕</button>
       `;
-      list.appendChild(row);
+      container.appendChild(row);
+    });
+
+    container.querySelectorAll('[data-del]').forEach(btn => {
+      btn.onclick = () => {
+        cart.delete(btn.dataset.del);
+        updateCartBadges();
+        renderCartDrawer();
+      };
     });
   }
 
-  $('cart-total').textContent = brl(total);
+  $('drawer-total').textContent = brl(total);
   $('modal-total').textContent = brl(total);
 }
 
 // Modal de Checkout
-$('btn-checkout').onclick = () => {
-  if(!cart.size) { toast('Sua sacola de compras está vazia!'); return; }
-  $('modal').classList.add('on');
+$('btn-finalizar').onclick = () => {
+  if(!cart.size) { showToast('Sua sacola está vazia!'); return; }
+  closeCartDrawer();
+  $('checkout-modal').classList.add('open');
 };
-$('modal-close').onclick = () => $('modal').classList.remove('on');
+$('btn-cancel-modal').onclick = () => $('checkout-modal').classList.remove('open');
 
-document.querySelectorAll('.pay-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  };
-});
+$('btn-confirm-buy').onclick = () => {
+  const name = $('co-name').value.trim() || 'Cliente VIP';
+  const phone = $('co-phone').value.trim();
+  const addr = $('co-address').value.trim() || 'Retirada na Flagship';
 
-$('btn-confirm-order').onclick = () => {
-  const name = $('co-name').value.trim();
-  const address = $('co-address').value.trim();
-  if(!name || !address) { toast('Por favor preencha seu nome e endereço de entrega.'); return; }
+  let total = 0;
+  let itemsSummary = '';
+  cart.forEach(it => {
+    total += it.prod.price * it.qty;
+    itemsSummary += `• ${it.qty}x ${it.prod.name} (Tam: ${it.size}) - ${brl(it.prod.price * it.qty)}\n`;
+  });
 
-  const pay = document.querySelector('.pay-btn.active').dataset.pay;
-  const orderId = 'NEW-' + Math.floor(100000 + Math.random() * 900000);
-  
-  toast(`Pedido #${orderId} confirmado com sucesso! Obrigado, ${name}!`);
-  cart.clear(); renderCart();
-  $('modal').classList.remove('on');
+  const orderNum = 'NW' + Math.floor(10000 + Math.random() * 90000);
+  const msg = `*NOVO PEDIDO #${orderNum} - NEW WEAR*\n` +
+              `Nome: ${name}\n` +
+              `Endereço: ${addr}\n\n` +
+              `*ITENS DO PEDIDO:*\n${itemsSummary}\n` +
+              `*TOTAL: ${brl(total)}*`;
+
+  const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+  window.open(waUrl, '_blank');
+
+  showToast(`Pedido #${orderNum} encaminhado com sucesso!`);
+  cart.clear();
+  updateCartBadges();
+  $('checkout-modal').classList.remove('open');
 };
 
-/* ========== CONTROLES DE NAVEGAÇÃO & POINTER LOCK ========== */
-let locked = false, free = true;
-let yaw = 0, pitch = -0.04;
-const keys = {};
+// Modal de Informações (ℹ)
+$('btn-info').onclick = () => $('info-modal').classList.add('open');
+$('btn-close-info').onclick = () => $('info-modal').classList.remove('open');
 
-function enter() {
-  $('overlay').style.display = 'none';
-  locked = true;
-  try {
-    const p = renderer.domElement.requestPointerLock();
-    if(p && p.catch) p.catch(() => { free = true; });
-  } catch(e) { free = true; }
-  toast('Mova o mouse pra olhar · Clique em uma peça pra inspecionar');
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('on'), 2400);
 }
 
-$('btn-enter').onclick = enter;
-$('overlay').onclick = enter;
+/* ========== RAYCASTING DE HOVER & CLIQUE ========== */
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredHit = null;
 
-document.addEventListener('pointerlockchange', () => {
-  locked = document.pointerLockElement === renderer.domElement;
-  if(!locked) free = true;
+window.addEventListener('mousemove', e => {
+  // Rotação 360 no modo de inspeção (drag)
+  if(isFocusMode && isDragging360 && currentHeroMesh) {
+    const dx = e.clientX - prevMouseX;
+    heroRotationY += dx * 0.012;
+    currentHeroMesh.rotation.y = heroRotationY;
+    prevMouseX = e.clientX;
+    return;
+  }
+
+  if(isFocusMode) return; // Não faz hover enquanto está no modo produto
+
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(allHitBoxes, false);
+
+  if(hits.length > 0) {
+    const hit = hits[0].object;
+    if(hoveredHit !== hit) {
+      if(hoveredHit && hoveredHit.parent) hoveredHit.parent.position.y -= 0.03;
+      hoveredHit = hit;
+      hoveredHit.parent.position.y += 0.03;
+      document.body.style.cursor = 'pointer';
+
+      // Tooltip
+      const p = hit.userData.product;
+      if(p) {
+        $('item-tag').textContent = `${p.brand} · ${p.name}`;
+        $('item-tag').style.left = e.clientX + 'px';
+        $('item-tag').style.top = e.clientY + 'px';
+        $('item-tag').classList.add('on');
+      }
+    } else {
+      $('item-tag').style.left = e.clientX + 'px';
+      $('item-tag').style.top = e.clientY + 'px';
+    }
+  } else {
+    if(hoveredHit) {
+      if(hoveredHit.parent) hoveredHit.parent.position.y -= 0.03;
+      hoveredHit = null;
+      document.body.style.cursor = 'default';
+      $('item-tag').classList.remove('on');
+    }
+  }
 });
 
-document.addEventListener('mousemove', e => {
-  if(!locked) return;
-  yaw -= e.movementX * 0.0022;
-  pitch = Math.max(-1.35, Math.min(1.35, pitch - e.movementY * 0.0022));
+// Clique para Abrir Foco no Produto ou Iniciar Drag 360
+window.addEventListener('mousedown', e => {
+  if(e.target.closest('#hero-card') || e.target.closest('#nav-bar') || e.target.closest('#header') || e.target.closest('#cart-drawer') || e.target.closest('#checkout-modal')) {
+    return;
+  }
+
+  if(isFocusMode) {
+    isDragging360 = true;
+    prevMouseX = e.clientX;
+    return;
+  }
+
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(allHitBoxes, false);
+
+  if(hits.length > 0) {
+    const prod = hits[0].object.userData.product;
+    if(prod) {
+      $('item-tag').classList.remove('on');
+      openHeroProduct(prod);
+    }
+  }
 });
 
-addEventListener('keydown', e => {
-  keys[e.code] = true;
-  if(e.code === 'KeyV') location.href = '../mundo/index.html?rua=1';
+window.addEventListener('mouseup', () => {
+  isDragging360 = false;
+});
+
+// Atalhos de Teclado
+window.addEventListener('keydown', e => {
   if(e.code === 'Escape') {
-    if($('modal').classList.contains('on')) $('modal').classList.remove('on');
-    else if($('pc').classList.contains('on')) closeProductCard();
+    if($('checkout-modal').classList.contains('open')) $('checkout-modal').classList.remove('open');
+    else if($('cart-drawer').classList.contains('open')) closeCartDrawer();
+    else if(isFocusMode) closeHeroProduct();
   }
-});
-addEventListener('keyup', e => { keys[e.code] = false; });
-
-/* Raycasting para Inspeção ao Clicar */
-const ray = new THREE.Raycaster();
-ray.far = 14;
-const cross = $('cross');
-let hov = null;
-
-renderer.domElement.addEventListener('click', () => {
-  if(hov) openProductCard(hov.t.p);
+  if(e.code === 'KeyV') location.href = '../mundo/index.html?rua=1';
 });
 
-/* Teste de Colisão Simples */
-function hit(x, z) {
-  if(x < -ROOM.w / 2 + 0.5 || x > ROOM.w / 2 - 0.5 || z < -16.5 || z > 11.5) return true;
-  for(const c of colliders) {
-    if(x >= c.x0 && x <= c.x1 && z >= c.z0 && z <= c.z1) return true;
-  }
-  return false;
-}
-
-/* ========== LOOP DE ANIMAÇÃO & RENDER ========== */
+/* ========== LOOP DE ANIMAÇÃO & RENDER (60 FPS SUAVE) ========== */
 const clock = new THREE.Clock();
-const fwd = new THREE.Vector3(), rgt = new THREE.Vector3();
-let rc = 0;
 
-function frame() {
-  requestAnimationFrame(frame);
+function animate() {
+  requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if(locked && !$('modal').classList.contains('on') && !$('pc').classList.contains('on')) {
-    const sp = (keys.ShiftLeft || keys.ShiftRight ? 5.8 : 3.4) * dt;
-    const f = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0);
-    const r = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
-    fwd.set(-Math.sin(yaw), 0, -Math.cos(yaw)); rgt.set(Math.cos(yaw), 0, -Math.sin(yaw));
-    const dx = (fwd.x * f + rgt.x * r) * sp, dz = (fwd.z * f + rgt.z * r) * sp;
-    if(!hit(camera.position.x + dx, camera.position.z)) camera.position.x += dx;
-    if(!hit(camera.position.x, camera.position.z + dz)) camera.position.z += dz;
-  }
-  camera.rotation.set(pitch, yaw, 0);
+  // Vôo suave da câmera (LERP amortecido)
+  camera.position.lerp(targetCamPos, dt * 4.5);
+  currentCamTarget.lerp(targetLookAt, dt * 4.5);
+  camera.lookAt(currentCamTarget);
 
-  // Raycasting para Mira Central
-  if(locked && (rc++ & 1) === 0) {
-    ray.setFromCamera({ x: 0, y: 0 }, camera);
-    const hits = ray.intersectObjects(pickMeshes, false);
-    const nh = (hits.length && hits[0].instanceId != null) ? { t: hits[0].object.userData.type, i: hits[0].instanceId } : null;
-    if(hov && (!nh || nh.t !== hov.t || nh.i !== hov.i)) setHover(hov.t, hov.i, false);
-    if(nh && (!hov || nh.t !== hov.t || nh.i !== hov.i)) setHover(nh.t, nh.i, true);
-    hov = nh;
-    if(hov) cross.classList.add('hot');
-    else cross.classList.remove('hot');
+  // Leve flutuação e rotação do Hero 3D quando em foco
+  if(isFocusMode && currentHeroMesh && !isDragging360) {
+    heroRotationY += dt * 0.35;
+    currentHeroMesh.rotation.y = heroRotationY;
+    currentHeroMesh.position.y = 0.03 * Math.sin(clock.getElapsedTime() * 1.8);
   }
+
+  // Micro balanço orgânico nas roupas da arara
+  const t = clock.getElapsedTime();
+  garmentItems.forEach((it, idx) => {
+    if(it.hitBox !== hoveredHit) {
+      it.group.rotation.z = Math.sin(t * 1.2 + idx * 0.45) * 0.008;
+    }
+  });
 
   renderer.render(scene, camera);
 }
-frame();
+animate();
 
-addEventListener('resize', () => {
+window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
-
-if(window.NewPerf) NewPerf.attach(renderer,scene);
 </script>
 </body>
 </html>
