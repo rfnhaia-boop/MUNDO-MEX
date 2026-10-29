@@ -432,7 +432,15 @@
 
 <script type="module">
 import * as THREE from 'three';
-import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+// Fallback resiliente para RoundedBoxGeometry (garante inicialização em qualquer ambiente)
+let RoundedBoxGeometry = THREE.BoxGeometry;
+try {
+  const mod = await import('three/addons/geometries/RoundedBoxGeometry.js');
+  if(mod && mod.RoundedBoxGeometry) RoundedBoxGeometry = mod.RoundedBoxGeometry;
+} catch(err) {
+  console.warn('Three addons fallback ativo:', err);
+}
 
 const $ = id => document.getElementById(id);
 const brl = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
