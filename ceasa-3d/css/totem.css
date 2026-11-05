@@ -1,0 +1,58 @@
+#totem{position:fixed;top:14px;right:14px;bottom:14px;width:min(440px,calc(100vw - 28px));z-index:60;display:none;flex-direction:column;border-radius:22px;color:#f3effa;font:14px/1.45 "Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,rgba(26,20,42,.94),rgba(14,11,24,.96));border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 70px rgba(0,0,0,.55),0 0 60px -18px var(--tc,#8b5cf6);backdrop-filter:blur(18px) saturate(1.3);overflow:hidden}
+#totem.on{display:flex;animation:tmIn .28s cubic-bezier(.2,.8,.2,1)}@keyframes tmIn{from{opacity:0;transform:translateX(24px)}}
+#totem .th{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:linear-gradient(90deg,color-mix(in srgb,var(--tc,#8b5cf6) 28%,transparent),transparent)}
+#totem .tbox{font:800 12px "Segoe UI";letter-spacing:.14em;color:var(--tc,#c4b5fd);text-transform:uppercase}#totem .tnome{font:800 19px "Segoe UI";line-height:1.1}
+#totem .tx{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:16px;cursor:pointer}
+#totem .tx:hover{background:rgba(255,255,255,.14)}
+#totem .tb{flex:1;overflow:auto;padding:14px 16px;scrollbar-width:thin}
+#totem .aviso{padding:9px 12px;border-radius:12px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.35);color:#fde68a;font-weight:600;margin-bottom:12px}
+#totem .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+#totem .chip{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#fff;font:600 13px "Segoe UI";cursor:pointer;display:flex;gap:6px;align-items:center}
+#totem .chip.on{background:var(--tc,#8b5cf6);border-color:transparent;color:#14111c}#totem .chip i{font-style:normal;font-size:11px}
+#totem .view{position:relative;border-radius:16px;overflow:hidden;background:#0b0912;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1)}
+#totem .view img,#totem .view video{width:100%;height:100%;object-fit:cover;display:block}
+#totem .view.ilu img{filter:saturate(.85);opacity:.9}
+#totem .badge{position:absolute;left:10px;top:10px;padding:4px 10px;border-radius:999px;font:800 11px "Segoe UI";letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.62);backdrop-filter:blur(6px)}
+#totem .badge.real{color:#86efac;border:1px solid rgba(134,239,172,.5)}#totem .badge.ilu{color:#fcd34d;border:1px solid rgba(252,211,77,.5)}
+#totem .selo{margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-size:13px}
+#totem .selo b{color:#fff}#totem .selo.velha{border-color:rgba(251,146,60,.5);background:rgba(251,146,60,.09)}#totem .selo .av{color:#fdba74;font-weight:700}
+#totem .thumbs{display:flex;gap:7px;margin:10px 0;overflow:auto}#totem .thumbs button{flex:0 0 62px;height:48px;border-radius:9px;border:2px solid transparent;overflow:hidden;padding:0;background:#000;cursor:pointer;position:relative}
+#totem .thumbs button.on{border-color:var(--tc,#8b5cf6)}#totem .thumbs img{width:100%;height:100%;object-fit:cover}#totem .thumbs span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(0,0,0,.4)}
+#totem .est{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}#totem .tag{padding:4px 10px;border-radius:999px;font:700 12px "Segoe UI";background:rgba(255,255,255,.08)}
+#totem .tag.ok{background:rgba(74,222,128,.15);color:#86efac}#totem .tag.no{background:rgba(248,113,113,.16);color:#fca5a5}
+#totem .btns{display:flex;gap:9px;margin-top:12px}#totem .btn{flex:1;padding:12px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#fff;font:700 14px "Segoe UI";cursor:pointer}
+#totem .btn.pri{background:var(--tc,#8b5cf6);color:#14111c;border-color:transparent}#totem .btn:disabled{opacity:.45;cursor:not-allowed}#totem .btn:hover:not(:disabled){filter:brightness(1.12)}
+#totem .tf{padding:10px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#a79fc0}
+#totem .tf button{background:none;border:0;color:#c4b5fd;font:600 12px "Segoe UI";cursor:pointer;text-decoration:underline}
+#totem .tabs{display:flex;gap:6px;margin-bottom:12px}#totem .tab{flex:1;padding:9px;border-radius:11px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#fff;font:700 13px "Segoe UI";cursor:pointer}
+#totem .tab.on{background:var(--tc,#8b5cf6);color:#14111c;border-color:transparent}
+#totem .chat{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}#totem .m{max-width:92%;padding:9px 12px;border-radius:14px;white-space:pre-wrap}
+#totem .m.b{background:rgba(255,255,255,.08);align-self:flex-start;border-bottom-left-radius:4px}#totem .m.d{background:var(--tc,#8b5cf6);color:#14111c;font-weight:600;align-self:flex-end;border-bottom-right-radius:4px}
+#totem .prop{border:1px solid rgba(134,239,172,.4);background:rgba(74,222,128,.08);border-radius:14px;padding:11px 12px;margin:4px 0 10px}#totem .prop li{margin:2px 0 2px 16px}
+#totem .row{display:flex;gap:8px}#totem input,#totem select,#totem textarea{width:100%;padding:10px 12px;border-radius:11px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.35);color:#fff;font:14px "Segoe UI";outline:none}
+#totem input:focus,#totem select:focus,#totem textarea:focus{border-color:var(--tc,#a78bfa)}#totem label{display:block;font:700 12px "Segoe UI";color:#bdb4d6;margin:10px 0 4px}
+#totem .quick{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}#totem .quick button{padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#e9e3fb;font:600 12px "Segoe UI";cursor:pointer}
+#totem .lst{margin-top:12px}#totem .it{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}#totem .it img{width:46px;height:36px;object-fit:cover;border-radius:7px}#totem .it .g{flex:1;font-size:13px}
+#totem .del{background:none;border:1px solid rgba(248,113,113,.4);color:#fca5a5;border-radius:8px;padding:4px 9px;font:600 12px "Segoe UI";cursor:pointer}
+#totem .msg{margin:8px 0;font-size:13px;color:#fcd34d}#totem .ok{color:#86efac}
+/* --- Liquid Glass: mesma linguagem do chat do Beto --- */
+#totem{border-radius:24px;background:radial-gradient(120% 34% at 0% 0%,color-mix(in srgb,var(--tc,#8b5cf6) 22%,transparent),transparent 70%),radial-gradient(90% 30% at 100% 100%,color-mix(in srgb,var(--tc,#8b5cf6) 12%,transparent),transparent 70%),rgba(10,9,16,.82);backdrop-filter:blur(40px) saturate(1.5);-webkit-backdrop-filter:blur(40px) saturate(1.5);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 1px rgba(255,255,255,.12),0 24px 70px rgba(0,0,0,.75),0 0 90px -40px var(--tc,#8b5cf6)}
+#totem .th{padding:16px 18px;background:rgba(5,5,8,.55);border-bottom:1px solid rgba(255,255,255,.05)}
+#totem .tbox{display:flex;align-items:center;gap:7px;font:700 11.5px "Segoe UI";letter-spacing:.12em;color:color-mix(in srgb,var(--tc,#8b5cf6) 60%,#fff)}
+#totem .tbox::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 8px var(--tc,#8b5cf6);animation:tmP 2s infinite}@keyframes tmP{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+#totem .tnome{font:700 20px "Segoe UI"}
+#totem .tx{border:0;background:transparent;color:rgba(255,255,255,.6);transition:all .25s}#totem .tx:hover{background:rgba(255,255,255,.1);color:#fff}
+#totem .tb{padding:16px 18px;scrollbar-width:none}#totem .tb::-webkit-scrollbar{display:none}
+#totem .chip{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);transition:all .25s}
+#totem .chip:hover{border-color:color-mix(in srgb,var(--tc,#8b5cf6) 55%,transparent);background:color-mix(in srgb,var(--tc,#8b5cf6) 16%,transparent)}
+#totem .chip.on{background:linear-gradient(135deg,color-mix(in srgb,var(--tc,#8b5cf6) 70%,transparent),var(--tc,#8b5cf6));color:#14111c;box-shadow:0 4px 16px -6px var(--tc,#8b5cf6)}
+#totem .view{border-radius:20px;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 40px -18px #000}
+#totem .badge{backdrop-filter:blur(8px)}
+#totem .selo{border-radius:16px;background:rgba(30,30,36,.6);border:1px solid rgba(255,255,255,.07)}
+#totem .btn{border-radius:99px;padding:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);transition:all .25s}
+#totem .btn.pri{background:linear-gradient(135deg,color-mix(in srgb,var(--tc,#8b5cf6) 60%,transparent),var(--tc,#8b5cf6));box-shadow:0 6px 20px -8px var(--tc,#8b5cf6);border-color:transparent}
+#totem .tf{background:rgba(0,0,0,.35);border-top:1px solid rgba(255,255,255,.05);padding:12px 18px}
+#totem .tab{border-radius:99px}#totem input,#totem select,#totem textarea{border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+#totem .m.b{background:rgba(30,30,36,.6);border:1px solid rgba(255,255,255,.06);border-radius:20px 20px 20px 4px;padding:12px 16px}
+#totem .m.d{background:linear-gradient(135deg,color-mix(in srgb,var(--tc,#8b5cf6) 34%,transparent),color-mix(in srgb,var(--tc,#8b5cf6) 14%,transparent));border:1px solid color-mix(in srgb,var(--tc,#8b5cf6) 38%,transparent);color:#fff;border-radius:20px 20px 4px 20px;padding:12px 16px;font-weight:450}
+@media(max-width:640px){#totem{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:84vh}}

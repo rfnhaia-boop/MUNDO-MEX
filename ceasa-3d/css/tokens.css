@@ -1,0 +1,47 @@
+/* NEW CEASA · TOKENS DE DESIGN (Liquid Glass, a mesma linguagem do Ravi da NEX)
+   Toda cor, vidro, raio e sombra da loja sai daqui. Para outra loja, troque principalmente --acc (cor da marca). */
+:root {
+  /* marca */
+  --acc: #8b5cf6;            /* cor principal (roxo NEW) */
+  --acc-claro: #c4b5fd;      /* texto/realce sobre fundo escuro */
+  --acc-forte: #7c3aed;
+
+  /* texto */
+  --tx: rgba(255,255,255,.92);
+  --mu: rgba(255,255,255,.58);   /* secundário */
+  --mu2: rgba(255,255,255,.36);  /* terciário, rodapés */
+
+  /* superfícies */
+  --vidro: rgba(10,9,16,.8);         /* painéis grandes */
+  --vidro-leve: rgba(10,9,16,.66);   /* pílulas e avisos do HUD */
+  --campo: rgba(255,255,255,.05);    /* inputs, chips */
+  --campo2: rgba(255,255,255,.09);   /* hover */
+  --bolha: rgba(30,30,36,.6);        /* blocos internos */
+  --borda: rgba(255,255,255,.08);
+  --borda2: rgba(255,255,255,.14);
+  --blur: blur(40px) saturate(1.5);
+  --brilho: inset 0 1px 1px rgba(255,255,255,.12);
+  --sombra: 0 24px 70px rgba(0,0,0,.6);
+  --aura: radial-gradient(120% 40% at 0% 0%, color-mix(in srgb, var(--acc) 20%, transparent), transparent 70%),
+          radial-gradient(90% 32% at 100% 100%, color-mix(in srgb, var(--acc) 11%, transparent), transparent 70%);
+
+  /* botões */
+  --btn-pri: linear-gradient(135deg, color-mix(in srgb, var(--acc) 62%, transparent), var(--acc));
+  --btn-pri-sombra: 0 6px 22px -8px var(--acc);
+
+  /* estados */
+  --ok: #4ade80;
+  --alerta: #fbbf24;
+  --erro: #f87171;
+
+  /* forma e tipo */
+  --raio: 22px;
+  --raio-m: 16px;
+  --raio-p: 12px;
+  --fonte: "Segoe UI", system-ui, Roboto, sans-serif;
+
+  /* nomes antigos (usados pelo JS/CSS legado) */
+  --bg: #0b0b0f;
+  --fg: #f5f5f7;
+  --glass: var(--vidro);
+}

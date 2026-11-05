@@ -25,3 +25,8 @@
 scratch/
 .DS_Store
 Thumbs.db
+
+# Dados privados da CEASA (PIN em hash, fotos, custos) e backup da refatoracao
+sede-3d/data/ceasa/
+ceasa-3d/_backup-refator/
+ceasa-3d/assets/flow-raw/
